@@ -1,0 +1,47 @@
+table.custom_border {
+	border: 1px solid black;
+}
+table.custom_border td {
+	border: 1px solid black;
+	padding: 0px 10px 0px 10px;
+}
+body,
+html {
+	height: 100%;
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+.fa * {
+	direction: rtl;
+}
+@keyframes custom_animation {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 0.9;
+		transform: translate(-120%,-50%);
+		position: absolute;
+	}
+	
+}
+.hamedpro8977_list_item {
+	position: relative;
+}
+.hamedpro8977_icon {
+	top: 50%;
+	opacity: 0;
+	left: 100%;
+	transform:  translateY(-50%);
+	position: absolute;
+}
+.hamedpro8977_list_item:hover .hamedpro8977_icon {
+	animation-name: custom_animation;
+	animation-duration: 400ms;
+	animation-fill-mode: forwards;
+
+	transform: translateY(-50%);
+	position: absolute;
+}

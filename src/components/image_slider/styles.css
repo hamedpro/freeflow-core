@@ -1,0 +1,8 @@
+.image_change_button {
+	background-color: lightskyblue;
+	border-radius: 4px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 2px;
+}
