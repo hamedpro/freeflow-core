@@ -40,64 +40,64 @@ async function main() {
 		res.json("server is up")
 	})
 
+	/* 
+		to know how to use each route please 
+		look at client.js file functions
+	*/
 
 	app.post('/users', async (req,res) => {
 		await db.collection('users').insertOne(req.body)
 		res.end()
 	})
-	app.get('/users', async (req, res) => {
-		res.json(await db.collection('users').find().toArray())
+	app.get('/users/:username', async (req, res) => {
+		res.json(await db.collection('users').find({...req.params}).toArray())
 	})
 	app.delete('/users/:username', async (req, res) => {
 		//todo
 	})
 
-	app.post('/notes', async (req, res) => {
+
+	app.post('/users/:username/notes', async (req, res) => {
 		await db.collection('notes').insertOne(req.body)
 		res.end()
 	})
-	app.get('/notes', async (req, res) => {
+	app.get('/users/:username/notes', async (req, res) => {
 		res.json(await db.collection('notes').find().toArray())
 	})
-	app.delete('/notes/:note_id', async (req, res) => {
+	app.delete('/users/:username/notes/:note_id', async (req, res) => {
 		
 	});
-	app.patch('/notes/:note_id', async (req, res) => {
-		
-	});
-	app.get('/notes/:note_id', async(req, res) => {
+	app.patch('/users/:username/notes/:note_id', async (req, res) => {
 		
 	});
 
-	app.post('/workspaces', async (req, res) => {
+	app.post('/users/:username/workspaces', async (req, res) => {
 		await db.collection('workspaces').insertOne(req.body)
 		res.end()
 	})
-	app.get('/workspaces', async (req, res) => {
-		res.json(await db.collection('workspaces').find().toArray())
-	})
-
-
-	app.get('/workspaces/:workspace_id', async (req, res) => {
+	app.get('/users/:username/workspaces', async (req, res) => {
+		res.json(await db.collection('workspaces').find({creator : req.body.creator }).toArray())
+	});
+	app.patch('/users/:username/workspaces/:workspace_id', async (req, res) => {
 		
 	});
-	app.patch('/workspaces/:workspace_id', async (req, res) => {
+	app.delete('/users/:username/workspaces/:workspace_id', async (req, res) => {
 		
 	});
-	app.delete('/workspaces/:workspace_id', async (req, res) => {
-		
-	});
-
-
-	app.post('/note_sections', async (req, res) => {
-		await db.collection('note_sections').insertOne(req.body)
+	app.post('/users/:username/notes/:note_id/note_sections', async (req, res) => {
+		await db.collection('note_sections').insertOne({
+			...req.body,
+			...req.params
+		})
 		res.end()
 	})
-	app.get('/note_sections', async (req, res) => {
-		res.json(await db.collection('note_sections').find().toArray())
+	app.get('/users/:username/notes/:note_id/note_sections', async (req, res) => {
+		res.json(await db.collection('note_sections').find({
+			...req.params
+		}).toArray())
 	})
 
-	
+
 	var server = app.listen(process.env.api_port, () => {
 		console.log(`server started listening`);
 	});
