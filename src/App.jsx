@@ -17,7 +17,7 @@ import { MonthCalendar } from "./components/MonthCalendar";
 import { WeekCalendar } from "./components/WeekCalendar";
 import { DayCalendar } from "./components/DayCalendar";
 import { SubscribtionPage } from "./components/subscribtionPage";
-
+import { Root } from "./components/Root";
 function App() {
 	window.ml = ml;
 	window.customAjax = customAjax;
@@ -26,6 +26,7 @@ function App() {
 
 	return (
 		<Routes>
+			<Route path="/" element={<Root />} />
 			<Route path="login" element={<Login />} />
 			<Route path="register" element={<RegisterPage />} />
 			<Route path="users/:username">
@@ -35,8 +36,6 @@ function App() {
 				<Route path="workspaces/:workspace_id/:board_id" element={<WorkspaceBoard />} />
 				<Route path="workspaces/:workspace_id/:board_id/:flow_id" element={<Flow />} />
 				<Route path="workspaces/:workspace_id/:board_id/:flow_id/:task_id" element={<Task />} />
-				
-				
 				<Route path="month_calendar" element={<MonthCalendar />} />
 				<Route path="week_calendar" element={<WeekCalendar />} />
 				<Route path="day_calendar" element={<DayCalendar />} />

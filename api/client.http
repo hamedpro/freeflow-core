@@ -1,81 +1,11 @@
-http://localhost:4000/?task_name=get_users
-###
-http://localhost:4000?task_name=drop_database
-
-### 
-http://localhost:4000
+GET http://localhost:4000/users
 
 ###
-http://localhost:4000/?task_name=get_products
 
-### 
-http://localhost:4000/?task_name=get_shopping_card_items&username=hamedpro
-
-###
-http://localhost:4000?task_name=change_password&username=root&password=root&new_password=hamed
-
-###
-http://localhost:4000?task_name=verify_user_password&username=hamedpro&password=hamedproo
-###
-http://localhost:4000?task_name=new_user&username=hamedpro&password=hamedpro
-
-### 
-http://localhost:4000
+POST http://localhost:4000/users/new
 Content-Type: application/json
 
 {
-    "task_name" : "get_users"
-}
-
-### 
-POST https://api.pishro-control.ir
-Content-Type: application/json
-
-{
-    "task_name" : "get_blog_posts"
-}
-
-### 
-POST http://localhost:4000/workflows
-Content-Type: application/json
-
-{
-    "workflows" : "[1,2,3]"
-}
-
-### 
-GET http://localhost:4000
-Content-Type: application/json
-
-{
-    "task_name" : "get_users"
-}
-
-### 
-GET http://localhost:4000
-Content-Type: application/json
-
-{
-    "task_name" : "update_cell",
-    "new_val_type" : "string",
-    "col_name" : "email",
-    "new_val" : "ger",
-    "table_name" : "users",
-    "row_id" : 1 
-}
-
-### 
-GET http://localhost:4000
-Content-Type: application/json
-
-{
-    "task_name" : "get_products"
-}
-
-### 
-GET https://api.pishro-control.ir
-Content-Type: application/json
-
-{
-    "task_name" : "get_products"
+    "username" : "hamedpro",
+    "password" : "hamed"
 }

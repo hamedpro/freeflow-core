@@ -2,64 +2,25 @@ require("dotenv").config();
 var hash_sha_256_hex = require("./common.cjs").hash_sha_256_hex;
 var express = require("express");
 var cors = require("cors");
-var response_manager = require("./express_response_manager.cjs");
-var mysql = require("mysql");
 var formidable = require("formidable");
-var nodemailer = require("nodemailer");
 var fs = require("fs");
 //app.use(express.static("./uploaded/"));
 var custom_upload = require("./nodejs_custom_upload.cjs").custom_upload;
-var cq = require("./custom_query.cjs").custom_query; // cq stands for custom_query
 var path = require("path");
+var { MongoClient } = require('mongodb')
 
-function connect_to_db(pass_database = true) {
-	var conf = {
-		user: process.env.mysql_user,
-		password: process.env.mysql_password,
-		port: Number(process.env.mysql_port),
-		host: process.env.mysql_host,
-		multipleStatements: true,
-	};
-	if (pass_database) {
-		conf["database"] = process.env.mysql_database;
-	}
-	return mysql.createConnection(conf);
-	//add error handling for mysql createConnection
-}
+const url = "mongodb://localhost:27017";
+const client = new MongoClient(url);
+var db = client.db('pink_rose')
+
 async function init() {
 	["./uploaded"].forEach((path) => {
 		if (!fs.existsSync(path)) {
 			fs.mkdirSync(path);
 		}
 	});
-
-	var con = connect_to_db(false);
-
-	var output = await cq(
-		con,
-		`
-			create database if not exists ${process.env.mysql_database};
-			use ${process.env.mysql_database};
-			create table if not exists users(
-				id int primary key auto_increment,
-				username varchar(50) ,
-				hashed_password text , 
-				is_admin varchar(20) default "false",
-				is_subscribed_to_email varchar(20) default "false",
-				is_subscribed_to_sms varchar(20) default "false",
-				email varchar(100),
-				phone_number varchar(15),
-				time varchar(20)
-			);
-		`
-	);
-	
 	//todo also check inside the code for todos and make a  --
 	//app for it
-	if (output.error) {
-		throw output.error;
-	}
-	con.end();
 	//todo take care about length of texts and max length of cells
 }
 async function main() {
@@ -68,19 +29,77 @@ async function main() {
 	app.use(express.json());
 	try {
 		await init()
-		var con = connect_to_db();
 	} catch (e) {
-		throw 'problem occured when executing "init" function'
+		console.log(e)
+		process.exit()
 	}
+	//todo use todos of my other applications
+	/* todo validate the data and delete all extra fields and
+	 ... before processing the request */
+	app.all('/', async (req, res) => {
+		res.json("server is up")
+	})
 
-	app.all("/api/", async (req, res) => {
-		var params = { ...req.body, ...req.query };
+
+	app.post('/users', async (req,res) => {
+		await db.collection('users').insertOne(req.body)
+		res.end()
+	})
+	app.get('/users', async (req, res) => {
+		res.json(await db.collection('users').find().toArray())
+	})
+	app.delete('/users/:username', async (req, res) => {
+		//todo
+	})
+
+	app.post('/notes', async (req, res) => {
+		await db.collection('notes').insertOne(req.body)
+		res.end()
+	})
+	app.get('/notes', async (req, res) => {
+		res.json(await db.collection('notes').find().toArray())
+	})
+	app.delete('/notes/:note_id', async (req, res) => {
+		
+	});
+	app.patch('/notes/:note_id', async (req, res) => {
+		
+	});
+	app.get('/notes/:note_id', async(req, res) => {
+		
 	});
 
+	app.post('/workspaces', async (req, res) => {
+		await db.collection('workspaces').insertOne(req.body)
+		res.end()
+	})
+	app.get('/workspaces', async (req, res) => {
+		res.json(await db.collection('workspaces').find().toArray())
+	})
+
+
+	app.get('/workspaces/:workspace_id', async (req, res) => {
+		
+	});
+	app.patch('/workspaces/:workspace_id', async (req, res) => {
+		
+	});
+	app.delete('/workspaces/:workspace_id', async (req, res) => {
+		
+	});
+
+
+	app.post('/note_sections', async (req, res) => {
+		await db.collection('note_sections').insertOne(req.body)
+		res.end()
+	})
+	app.get('/note_sections', async (req, res) => {
+		res.json(await db.collection('note_sections').find().toArray())
+	})
+
+	
 	var server = app.listen(process.env.api_port, () => {
-		console.log(`server is listening on port ${process.env.api_port}`);
+		console.log(`server started listening`);
 	});
 }
-module.exports = {
-	main
-}
+main()
