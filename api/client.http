@@ -9,3 +9,7 @@ Content-Type: application/json
     "username" : "hamedpro",
     "password" : "hamed"
 }
+
+###
+
+GET http://localhost:4000/users/hamedpro/notes

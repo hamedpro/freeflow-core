@@ -1,3 +1,5 @@
+import { build_pyramid } from "./common.cjs";
+
 require("dotenv").config();
 var hash_sha_256_hex = require("./common.cjs").hash_sha_256_hex;
 var express = require("express");
@@ -94,10 +96,23 @@ async function main() {
 	app.get('/users/:username/notes/:note_id/note_sections', async (req, res) => {
 		res.json(await db.collection('note_sections').find({
 			...req.params
-		}).toArray())
+		}).sort({index : 1}).toArray())
 	})
 
+	app.post('/users/:username/workflows/:workflow_id/tasks',async (req, res) => {
+		await db.collection('tasks').insertOne(req.body)
+		res.end()
+	});
 
+	app.get('/users/:username/workflows/:workflow_id/tasks',async (req, res) => {
+		res.json(await db.collection('tasks').find({creator : req.params.username,workflow_id : req.params.workflow_id}).toArray()
+		)
+	});
+
+	app.get('/users/:username/workflows/:workflow_id/tasks_pyramid', async (req, res) => {
+		var tasks = await db.collection('tasks').find({creator : req.params.username,workflow_id : req.params.workflow_id}).toArray()
+		res.json(build_pyramid(tasks))
+	});
 	var server = app.listen(process.env.api_port, () => {
 		console.log(`server started listening`);
 	});
