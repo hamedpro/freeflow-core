@@ -17,8 +17,8 @@ export async function custom_axios({
 export var get_root = async () =>
 	await custom_axios({
 		route: "/",
-    });
-    
+	});
+
 export var new_user = async ({ username, password, subscribtion_plan = null }) =>
 	await custom_axios({
 		route: "/users",
@@ -28,19 +28,19 @@ export var new_user = async ({ username, password, subscribtion_plan = null }) =
 			password,
 			subscribtion_plan,
 		},
-    });
-    
+	});
+
 export var get_user = async ({ username }) =>
 	await custom_axios({
 		route: `/users/${username}`,
-    });
-    
+	});
+
 export var delete_user = async ({ username }) =>
 	await custom_axios({
 		route: `/users/${username}`,
 		method: "delete",
-    });
-    
+	});
+
 export var new_note = async ({
 	creator, // username
 	init_date,
@@ -146,36 +146,34 @@ export var new_note_section_text = async ({
 export var get_note_sections = async ({ note_id, creator }) =>
 	await custom_axios({
 		route: `/users/${creator}/notes/${note_id}/note_sections`,
-    });
+	});
 export var new_task = async ({
-    linked_notes = [],
-    parent = null, // so if not specified this task will be the starting node
-    end_date = null,
-    deadline_date = null,
-    start_date = null,
-    //status
-    creator,
-    workflow_id,
-    init_date,
-    last_modification
-}) => await custom_axios({
-    route: `/users/${creator}/workflows/${workflow_id}/tasks`,
-    method: "POST",
-    body: {
-        linked_notes,
-        parent,
-        end_date,
-        deadline_date,
-        start_date,
-        init_date,
-        last_modification,
-        workflow_id,
-        creator
-    }
-})
-export var get_tasks = async ({
-    workflow_id,
-    creator
-}) => await custom_axios({
-    route: `/users/${creator}/workflows/${workflow_id}/tasks`
-})
+	linked_notes = [],
+	parent = null, // so if not specified this task will be the starting node
+	end_date = null,
+	deadline_date = null,
+	creator,
+	workflow_id,
+}) =>
+	await custom_axios({
+		route: `/users/${creator}/workflows/${workflow_id}/tasks`,
+		method: "POST",
+		body: {
+			linked_notes,
+			parent,
+			end_date,
+			deadline_date,
+			init_date: new Date().getTime(),
+			last_modification: new Date().getTime(),
+			workflow_id,
+			creator,
+		},
+	});
+export var get_tasks_pyramid = async ({ username, workflow_id }) =>
+	await custom_axios({
+		url: `/users/${username}/workflows/${workflow_id}/tasks_pyramid`,
+	});
+export var get_tasks = async ({ workflow_id, creator }) =>
+	await custom_axios({
+		route: `/users/${creator}/workflows/${workflow_id}/tasks`,
+	});
