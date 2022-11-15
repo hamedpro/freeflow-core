@@ -1,7 +1,5 @@
-import { build_pyramid } from "./common.cjs";
-
 require("dotenv").config();
-var hash_sha_256_hex = require("./common.cjs").hash_sha_256_hex;
+var {hash_sha_256_hex,build_pyramid} = require("./common.cjs");
 var express = require("express");
 var cors = require("cors");
 var formidable = require("formidable");
@@ -51,14 +49,19 @@ async function main() {
 		await db.collection('users').insertOne(req.body)
 		res.end()
 	})
+	app.get('/users', async (req, res) => {
+		res.json(await db.collection('users').find().toArray()).end()
+	});
 	app.get('/users/:username', async (req, res) => {
 		res.json(await db.collection('users').find({...req.params}).toArray())
 	})
 	app.delete('/users/:username', async (req, res) => {
 		//todo
 	})
-
-
+	app.get('/users/:username/login', async(req, res) => {
+		var user = await db.collection('users').findOne({ username: req.params.username })
+		res.json(user !== null && user.password === req.body.password).end()
+	});
 	app.post('/users/:username/notes', async (req, res) => {
 		await db.collection('notes').insertOne(req.body)
 		res.end()

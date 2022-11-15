@@ -10,14 +10,12 @@ import { Login } from "./components/pink_rose";
 import { RegisterPage } from "./components/register_page";
 import { WorkspacePage } from "./components/workspace_page";
 import { WorkspacesPage } from "./components/workspaces_page";
-import { WorkspaceBoard } from "./components/WorkspaceBoard";
-import { Task } from "./components/Task";
-import { Flow } from "./components/Flow";
-import { MonthCalendar } from "./components/MonthCalendar";
-import { WeekCalendar } from "./components/WeekCalendar";
-import { DayCalendar } from "./components/DayCalendar";
+import { Calendar } from "./components/Calendar";
 import { SubscribtionPage } from "./components/subscribtionPage";
 import { Root } from "./components/Root";
+import Tasks from "./components/Tasks";
+import Notes from "./Notes";
+import Workflow from "./Workflow";
 function App() {
 	window.ml = ml;
 	window.customAjax = customAjax;
@@ -33,12 +31,10 @@ function App() {
 				<Route path='' element={<h1>joke about user</h1>} />
 				<Route path="workspaces" element={<WorkspacesPage />} />
 				<Route path="workspaces/:workspace_id" element={<WorkspacePage />} />
-				<Route path="workspaces/:workspace_id/:board_id" element={<WorkspaceBoard />} />
-				<Route path="workspaces/:workspace_id/:board_id/:flow_id" element={<Flow />} />
-				<Route path="workspaces/:workspace_id/:board_id/:flow_id/:task_id" element={<Task />} />
-				<Route path="month_calendar" element={<MonthCalendar />} />
-				<Route path="week_calendar" element={<WeekCalendar />} />
-				<Route path="day_calendar" element={<DayCalendar />} />
+				<Route path="workspaces/:workspace_id/:workflow_id" element={<Workflow />} />
+				<Route path="workspaces/:workspace_id/:workflow_id/notes" element={<Notes />} />
+				<Route path="workspaces/:workspace_id/:workflow_id/tasks" element={<Tasks />} />
+				<Route path="calendar" element={<Calendar />} />
 			</Route>
 			<Route path="subscribtion" element={<SubscribtionPage /> } />
 		</Routes>
