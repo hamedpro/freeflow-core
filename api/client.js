@@ -20,7 +20,11 @@ export var get_root = async () =>
 		route: "/",
 	});
 
-export var new_user = async ({ username, password, subscribtion_plan = null }) =>
+export var new_user = async ({ username,
+	password,
+	subscribtion_plan = null,
+	email_address,
+	mobile}) =>
 	await custom_axios({
 		route: "/users",
 		method: "POST",
@@ -28,6 +32,8 @@ export var new_user = async ({ username, password, subscribtion_plan = null }) =
 			username,
 			password,
 			subscribtion_plan,
+			email_address,
+			mobile
 		},
 	});
 

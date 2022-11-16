@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-var LinkLikeP = ({className,link,children = ""}) => {
+export const  LinkLikeP = ({className,link,children = ""}) => {
 	var nav = useNavigate();
 	return (
 		<a
@@ -14,4 +14,3 @@ var LinkLikeP = ({className,link,children = ""}) => {
 		</a>
 	);
 };
-export default LinkLikeP;
