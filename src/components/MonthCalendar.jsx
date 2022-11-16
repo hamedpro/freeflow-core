@@ -1,8 +1,63 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { custom_range } from "../common";
+import "./MonthCalendarStyles.css"
+const InstantOverviewPanel = ({hovered_days,clicked_day,tasks,selected_year,selected_month_index }) => {
+    function gen_day_filter_duration(year,month_index,day) {
+        var start = new Date(year, month_index, day).getTime()
+        return {start,end : start + 3600*24*1000}
+    }
+    function gen_filter_duration(days_array) {
+        //important notes : 
+        return {
+            start: gen_day_filter_duration(selected_year,selected_month_index,days_array[0])['start'],
+            end : gen_day_filter_duration(selected_year,selected_month_index,days_array[days_array.length -1])['end']
+        }
+    }
+    function filterd_tasks(tasks, start, end) {
+        return tasks.filter(task =>
+            task.planned_start_date > start &&
+            task.planned_end_date < end
+        )
+    }
+    return (
+        <>
+            {clicked_day !== null && (
+                <>
+                    <h1>a day is clicked : </h1>
+                    <br />
+                    <p>{JSON.stringify(
+                        filterd_tasks(
+                            tasks,
+                            gen_filter_duration([clicked_day])['start'],
+                            gen_filter_duration([clicked_day])['end']
+                        ))}
+                    </p>
+                </>
+            )}
+            {clicked_day === null && hovered_days.length !== 0 && (
+                <>
+                <h1>a days row is hovered : </h1>
+                <br />
+                <p>{JSON.stringify(
+                    filterd_tasks(
+                        tasks,
+                        gen_filter_duration(hovered_days)['start'],
+                        gen_filter_duration(hovered_days)['end']
 
+                    ))}
+                </p>
+            </>
+            )}
+            {clicked_day === null && hovered_days.length === 0 && (
+                <h1>there is not any row hovered or any day clicked</h1>
+            )}
+        </>
+    )
+}
 const MonthCalendar = ({ tasks }) => {
+    var [hovered_days,set_hovered_days] = useState([])
+    var [clicked_day,set_clicked_day] = useState(null)
     var dev_mode = false;
 	/* 
         this component gives an overview of what tasks are there in each month and 
@@ -48,7 +103,7 @@ const MonthCalendar = ({ tasks }) => {
     
 	function gen_start_and_end(year, month_name) {
 		var months_days_count = get_months_days_count(year)
-		var start = new Date(year, get_month_number(month_name), 1).getTime();
+		var start = new Date(year, get_month_number(month_name) - 1, 1).getTime();
 		var end = start + months_days_count[get_month_number(month_name) - 1] * 24 * 3600 * 1000;
 		return { end, start };
 	}
@@ -93,8 +148,9 @@ const MonthCalendar = ({ tasks }) => {
         return result 
     }
 	//take care if becuse of setState being async we can not use its value right there in component function body (may selected_month be undefined there)
-	return (
-		<div>
+	
+    return (
+		<React.Fragment>
             <h1>MonthCalendar</h1>
             <select onChange={e => { 
                 select_month(e.target.value)
@@ -116,10 +172,10 @@ const MonthCalendar = ({ tasks }) => {
                 <br />
                 result of calc_calnedar_parts function : {JSON.stringify(calc_calnedar_parts())}
             </div>
-            <div className="border border-blue-400">
-                <table>
+            
+                <table className="month_calendar">
                     <tbody>
-                        <tr>
+                        <tr className="headers">
                             <th>sunday</th>
                             <th>monday</th>
                             <th>tuesday</th>
@@ -130,10 +186,23 @@ const MonthCalendar = ({ tasks }) => {
                         </tr>
                         {calc_calnedar_parts().map((calendar_part,index) => {
                             return (
-                                <tr key={index}>
+                                <tr key={index}
+                                    onMouseEnter={e => {
+                                        set_hovered_days(calendar_part.filter(j=>j !== null))
+                                    }}
+                                    onMouseLeave={e => {
+                                        set_hovered_days([])
+                                    }}
+                                >
                                     {calendar_part.map((day,index2) => {
                                         return (
-                                            <td key={index2}>{day !== null ? day : "null"}</td>
+                                            <td
+                                                key={index2}
+                                                onClick={() => {
+                                                    set_clicked_day(day == clicked_day ? null : day)
+                                                }}
+                                                className={day == clicked_day && day!== null ? "bg-blue-900 text-white" : ""}
+                                            >{day !== null ? day : "null"}</td>
                                         )
                                     })}
                                 </tr>
@@ -141,8 +210,14 @@ const MonthCalendar = ({ tasks }) => {
                         })}
                     </tbody>
                 </table>
-            </div>
-		</div>
+            <InstantOverviewPanel
+                clicked_day={clicked_day}
+                hovered_days={hovered_days}
+                tasks={tasks}
+                selected_year={selected_year}
+                selected_month_index={get_month_number(selected_month) -1}
+            />
+		</React.Fragment>
 	);
 };
 
