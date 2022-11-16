@@ -128,3 +128,10 @@ export function getCookie(name) {
 export function eraseCookie(name) {   
     document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
+export function custom_range({from=0,to}) {
+	var result = []
+	for (let i = from; i <= to; i++){
+		result.push(i)
+	}
+	return result 
+}

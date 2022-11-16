@@ -114,7 +114,15 @@ async function main() {
 	});
 
 	app.get('/users/:username/workflows/:workflow_id/tasks_pyramid', async (req, res) => {
-		var tasks = await db.collection('tasks').find({creator : req.params.username,workflow_id : Number(req.params.workflow_id)}).toArray().filter(item => String(item.workflow_id) == String(req.params.workflow_id))
+		var tasks = await db.collection('tasks').find({creator : req.params.username}).toArray().filter(item => String(item.workflow_id) == String(req.params.workflow_id))
+		res.json(build_pyramid(tasks))
+	});
+	app.get('/users/:username/tasks', async (req, res) => {
+		res.json(await db.collection('tasks').find({creator : req.params.username}).toArray())
+		//todo add support to check also if username is not the creator but a member of that task result show up
+	});
+	app.get('/users/:username/tasks_pyramid', async (req, res) => {
+		var tasks = await db.collection('tasks').find({ creator: req.params.username }).toArray()
 		res.json(build_pyramid(tasks))
 	});
 	var server = app.listen(process.env.api_port, () => {

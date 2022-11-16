@@ -16,6 +16,7 @@ import { Root } from "./components/Root";
 import Tasks from "./components/Tasks";
 import Notes from "./Notes";
 import Workflow from "./Workflow";
+import UserProfile from "./UserProfile";
 function App() {
 	window.ml = ml;
 	window.customAjax = customAjax;
@@ -28,7 +29,7 @@ function App() {
 			<Route path="login" element={<Login />} />
 			<Route path="register" element={<RegisterPage />} />
 			<Route path="users/:username">
-				<Route path='' element={<h1>joke about user</h1>} />
+				<Route path='' element={<UserProfile />} />
 				<Route path="workspaces" element={<WorkspacesPage />} />
 				<Route path="workspaces/:workspace_id" element={<WorkspacePage />} />
 				<Route path="workspaces/:workspace_id/:workflow_id" element={<Workflow />} />

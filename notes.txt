@@ -1,1 +1,2 @@
 also take care about todos and notes of corp_webapp repository
+consider that you may save value of new Date().getTime() and in the future users's region change and date calculations go wrong so do something to cover all possible cases of utc and local changes related issues

@@ -5,6 +5,7 @@ export async function custom_axios({
 	route,
 	method = "GET", // case insensitive,
 	body = {},
+	return_response_dot_data = true // set it to false if you want the reponse itself
 }) {
 	var response = await axios({
 		url: new URL(route, api_endpoint).href,
@@ -169,11 +170,17 @@ export var new_task = async ({
 			creator,
 		},
 	});
-export var get_tasks_pyramid = async ({ username, workflow_id }) =>
+export var get_workflow_tasks_pyramid = async ({ username, workflow_id }) =>
 	await custom_axios({
 		url: `/users/${username}/workflows/${workflow_id}/tasks_pyramid`,
 	});
-export var get_tasks = async ({ workflow_id, creator }) =>
+export var get_workflow_tasks = async ({ workflow_id, creator }) =>
 	await custom_axios({
 		route: `/users/${creator}/workflows/${workflow_id}/tasks`,
 	});
+export var get_user_tasks = async ({ creator }) => await custom_axios({
+	route : `/users/${creator}/tasks`
+})
+export var get_user_tasks_pyramid = async ({ creator }) => await custom_axios({
+	route : `/users/${creator}/tasks_pyramid`
+})
