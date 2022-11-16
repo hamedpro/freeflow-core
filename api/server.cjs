@@ -53,7 +53,7 @@ async function main() {
 		res.json(await db.collection('users').find().toArray()).end()
 	});
 	app.get('/users/:username', async (req, res) => {
-		res.json(await db.collection('users').find({...req.params}).toArray())
+		res.json(await db.collection('users').findOne({...req.params}))
 	})
 	app.delete('/users/:username', async (req, res) => {
 		//todo
