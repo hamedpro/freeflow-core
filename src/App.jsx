@@ -6,7 +6,7 @@ import { customAjax } from "../src/custom_ajax.js";
 import { gen_link_to_file } from "./common";
 //import {} from "./components";
 import { multi_lang_helper as ml } from "./common";
-import { Login } from "./components/pink_rose";
+import { Login } from "./components/Login";
 import { RegisterPage } from "./components/register_page";
 import { WorkspacePage } from "./components/workspace_page";
 import { WorkspacesPage } from "./components/workspaces_page";

@@ -11,6 +11,9 @@ export async function custom_axios({
 		url: new URL(route, api_endpoint).href,
 		method: method.toUpperCase(),
 		data: body,
+		headers: {
+			'Content-Type': 'application/json'
+			}
 	});
 	return response.data;
 }
@@ -37,6 +40,26 @@ export var new_user = async ({ username,
 		},
 	});
 
+export var login = async({
+	username,
+	email_address,
+	mobile,
+	password,
+	login_method
+}) => {
+	if ([username, email_address, mobile].filter(i => i !== undefined) !== 1) {
+		throw "error was occured in login function of api driver : just one of these fields should be defined : [username,email_address,mobile]"
+	}
+	var used_value = username ? "username" : (mobile ? "mobile" : "email_address")
+	var request_body = {}
+	request_body[used_value] = username ? username : (mobile ? mobile : email_address)
+	request_body["password"] = password
+	request_body['login_method'] = login_method
+	return await custom_axios({
+		route: '/login',
+		body
+	})
+}
 export var get_user = async ({ username }) =>
 	await custom_axios({
 		route: `/users/${username}`,

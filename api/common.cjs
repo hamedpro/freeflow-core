@@ -45,11 +45,14 @@ function build_pyramid(data_array) {
     return pyramid
 }
 var pretty_stringify = (input) => JSON.stringify(input, null, 4)
-
+function gen_verification_code() {
+	return Math.floor(100000 + Math.random() * 900000);
+}
 module.exports = {
 	arr_last_item,
 	hash_sha_256_hex,
 	connect_to_db,
 	pretty_stringify,
-	build_pyramid
+    build_pyramid,
+    gen_verification_code
 };
