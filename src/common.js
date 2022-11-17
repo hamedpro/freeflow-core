@@ -106,7 +106,8 @@ export function gen_link_to_file(relative_file_path) {
 	// relative_file_path is relative with ./uploaded directory
 	return new URL(relative_file_path, window.api_endpoint).href;
 }
-export function setCookie(name,value,days) {
+export function setCookie(name, value, days) {
+	//it doesnt overwrite the other current cookies
     var expires = "";
     if (days) {
         var date = new Date();

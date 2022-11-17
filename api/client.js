@@ -13,7 +13,8 @@ export async function custom_axios({
 		data: body,
 		headers: {
 			'Content-Type': 'application/json'
-			}
+		},
+		withCredentials : true 
 	});
 	return response.data;
 }

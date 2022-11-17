@@ -33,16 +33,14 @@ export function Login() {
 			kind_of_input = "mobile";
 		} else {
 			kind_of_input = "username";
-		}
-
+		} //todo ask user whether value kind detecting has gone wrong or not 
 		try {
 			var body = {};
 			body[kind_of_input] = input_value;
 			body["password"] = password_input_value;
-			body["login_method"] = "password_based";
-			console.log(body)
+			body["kind_of_input"] = kind_of_input
 			var response = await custom_axios({
-				route: "/login",
+				route: "/login_methods/password_based",
 				body,
 				method : "POST"
 			});
@@ -50,66 +48,65 @@ export function Login() {
 				alert('auth was performed!')
 				setCookie("identity", JSON.stringify({
 					value: input_value,
-					kind : verification_asker_details['input_type']
+					kind : kind_of_input
 				}), 2)
 				custom_nav('/')
 			} else {
-				alert('no user was found or your password was wrong')
+				alert('user was found but your password was wrong. please check it again')
 			}
-			
 		} catch (error) {
+			console.log(error);
 			alert(
 				"something went wrong while trying to make a request to the server : details in console"
 			);
-			console.log(error);
 		}
 	}
 	async function send_email_verification() {
 		var input_value = dgebi("send_email_input");
-
 		try {
 			var response = await custom_axios({
-				route: "/login",
+				route: "/login_methods/send_verification_code",
 				body: {
 					email_address: input_value,
-					login_method: "send_email",
+					kind_of_input : "email_address"
 				},
 				method : "POST"
 			});
 			alert("all done !");
 			set_verf_asker_details({
-				input_kind: 'email',
+				kind_of_input: 'email_address',
 				value: input_value
-			})
+			}) //todo take care set_state is async and should not be used immediately  (right now its not checked immediately so there is not any problem )
 			set_active_part("verify_code");
 		} catch (error) {
+			console.log(error);
 			alert(
 				"something went wrong while trying to make a request to the server : details in console"
 			);
-			console.log(error);
+			
 		}
 	}
 	async function send_sms_verification() {
 		var input_value = dgebi("send_sms_input");
 		try {
 			var response = await custom_axios({
-				route: "/login",
+				route: "/login_methods/send_verification_code",
 				body: {
 					mobile: input_value,
-					login_method: "send_sms",
+					kind_of_input : "mobile"
 				},
 				method : "POST"
 			});
 			set_verf_asker_details({
-				input_kind: 'mobile',
+				kind_of_input: 'mobile',
 				value: input_value
-			})
+			}) //todo also take care set state is async and its value may not be available immediately (right now its not checked immediately so there is not any problem )
 			set_active_part("verify_code");
 		} catch (error) {
+			console.log(error);
 			alert(
 				"something went wrong while trying to make a request to the server : details in console"
 			);
-			console.log(error);
 		}
 	}
 	async function check_verification_code() {
@@ -127,25 +124,29 @@ export function Login() {
 		}
 		try {
 			var body = {}
-			body[verification_asker_details['input_type']] = verification_asker_details['value']
-			code = input_value
+			body[verification_asker_details['kind_of_input']] = verification_asker_details['value']
+			body['verf_code'] = input_value
+			body['kind_of_input'] = verification_asker_details['kind_of_input']
 			var response = await custom_axios({
-				route: "/",
-				body
+				route: `/login_methods/verification_code_test`,
+				body,
+				method : "POST"
 			});
-			if (response) {
+			if (response === true ) {
 				alert('auth was performed!')
 				setCookie("identity", JSON.stringify({
-					value: input_value,
-					kind : verification_asker_details['input_type']
+					value: verification_asker_details['value'],
+					kind : verification_asker_details['kind_of_input']
 				}), 2)
 				custom_nav('/')
+			} else {
+				alert('verification code was not correct. please try checking what you have typed')
 			}
 		} catch (error) {
+			console.log(error);
 			alert(
 				"something went wrong while trying to make a request to the server : details in console"
 			);
-			console.log(error);
 		}
 	}
 	return (

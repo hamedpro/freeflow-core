@@ -1,6 +1,7 @@
-require("dotenv").config();
+require("dotenv").config(); //some comment for test
 var {hash_sha_256_hex,build_pyramid, gen_verification_code} = require("./common.cjs");
 var express = require("express");
+var cookieParser = require('cookie-parser')
 var cors = require("cors");
 var formidable = require("formidable");
 var fs = require("fs");
@@ -8,7 +9,6 @@ var fs = require("fs");
 var custom_upload = require("./nodejs_custom_upload.cjs").custom_upload;
 var path = require("path");
 var { MongoClient } = require('mongodb')
-
 const url = "mongodb://localhost:27017";
 const client = new MongoClient(url);
 var db = client.db('pink_rose')
@@ -25,7 +25,8 @@ async function init() {
 }
 async function main() {
 	var app = express();
-	app.use(cors());
+	app.use(cors({origin : "http://localhost:3000",credentials : true})); //todo read origin from env so when port or protocol changes it will keep going working properly 
+	app.use(cookieParser())
 	app.use(express.json());
 	try {
 		await init()
@@ -37,6 +38,11 @@ async function main() {
 	/* todo validate the data and delete all extra fields and
 	 ... before processing the request */
 	app.all('/', async (req, res) => {
+		console.log({
+			info: '"/" was requested',
+			cookies: req.cookies,
+			body : req.body
+		})
 		res.json("server is up")
 	})
 
@@ -58,58 +64,78 @@ async function main() {
 	app.delete('/users/:username', async (req, res) => {
 		//todo
 	})
-	app.post('/login', async (req, res) => {
+	app.post('/login_methods/password_based', async (req, res) => {
 		var users = await db.collection('users').find().toArray()
-		var user = users.find(this_user => {
-			var options = ['email_address', 'mobile', 'username']
-			for (let i = 0; i < options.length; i++) {
-				var option = options[i]
-				if (req.body[option] !== undefined) {
-					console.log(`going to check ${option} : ${this_user[option]} with ${req.body[option]}`)
-					return this_user[option] == req.body[option]
-				}
-			}
-			return false
-		})
+		var kind_of_input = req.body['kind_of_input']
+		var user = users.find(this_user => this_user[kind_of_input] == req.body[kind_of_input])
 		if (user === undefined) {
-			res.status(400).end() // given data does not belong to any user
+			res.status(400).json('there is not any user even found with that details')
 			return
 		}
+		res.json(user.password == req.body.password)
 		//console.log(user)
-		switch (req.body.login_method) {
-			case "password_based":
-				res.json(user !== null && user.password == req.body.password)
-				break;
-			case "send_sms":
+	});
+	app.post('/login_methods/send_verification_code', async (req, res) => {
+		/* 
+			how to use it : body should look like this : 
+			{
+				kind_of_input : "mobile" || "email_address" ||"username",
+				"mobile" || "email_address" || "username" : "string",
+			}
+			if response code was not in successful range it has went wrong otherwise all is done
+		*/
+		var users = await db.collection('users').find().toArray()
+		var kind_of_input = req.body['kind_of_input']
+		var user = users.find(this_user => this_user[kind_of_input] == req.body[kind_of_input])
+		if (user === undefined) {
+			res.status(400).json('there is not any user even found with that details')
+			return
+		}
+		switch (req.body.kind_of_input) {
+			case "mobile":
 				var verf_code = gen_verification_code()
 				//send code to the user through api request to sms web service
-				await db.collection('verification_codes').replaceOne({mobile : req.body.mobile},{value : verf_code,username : user.username})
+
+				//deleting previous verf_code if present:
+				if (await db.collection('verification_codes').findOne({ username: user.username }) !== null) {
+					await db.collection('verification_codes').deleteOne({username : user.username})
+				}
+				
+				await db.collection('verification_codes').insertOne({value : verf_code,username : user.username})
+				// note : schema of collection 'verification_codes' : username : "string" , verf_code : 6-digit integer 
 				res.json("verification_code was sent")
-				break;
-			case "send_email":
+				return
+			case "email_address":
 				var verf_code = gen_verification_code()
 				//send code to the user through api request to email sending web service
-				await db.collection('verification_codes').replaceOne({email_address : req.body.email_address},{value : verf_code,username : user.username})
-				res.json("verification_code was sent")
-				break;
-			
-		}
-	});
-	app.get('/users/:username/verification_code_test', async (req, res) => {
-		var users = await db.collection('users').find().toArray()
-		var user = users.find(i => {
-			var options = ['email_address', 'mobile', 'username']
-			for (let i = 0; i < options.length; i++) {
-				var option = options[i]
-				if (req.body[option]) {
-					return i[option] == req.body[option]
+
+				//deleting previous verf_code if present:
+				if (await db.collection('verification_codes').findOne({ username: user.username }) !== null) {
+					await db.collection('verification_codes').deleteOne({username : user.username})
 				}
-			}
-			return false
-		})
-		if(user === undefined) res.status(400).json('there is not any user even found with that details')
-		var current_verification_code = await db.collection('verification_codes').findOne({username : user.username})
-		res.json(current_verification_code!==null && current_verification_code.value == req.body.code)
+
+				await db.collection('verification_codes').insertOne({value : verf_code,username : user.username})
+				res.json("verification_code was sent")
+				return 
+			default:
+				res.status(400).send() // in this route "kind_of_input" must be either mobile or email_address not anything else 
+				return
+		}
+		
+	});
+	app.post('/login_methods/verification_code_test', async (req, res) => {
+		var users = await db.collection('users').find().toArray()
+		var kind_of_input = req.body['kind_of_input']
+		var user = users.find(this_user => this_user[kind_of_input] == req.body[kind_of_input])
+		if (user === undefined) {
+			res.status(400).json('there is not any user even found with that details')
+			return
+		}
+		var current_verification_code = await db.collection('verification_codes').findOne({ username: user.username })
+		if (current_verification_code == null) {
+			res.status(400).json('there is not any verification code sending request was done for this uesr please request a verification code first')
+		}
+		res.json(current_verification_code.value  == req.body.verf_code)
 	});
 	app.post('/users/:username/notes', async (req, res) => {
 		await db.collection('notes').insertOne(req.body)
