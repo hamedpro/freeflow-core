@@ -183,23 +183,43 @@ async function main() {
 		res.end()
 	});
 
-	app.get('/users/:username/workflows/:workflow_id/tasks',async (req, res) => {
-		res.json(await db.collection('tasks').find({creator : req.params.username}).toArray().filter(item => String(item.workflow_id) == String(req.params.workflow_id))
-		)
+	app.get('/users/:username/workflows/:workflow_id/tasks', async (req, res) => {
+		//var filtered_tasks = 
+		res.json((await db.collection('tasks').find({ creator: req.params.username }).toArray())
+			.filter(item => String(item.workflow_id) == String(req.params.workflow_id)))
 	});
 
 	app.get('/users/:username/workflows/:workflow_id/tasks_pyramid', async (req, res) => {
 		var tasks = await db.collection('tasks').find({creator : req.params.username}).toArray().filter(item => String(item.workflow_id) == String(req.params.workflow_id))
 		res.json(build_pyramid(tasks))
 	});
+	app.get('/users/:username/workspaces/:workspace_id/workflows',async (req, res) => {
+		var filtered_workflows = await db.collection('workflows').find({workspace_id : req.params.workspace_id}).toArray()
+		res.json(filtered_workflows)
+	});
+	app.post('/users/:username/workspaces/:workspace_id/workflows',async (req, res) => {
+		
+	});
+	app.get('/users/:username/workspaces/:workspace_id/workflows/:workflow_id/tasks', async(req, res) => {
+		var filtered_tasks = await db.collection('tasks').find({creator : req.params.username,workflow_id : req.params.workflow_id}).toArray()
+		res.json(filtered_tasks)
+	});
 	app.get('/users/:username/tasks', async (req, res) => {
 		res.json(await db.collection('tasks').find({creator : req.params.username}).toArray())
 		//todo add support to check also if username is not the creator but a member of that task result show up
+	});
+	app.post('/users/:username/tasks', async(req, res) => {
+		await db.collection('tasks').insertOne({ ...req.body, creator :req.params.username})
 	});
 	app.get('/users/:username/tasks_pyramid', async (req, res) => {
 		var tasks = await db.collection('tasks').find({ creator: req.params.username }).toArray()
 		res.json(build_pyramid(tasks))
 	});
+	app.post(`/users/:creator/workspaces/:workspace_id/workflows/new`, async(req, res) => {
+		await db.collection('workflows').insertOne({...req.body,username : req.params.creator,workspace_id : req.params.workspace_id})
+		res.json({})
+	});
+	//important todo : res.end or res.json at the end of async requests becuse axios will await until this happens 
 	var server = app.listen(process.env.api_port, () => {
 		console.log(`server started listening`);
 	});

@@ -76,6 +76,7 @@ export var new_note = async ({
 	creator, // username
 	init_date,
 	last_modification, //should be in format of new Date.getTime()
+	workflow_id
 }) =>
 	await custom_axios({
 		route: `/users/${creator}/notes`,
@@ -83,6 +84,7 @@ export var new_note = async ({
 		body: {
 			init_date,
 			last_modification,
+			workflow_id
 		},
 	});
 
@@ -106,14 +108,15 @@ export var update_note = async ({ username, note_id, last_modification }) =>
 		},
 	});
 
-export var new_workspace = async ({ creator, init_date, title, description }) =>
+export var new_workspace = async ({ creator, init_date, title, description , collaborators = [] }) =>
 	await custom_axios({
-		route: `/users/${username}/workspaces`,
+		route: `/users/${creator}/workspaces`,
 		method: "post",
 		body: {
 			init_date,
 			title,
 			description,
+			collaborators
 		},
 	});
 
@@ -213,4 +216,17 @@ export var get_user_tasks = async ({ creator }) => await custom_axios({
 })
 export var get_user_tasks_pyramid = async ({ creator }) => await custom_axios({
 	route : `/users/${creator}/tasks_pyramid`
+})
+export var get_workspace_workflows = async ({ username,workspace_id}) => await custom_axios({
+	route: `/users/${username}/workspaces/${workspace_id}/workflows`
+})
+export var new_workflow = async ({ workspace_id, creator, title, description,collaborators = []}) => await custom_axios({
+	route: `/users/${creator}/workspaces/${workspace_id}/workflows/new`,
+	method: "POST",
+	body: {
+		title,
+		description,
+		collaborators,
+		init_date : new Date().getTime()
+	}
 })

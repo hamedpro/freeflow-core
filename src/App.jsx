@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./App.css";
 import "./output.css";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { customAjax } from "../src/custom_ajax.js";
-import { gen_link_to_file } from "./common";
 //import {} from "./components";
 import { multi_lang_helper as ml } from "./common";
 import { Login } from "./components/Login";
@@ -15,8 +14,12 @@ import { SubscribtionPage } from "./components/subscribtionPage";
 import { Root } from "./components/Root";
 import Tasks from "./components/Tasks";
 import Notes from "./Notes";
-import Workflow from "./Workflow";
 import UserProfile from "./UserProfile";
+import NewWorkspace from "./components/NewWorkspace";
+import NewWorkflow from "./components/NewWorkflow";
+import { Note } from "./components/Note";
+import { Task } from "./components/Task";
+import Workflow from "./components/Workflow";
 function App() {
 	window.ml = ml;
 	window.customAjax = customAjax;
@@ -31,10 +34,13 @@ function App() {
 			<Route path="users/:username">
 				<Route path='' element={<UserProfile />} />
 				<Route path="workspaces" element={<WorkspacesPage />} />
+				<Route path="workspaces/new" element={<NewWorkspace />} />
 				<Route path="workspaces/:workspace_id" element={<WorkspacePage />} />
-				<Route path="workspaces/:workspace_id/:workflow_id" element={<Workflow />} />
-				<Route path="workspaces/:workspace_id/:workflow_id/notes" element={<Notes />} />
-				<Route path="workspaces/:workspace_id/:workflow_id/tasks" element={<Tasks />} />
+				<Route path="workspaces/:workspace_id/workflows/new" element={<NewWorkflow />} />
+				<Route path="workspaces/:workspace_id/workflows/:workflow_id" element={<Workflow />} />
+				<Route path="workspaces/:workspace_id/workflows/:workflow_id/new" element={<Notes />} />
+				<Route path="workspaces/:workspace_id/workflows/:workflow_id/notes/:note_id" element={<Note />} />
+				<Route path="workspaces/:workspace_id/workflows/:workflow_id/tasks/:task_id" element={<Task />} />
 				<Route path="calendar" element={<Calendar />} />
 			</Route>
 			<Route path="subscribtion" element={<SubscribtionPage /> } />
