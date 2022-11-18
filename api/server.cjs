@@ -173,9 +173,10 @@ async function main() {
 		res.end()
 	})
 	app.get('/users/:username/notes/:note_id/note_sections', async (req, res) => {
-		res.json(await db.collection('note_sections').find({
+		res.json((await db.collection('note_sections').find({
 			username: req.params.username
-		}).sort({index : 1}).toArray().filter(item => String(item.note_id) == String(req.params.note_id)))
+		}).sort({ index: 1 }).toArray()).filter(item => String(item.note_id) == String(req.params.note_id))
+		)
 	})
 
 	app.post('/users/:username/workflows/:workflow_id/tasks',async (req, res) => {

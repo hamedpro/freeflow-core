@@ -12,7 +12,6 @@ import { WorkspacesPage } from "./components/workspaces_page";
 import { Calendar } from "./components/Calendar";
 import { SubscribtionPage } from "./components/subscribtionPage";
 import { Root } from "./components/Root";
-import Tasks from "./components/Tasks";
 import Notes from "./Notes";
 import UserProfile from "./UserProfile";
 import NewWorkspace from "./components/NewWorkspace";
@@ -22,6 +21,7 @@ import { Task } from "./components/Task";
 import Workflow from "./components/Workflow";
 import { NewNote } from "./components/NewNote";
 import { NewTask } from "./components/NewTask";
+import { Terms } from "./components/Terms";
 function App() {
 	window.ml = ml;
 	window.customAjax = customAjax;
@@ -33,6 +33,7 @@ function App() {
 			<Route path="/" element={<Root />} />
 			<Route path="login" element={<Login />} />
 			<Route path="register" element={<RegisterPage />} />
+			<Route path="/terms" element={<Terms />} />
 			<Route path="users/:username">
 				<Route path='' element={<UserProfile />} />
 				<Route path="workspaces" element={<WorkspacesPage />} />

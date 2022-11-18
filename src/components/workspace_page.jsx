@@ -27,7 +27,7 @@ export const WorkspacePage = () => {
           {workflows.map((workflow, index) => {
             return (
               <React.Fragment key={index}>
-                <ObjectBox object={workflow} onClick={()=> nav(`/users/${username}/workspaces/${workspace_id}/workflows/${workflow._id}`)} />
+                <ObjectBox object={workflow} link={`/users/${username}/workspaces/${workspace_id}/workflows/${workflow._id}`} />
           </React.Fragment>
         )
       })}

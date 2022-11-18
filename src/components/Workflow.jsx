@@ -5,7 +5,7 @@ import { get_notes, get_workflow_tasks, new_note } from '../../api/client'
 import ObjectBox from "./ObjectBox"
 const Workflow = () => {
     var nav = useNavigate()
-    var {workflow_id,username } = useParams()
+    var {workflow_id,username ,workspace_id} = useParams()
     var [notes, set_notes] = useState(null)
     var [tasks, set_tasks] = useState(null)
     async function get_data() {
@@ -31,7 +31,8 @@ const Workflow = () => {
                      
                       return (
                           <React.Fragment key={index}>
-                              <ObjectBox object={note} onClick={()=>nav(`/users/${username}/workspaces/${workspace_id}/workflows/${workflow_id}/notes/${note._id}`)} />
+                              <ObjectBox object={note}
+                                  link={`/users/${username}/workspaces/${workspace_id}/workflows/${workflow_id}/notes/${note._id}`} />
                           </React.Fragment>
                       )
                   })}
@@ -47,7 +48,9 @@ const Workflow = () => {
                      
                       return (
                           <React.Fragment key={index}>
-                              <ObjectBox object={task} onClick={()=>nav(`/users/${username}/workspaces/${workspace_id}/workflows/${workflow_id}/tasks/${task._id}`)} />
+                              <ObjectBox
+                                  object={task}
+                                  link={`/users/${username}/workspaces/${workspace_id}/workflows/${workflow_id}/tasks/${task._id}`} />
                           </React.Fragment>
                       )
                   })}
