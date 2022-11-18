@@ -76,7 +76,9 @@ export var new_note = async ({
 	creator, // username
 	init_date,
 	last_modification, //should be in format of new Date.getTime()
-	workflow_id
+	workflow_id,
+	title,
+	workspace_id
 }) =>
 	await custom_axios({
 		route: `/users/${creator}/notes`,
@@ -84,7 +86,9 @@ export var new_note = async ({
 		body: {
 			init_date,
 			last_modification,
-			workflow_id
+			workflow_id,
+			title,
+			workspace_id
 		},
 	});
 
@@ -182,12 +186,14 @@ export var get_note_sections = async ({ note_id, creator }) =>
 		route: `/users/${creator}/notes/${note_id}/note_sections`,
 	});
 export var new_task = async ({
-	linked_notes = [],
+	linked_notes = [], //array of note_ids
 	parent = null, // so if not specified this task will be the starting node
 	end_date = null,
 	deadline_date = null,
 	creator,
 	workflow_id,
+	workspace_id,
+	start_date
 }) =>
 	await custom_axios({
 		route: `/users/${creator}/workflows/${workflow_id}/tasks`,
@@ -201,6 +207,8 @@ export var new_task = async ({
 			last_modification: new Date().getTime(),
 			workflow_id,
 			creator,
+			workspace_id,
+			start_date
 		},
 	});
 export var get_workflow_tasks_pyramid = async ({ username, workflow_id }) =>

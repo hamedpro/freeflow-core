@@ -180,7 +180,7 @@ async function main() {
 
 	app.post('/users/:username/workflows/:workflow_id/tasks',async (req, res) => {
 		await db.collection('tasks').insertOne(req.body)
-		res.end()
+		res.json({})
 	});
 
 	app.get('/users/:username/workflows/:workflow_id/tasks', async (req, res) => {

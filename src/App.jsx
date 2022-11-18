@@ -20,6 +20,8 @@ import NewWorkflow from "./components/NewWorkflow";
 import { Note } from "./components/Note";
 import { Task } from "./components/Task";
 import Workflow from "./components/Workflow";
+import { NewNote } from "./components/NewNote";
+import { NewTask } from "./components/NewTask";
 function App() {
 	window.ml = ml;
 	window.customAjax = customAjax;
@@ -40,7 +42,9 @@ function App() {
 				<Route path="workspaces/:workspace_id/workflows/:workflow_id" element={<Workflow />} />
 				<Route path="workspaces/:workspace_id/workflows/:workflow_id/new" element={<Notes />} />
 				<Route path="workspaces/:workspace_id/workflows/:workflow_id/notes/:note_id" element={<Note />} />
+				<Route path="workspaces/:workspace_id/workflows/:workflow_id/notes/new" element={<NewNote />} />
 				<Route path="workspaces/:workspace_id/workflows/:workflow_id/tasks/:task_id" element={<Task />} />
+				<Route path="workspaces/:workspace_id/workflows/:workflow_id/tasks/new" element={<NewTask />} />
 				<Route path="calendar" element={<Calendar />} />
 			</Route>
 			<Route path="subscribtion" element={<SubscribtionPage /> } />
