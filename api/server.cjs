@@ -8,11 +8,20 @@ var fs = require("fs");
 //app.use(express.static("./uploaded/"));
 var custom_upload = require("./nodejs_custom_upload.cjs").custom_upload;
 var path = require("path");
-var { MongoClient } = require('mongodb')
+var { MongoClient, ObjectId } = require('mongodb')
 const url = "mongodb://localhost:27017";
 const client = new MongoClient(url);
 var db = client.db('pink_rose')
-
+function get_kind_of_input(input) {
+	if (input === null) return null 
+	if (input.includes('@')) {
+		return "email_address"
+	} else if (input.startsWith('09')) {
+		return "mobile"
+	} else {
+		return "username"
+	}
+}
 async function init() {
 	["./uploaded"].forEach((path) => {
 		if (!fs.existsSync(path)) {
@@ -52,8 +61,25 @@ async function main() {
 	*/
 
 	app.post('/users', async (req,res) => {
-		await db.collection('users').insertOne(req.body)
-		res.end()
+		var user_id = await db.collection('users').insertOne(req.body)
+		res.json(user_id)
+	})
+	app.get('/v2/users/:user_id', async (req, res) => {
+		var user = await db.collection('users').findOne({ _id: ObjectId(req.params.user_id) })
+		res.json(user)
+	})
+	app.patch('/v2/users/:user_id', async (req, res) => {
+		try {
+			//body must be like : {kind : db_column_name,new_value : any}
+		var update_object = {}
+		update_object[req.body.kind] = req.body.new_value
+		await db.collection('users').updateOne({ _id: ObjectId(req.params.user_id) }, {$set : update_object})
+		res.json({})
+		} catch (error) {
+			console.log(error)
+			res.status(500).json(error)
+		}
+		
 	})
 	app.get('/users', async (req, res) => {
 		res.json(await db.collection('users').find().toArray())
@@ -135,7 +161,16 @@ async function main() {
 		if (current_verification_code == null) {
 			res.status(400).json('there is not any verification code sending request was done for this uesr please request a verification code first')
 		}
-		res.json(current_verification_code.value  == req.body.verf_code)
+		if (current_verification_code.value == req.body.verf_code) {
+			var update_filter = {}
+			update_filter[kind_of_input] =req.body[kind_of_input]
+			var update_object = {}
+			update_object[kind_of_input + "_is_verified"] = true 
+			await db.collection('users').updateOne(update_filter,{$set : update_object})
+			res.json(true)
+		} else {
+			res.json(false)
+		}
 	});
 	app.post('/users/:username/notes', async (req, res) => {
 		await db.collection('notes').insertOne(req.body)

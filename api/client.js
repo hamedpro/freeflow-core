@@ -24,11 +24,11 @@ export var get_root = async () =>
 		route: "/",
 	});
 
-export var new_user = async ({ username,
-	password,
+export var new_user = async ({ username=null,
+	password = null,
 	subscribtion_plan = null,
-	email_address,
-	mobile}) =>
+	email_address = null,
+	mobile=null }) =>
 	await custom_axios({
 		route: "/users",
 		method: "POST",
@@ -65,7 +65,15 @@ export var get_user = async ({ username }) =>
 	await custom_axios({
 		route: `/users/${username}`,
 	});
-
+export var v2_get_user = async ({ user_id }) => 
+	await custom_axios({
+		route : `/v2/users/${user_id}`
+	})
+export var v2_update_user = async ({ user_id, kind, new_value }) => await custom_axios({
+	route: `/v2/users/${user_id}`,
+	method: "PATCH",
+	body : {kind,new_value}
+})
 export var delete_user = async ({ username }) =>
 	await custom_axios({
 		route: `/users/${username}`,

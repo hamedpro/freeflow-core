@@ -22,17 +22,23 @@ import Workflow from "./components/Workflow";
 import { NewNote } from "./components/NewNote";
 import { NewTask } from "./components/NewTask";
 import { Terms } from "./components/Terms";
+import { RegisterCompleteUserInfo } from "./components/RegisterCompleteUserInfo";
+import { VerifyIdentity } from "./components/VerifyIdentity";
 function App() {
 	window.ml = ml;
 	window.customAjax = customAjax;
-	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite (it will be hardcoded)
+	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite
 	var nav = useNavigate();
 
 	return (
 		<Routes>
 			<Route path="/" element={<Root />} />
 			<Route path="login" element={<Login />} />
-			<Route path="register" element={<RegisterPage />} />
+			<Route path="register">
+				<Route path="" element={<RegisterPage /> } /> 
+				<Route path="complete_user_registering" element={<RegisterCompleteUserInfo />  } />
+			</Route>
+			<Route path="verification" element={<VerifyIdentity /> } /> 
 			<Route path="/terms" element={<Terms />} />
 			<Route path="users/:username">
 				<Route path='' element={<UserProfile />} />
@@ -46,7 +52,7 @@ function App() {
 				<Route path="workspaces/:workspace_id/workflows/:workflow_id/notes/new" element={<NewNote />} />
 				<Route path="workspaces/:workspace_id/workflows/:workflow_id/tasks/:task_id" element={<Task />} />
 				<Route path="workspaces/:workspace_id/workflows/:workflow_id/tasks/new" element={<NewTask />} />
-				<Route path="calendar" element={<Calendar />} />
+				<Route path="calendar" element={<Calendar />} /> 
 			</Route>
 			<Route path="subscribtion" element={<SubscribtionPage /> } />
 		</Routes>
