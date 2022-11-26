@@ -129,99 +129,66 @@ async function main() {
 					res.status(400).send();
 			}
 		} else if (task === "new_note") {
-			await db.collection("notes").insertOne(req.body);
-			res.end();
-		} else if (task === "get_notes") {
-			res.json(await db.collection("notes").find().toArray());
+			var new_inserted_row = await db.collection("notes").insertOne(req.body)
+			res.json(new_inserted_row.insertedId)
+		} else if (task === "get_user_notes") {
+			res.json(await db.collection("notes").find({creator_user_id : req.body.creator_user_id}).toArray());
 		} else if (task === "new_workspace") {
-			await db.collection("workspaces").insertOne(req.body);
-			res.end();
-		} else if (task === "get_workspaces") {
+			var inserted_row = await db.collection("workspaces").insertOne(req.body);
+			res.json(inserted_row.insertedId)
+		} else if (task === "get_user_workspaces") {
 			res.json(
-				await db.collection("workspaces").find({ creator: req.body.creator }).toArray()
+				await db.collection("workspaces").find({ creator_user_id: req.body.creator_user_id }).toArray()
 			);
 		} else if (task === "new_note_section") {
-			await db.collection("note_sections").insertOne({
-				...req.body,
-				username: req.body.username,
-				note_id: req.body.note_id,
-			});
-			res.end();
+			var inserted_row = await db.collection("note_sections").insertOne(req.body);
+			res.json(inserted_row.insertedId)
 		} else if (task === "get_note_sections") {
 			res.json(
-				(
 					await db
 						.collection("note_sections")
 						.find({
-							username: req.body.username,
+							note_id : req.body.note_id
 						})
 						.sort({ index: 1 })
 						.toArray()
-				).filter((item) => String(item.note_id) == String(req.body.note_id))
 			);
 		} else if (task === "new_task") {
-			await db.collection("tasks").insertOne(req.body);
-			res.json({});
+			var inserted_row = await db.collection("tasks").insertOne(req.body)
+			res.json(inserted_row.insertedId)
 		} else if (task === "get_tasks") {
+			var tasks = await db.collection("tasks").find(req.body.filters).toArray()
 			res.json(
-				(
-					await db.collection("tasks").find({ creator: req.body.username }).toArray()
-				).filter((item) => String(item.workflow_id) == String(req.body.workflow_id))
+				req.body.pyramid_mode === true ? build_pyramid(tasks) : tasks
 			);
-		} else if (task === "get_tasks_pyramid") {
-			var tasks = await db
-				.collection("tasks")
-				.find({ creator: req.body.username })
-				.toArray()
-				.filter((item) => String(item.workflow_id) == String(req.body.workflow_id));
-			res.json(build_pyramid(tasks));
+			//todo add support to check also if username is not the creator but a member of that task result show up (also for notes )
 		} else if (task === "get_workspace_workflows") {
 			var filtered_workflows = await db
 				.collection("workflows")
-				.find({ workspace_id: req.body.workspace_id })
+				.find({workspace_id: req.body.workspace_id})
 				.toArray();
 			res.json(filtered_workflows);
-		} else if (task === "get_workflow_tasks") {
-			var filtered_tasks = await db
-				.collection("tasks")
-				.find({ creator: req.body.username, workflow_id: req.body.workflow_id })
-				.toArray();
-			res.json(filtered_tasks);
-		} else if (task === "get_user_tasks") {
-			res.json(await db.collection("tasks").find({ creator: req.body.username }).toArray());
-			//todo add support to check also if username is not the creator but a member of that task result show up
-		} else if (task === "new_task") {
-			await db.collection("tasks").insertOne({ ...req.body, creator: req.body.username });
-		} else if (task === "get_user_tasks_pyramid") {
-			var tasks = await db
-				.collection("tasks")
-				.find({ creator: req.body.username })
-				.toArray();
-			res.json(build_pyramid(tasks));
 		} else if (task === "new_workflow") {
-			await db.collection("workflows").insertOne({
-				...req.body,
-				username: req.body.creator,
-				workspace_id: req.body.workspace_id,
-			});
-			res.json({});
+			var inserted_row = await db.collection("workflows").insertOne(req.body);
+			res.json(inserted_row.insertedId);
 		} else if (task === "update_user") {
 			try {
-				//body must be like : {kind : db_column_name,new_value : any}
+				//body must be like : {user_id , kind : db_column_name,new_value}
 				var update_object = {};
 				update_object[req.body.kind] = req.body.new_value;
-				await db
+				var update_statement = await db
 					.collection("users")
 					.updateOne({ _id: ObjectId(req.body.user_id) }, { $set: update_object });
-				res.json({});
+				res.json(update_statement);
 			} catch (error) {
 				console.log(error);
 				res.status(500).json(error);
 			}
 		} else {
-			res.json('invalid value for "task"');
+			res.json('unknown value for "task"');
 		}
 	});
+	//todo add try catch blocks for all possible tasks 
 	/* 
 		to know how to use each route please 
 		look at client.js file functions

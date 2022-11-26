@@ -26,7 +26,6 @@ dist-ssr
 *.sw?
 common-codes/.git
 src/output.css
-api/pg.js
 pg.js
 pg.cjs
 ./.env
