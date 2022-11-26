@@ -1,13 +1,20 @@
-GET http://localhost:4000/users
+
+POST http://localhost:4000
+Content-Type: application/json
+task : get_users
+
+{
+    "username" : "hamed"
+}
 
 ###
 
-POST http://localhost:4000/users/new
+POST http://localhost:4000
 Content-Type: application/json
+task : get_users
 
 {
-    "username" : "hamedpro",
-    "password" : "hamed"
+    "filters" :
 }
 
 ###

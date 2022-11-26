@@ -1,248 +1,73 @@
 import axios from "axios";
 var window = { api_endpoint: "http://localhost:4000" };
-export async function custom_axios({
-	api_endpoint = window.api_endpoint,
-	route,
-	method = "GET", // case insensitive,
-	body = {},
-	return_response_dot_data = true // set it to false if you want the reponse itself
-}) {
+export async function custom_axios({task,body = {}}) {
+	var api_endpoint = window.api_endpoint;
+	var method = "POST"; // case insensitive,
+	var route = "/";
+
 	var response = await axios({
 		url: new URL(route, api_endpoint).href,
 		method: method.toUpperCase(),
 		data: body,
 		headers: {
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
+			"task" : task
 		},
-		withCredentials : true 
+		withCredentials: true,
 	});
+
 	return response.data;
 }
 
-export var get_root = async () =>
-	await custom_axios({
-		route: "/",
-	});
 
-export var new_user = async ({ username=null,
-	password = null,
-	subscribtion_plan = null,
-	email_address = null,
-	mobile=null }) =>
-	await custom_axios({
-		route: "/users",
-		method: "POST",
-		body: {
-			username,
-			password,
-			subscribtion_plan,
-			email_address,
-			mobile
-		},
-	});
-
-export var login = async({
-	username,
-	email_address,
-	mobile,
-	password,
-	login_method
-}) => {
-	if ([username, email_address, mobile].filter(i => i !== undefined) !== 1) {
-		throw "error was occured in login function of api driver : just one of these fields should be defined : [username,email_address,mobile]"
-	}
-	var used_value = username ? "username" : (mobile ? "mobile" : "email_address")
-	var request_body = {}
-	request_body[used_value] = username ? username : (mobile ? mobile : email_address)
-	request_body["password"] = password
-	request_body['login_method'] = login_method
-	return await custom_axios({
-		route: '/login',
-		body
-	})
-}
-export var get_user = async ({ username }) =>
-	await custom_axios({
-		route: `/users/${username}`,
-	});
-export var v2_get_user = async ({ user_id }) => 
-	await custom_axios({
-		route : `/v2/users/${user_id}`
-	})
-export var v2_update_user = async ({ user_id, kind, new_value }) => await custom_axios({
-	route: `/v2/users/${user_id}`,
-	method: "PATCH",
-	body : {kind,new_value}
+// new user : it writes the entire body as a new document in db 
+//this is just a example
+//returns json stringified of id of inserted document
+//test status : passed
+export var new_user = async () => await custom_axios({
+	task : "new_user"
 })
-export var delete_user = async ({ username }) =>
-	await custom_axios({
-		route: `/users/${username}`,
-		method: "delete",
-	});
 
-export var new_note = async ({
-	creator, // username
-	init_date,
-	last_modification, //should be in format of new Date.getTime()
-	workflow_id,
-	title,
-	workspace_id
-}) =>
-	await custom_axios({
-		route: `/users/${creator}/notes`,
-		method: "post",
-		body: {
-			init_date,
-			last_modification,
-			workflow_id,
-			title,
-			workspace_id
-		},
-	});
-
-export var get_notes = async ({ username }) =>
-	await custom_axios({
-		route: `/users/${username}/notes`,
-	});
-
-export var delete_note = async ({ username, note_id }) =>
-	await custom_axios({
-		route: `/users/${username}/notes/${note_id}`,
-		method: "delete",
-	});
-
-export var update_note = async ({ username, note_id, last_modification }) =>
-	await custom_axios({
-		route: `/users/${username}/notes/${note_id}`,
-		method: "patch",
-		body: {
-			last_modification,
-		},
-	});
-
-export var new_workspace = async ({ creator, init_date, title, description , collaborators = [] }) =>
-	await custom_axios({
-		route: `/users/${creator}/workspaces`,
-		method: "post",
-		body: {
-			init_date,
-			title,
-			description,
-			collaborators
-		},
-	});
-
-export var get_workspaces = async ({ username }) =>
-	await custom_axios({
-		route: `/users/${username}/workspaces`,
-	});
-
-export var update_workspace = async ({ username, workspace_id }) =>
-	await custom_axios({
-		route: `/users/${username}/workspaces/${workspace_id}`,
-		method: "patch",
-	});
-
-export var delete_workspace = async ({ username, workspace_id }) =>
-	await custom_axios({
-		route: `/users/${username}/workspaces/${workspace_id}`,
-		method: "delete",
-	});
-
-export var new_note_section_image = async ({
-	init_date,
-	href,
-	index, // index of this section in array of that note's sections
-	last_modification,
-	note_id,
-}) =>
-	await custom_axios({
-		//this func asks server to add a note section with type "image"
-		route: `/users/${creator}/notes/${note_id}/note_sections`,
-		method: "post",
-		body: {
-			init_date,
-			href,
-			index,
-			last_modification,
-			type: "image",
-		},
-	});
-
-export var new_note_section_text = async ({
-	init_date,
-	text,
-	index, // index of this section in array of that note's sections
-	last_modification,
-	note_id,
-}) =>
-	await custom_axios({
-		//this func asks server to add a note section with type "text"
-		route: `/users/${creator}/notes/${note_id}/note_sections`,
-		method: "post",
-		body: {
-			init_date,
-			text,
-			index,
-			last_modification,
-			type: "text",
-		},
-	});
-
-export var get_note_sections = async ({ note_id, creator }) =>
-	await custom_axios({
-		route: `/users/${creator}/notes/${note_id}/note_sections`,
-	});
-export var new_task = async ({
-	linked_notes = [], //array of note_ids
-	parent = null, // so if not specified this task will be the starting node
-	end_date = null,
-	deadline_date = null,
-	creator,
-	workflow_id,
-	workspace_id,
-	start_date
-}) =>
-	await custom_axios({
-		route: `/users/${creator}/workflows/${workflow_id}/tasks`,
-		method: "POST",
-		body: {
-			linked_notes,
-			parent,
-			end_date,
-			deadline_date,
-			init_date: new Date().getTime(),
-			last_modification: new Date().getTime(),
-			workflow_id,
-			creator,
-			workspace_id,
-			start_date
-		},
-	});
-export var get_workflow_tasks_pyramid = async ({ username, workflow_id }) =>
-	await custom_axios({
-		url: `/users/${username}/workflows/${workflow_id}/tasks_pyramid`,
-	});
-export var get_workflow_tasks = async ({ workflow_id, creator }) =>
-	await custom_axios({
-		route: `/users/${creator}/workflows/${workflow_id}/tasks`,
-	});
-export var get_user_tasks = async ({ creator }) => await custom_axios({
-	route : `/users/${creator}/tasks`
-})
-export var get_user_tasks_pyramid = async ({ creator }) => await custom_axios({
-	route : `/users/${creator}/tasks_pyramid`
-})
-export var get_workspace_workflows = async ({ username,workspace_id}) => await custom_axios({
-	route: `/users/${username}/workspaces/${workspace_id}/workflows`
-})
-export var new_workflow = async ({ workspace_id, creator, title, description,collaborators = []}) => await custom_axios({
-	route: `/users/${creator}/workspaces/${workspace_id}/workflows/new`,
-	method: "POST",
+//returns json stringified of all users 
+//if body.filters is defined it will be passed to find method of mongo db
+//test status : passed 
+export var get_users = async ({ filters ={} }) => await custom_axios({
+	task: "get_users",
 	body: {
-		title,
-		description,
-		collaborators,
-		init_date : new Date().getTime()
+		filters
+	}
+})
+
+//returns result of mongo db deleteOne method as stringified json
+// deletes single document which belongs to that user from users collection 
+export var delete_user = async ({ user_id }) => await custom_axios({
+	task: "delete_user",
+	body: {
+		user_id
+	}
+})
+
+//about args : user_id is necessary but only one of verf_code or password should be !undefined
+//returns a json stringified boolean which indicates that user auth was done or not
+//extra description : if password is included it checks user password with included one 
+//and if verf_code is there it will check it with the latest verf_code of that user (if present) in verf_codes collection
+//important todo think about if user's password is null and we pass null to this func too 
+export var auth = async ({ user_id, password = undefined, verf_code = undefined }) => await custom_axios({
+	task: "auth",
+	body: {
+		user_id,
+		password,
+		verf_code
+	}
+})
+
+//body should contain user_id and also kind that should be either "mobile" or "email_address"
+//if this function doesnt throw anything its done 
+//test status : passed 
+export var send_verification_code = async({ kind, user_id }) => await custom_axios({
+	task: "send_verification_code",
+	body: {
+		kind,
+		user_id
 	}
 })

@@ -1,0 +1,53 @@
+
+docs.login = {
+	username,
+	email_address,
+	mobile,
+	password,
+	login_method,
+};
+
+docs.update_user = { kind, new_value };
+docs.new_note = {
+	creator, // username
+	init_date,
+	last_modification, //should be in format of new Date.getTime()
+	workflow_id,
+	title,
+	workspace_id,
+};
+
+docs.new_workspace = { init_date, title, description, collaborators };
+docs.new_note_section_image = {
+	init_date,
+	href,
+	index, // index of this section in array of that note's sections
+	last_modification,
+	note_id,
+};
+docs.new_note_section_text = {
+	init_date,
+	text,
+	index, // index of this section in array of that note's sections
+	last_modification,
+	note_id,
+	type,
+};
+docs.new_task = {
+	linked_notes,
+	parent,
+	end_date,
+	deadline_date,
+	init_date: new Date().getTime(),
+	last_modification: new Date().getTime(),
+	workflow_id,
+	creator,
+	workspace_id,
+	start_date,
+};
+docs.new_workflow = {
+	title,
+	description,
+	collaborators,
+	init_date: new Date().getTime(),
+};
