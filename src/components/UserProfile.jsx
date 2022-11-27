@@ -1,19 +1,24 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { get_user, get_workspaces } from "../api/client";
+import { get_users, get_user_workspaces } from "../../api/client";
+import {} from "../api/client";
 import ObjectBox from "./components/ObjectBox";
 
 const UserProfile = () => {
+	var { user_id } = useParams();
 	var [user, set_user] = useState(null);
 	var [workspaces, set_workspaces] = useState(null);
-	var { username } = useParams();
+
 	async function fetch_data() {
 		try {
-			var response = await get_user({ username });
-			set_user(response);
-
-			set_workspaces(await get_workspaces({ username }));
+			var filtered_users = await get_users({
+				filters: {
+					_id: user_id,
+				},
+			});
+			set_user(filtered_users[0]);
+			set_workspaces(await get_user_workspaces({ creator_user_id: user_id }));
 		} catch (error) {
 			console.log(error);
 		}
@@ -27,18 +32,16 @@ const UserProfile = () => {
 			user data fetched by api :
 			<br />
 			<ObjectBox object={user} />
+			<h1>workspaces of this user</h1>
 			{workspaces !== null &&
 				workspaces.map((workspace, index) => {
 					return (
 						<React.Fragment key={index}>
-							<h1>workspaces of this user</h1>
-							
-								<ObjectBox
-									object={workspace}
-									link={`/users/${username}/workspaces/${workspace._id}`}
-								/>
-							</React.Fragment>
-						
+							<ObjectBox
+								object={workspace}
+								link={`/users/${user_id}/workspaces/${workspace._id}`}
+							/>
+						</React.Fragment>
 					);
 				})}
 		</div>

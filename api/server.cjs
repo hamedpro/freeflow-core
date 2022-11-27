@@ -46,8 +46,6 @@ async function main() {
 			var operation = await db.collection("users").insertOne(body);
 			res.json(operation.insertedId);
 		} else if (task === "get_users") {
-			// about filters : it doesnt work for _id
-			//becuse it should use ObjectId (todo )
 			var filters = req.body.filters === undefined ? {} : req.body.filters;
 			if (Object.keys(filters).includes("_id")) {
 				filters["_id"] = ObjectId(filters["_id"]);
@@ -157,7 +155,11 @@ async function main() {
 			var inserted_row = await db.collection("tasks").insertOne(req.body)
 			res.json(inserted_row.insertedId)
 		} else if (task === "get_tasks") {
-			var tasks = await db.collection("tasks").find(req.body.filters).toArray()
+			var filters = req.body
+			if (Object.keys(req.body).includes('_id')) {
+				filters['_id'] = ObjectId(filters["_id"])
+			}
+			var tasks = await db.collection("tasks").find(filters).toArray()
 			res.json(
 				req.body.pyramid_mode === true ? build_pyramid(tasks) : tasks
 			);

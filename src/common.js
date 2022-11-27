@@ -1,4 +1,3 @@
-import { customAjax } from "./custom_ajax";
 export function toHHMMSS(seconds) {
 	var sec_num = parseInt(seconds, 10);
 	var hours = Math.floor(sec_num / 3600);
@@ -135,4 +134,24 @@ export function custom_range({from=0,to}) {
 		result.push(i)
 	}
 	return result 
+}
+export function get_start_and_end(timestamp, mode = "day") {
+    //timestamp := result of Date.getTime()
+	//what mode does : if mode = day it will smaller details than day like hours and minutes and ...
+	//but if its set to year it will return the exact start point of that year
+	var d = new Date(timestamp)
+	d.setUTCHours(0)
+    d.setUTCMinutes(0)
+    d.setUTCSeconds(0)
+	if (mode === "month") {
+		d.setUTCDate(1)
+		if (mode === "year") {
+			d.setUTCMonth(0)
+		}
+	} 
+    d = d.getTime()
+    return {
+        start: d,
+        end : d+ (3600 * 1000 * 24)
+    }
 }

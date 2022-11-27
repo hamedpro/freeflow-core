@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { get_workspaces } from "../../api/client";
+import { get_user_workspaces } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 
 export const WorkspacesPage = () => {
 	var nav = useNavigate();
-	var { username } = useParams();
+	var { user_id } = useParams();
 	var [workspaces, set_workspaces] = useState(null);
 	async function get_data() {
 		try {
-			set_workspaces(await get_workspaces({ username }));
+			set_workspaces(await get_user_workspaces({ creator_user_id : user_id }));
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -28,7 +28,7 @@ export const WorkspacesPage = () => {
 							<React.Fragment key={index}>
 								<ObjectBox
 									object={workspace}
-									link={`/users/${username}/workspaces/${workspace._id}`}
+									link={`/users/${user_id}/workspaces/${workspace._id}`}
 								/>
 							</React.Fragment>
 						);

@@ -1,28 +1,19 @@
 {
-    "id": "shokri",
+    "id1": "shokri",
     "children": [
         {
-            "id": "mohammad"
+            "id1": "mahmoud"
         },
         {
-            "id": "parvin"
-        },
-        {
-            "id": "mahmoud"
-        },
-        {
-            "id": "esmat"
-        },
-        {
-            "id": "roya",
             "children": [
                 {
-                    "id": "vahid"
+                    "id1": "seta"
                 },
                 {
-                    "id": "mahshid"
+                    "id1": "nia"
                 }
-            ]
+            ],
+            "id1": "mohammad"
         }
     ]
 }

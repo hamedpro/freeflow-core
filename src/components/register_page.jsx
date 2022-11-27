@@ -21,12 +21,12 @@ export const RegisterPage = ({}) => {
 			return;
 		}
 		try {
-			var tmp = { };
+			var tmp = {};
 			tmp[kind_of_input] = input_value;
-			var response = await new_user(tmp);
-			alert("all done");
+			var id_of_new_user = await new_user({body : tmp});
+			alert("all done. navigating to verification page ...");
 			nav(
-				`/verification?next_page=complete_register&user_id=${response.insertedId}&kind_of_input=${kind_of_input}`
+				`/users/${id_of_new_user}/verification?next_page=complete_register&user_id=${id_of_new_user}&kind_of_input=${kind_of_input}`
 			);
 		} catch (error) {
 			//todo

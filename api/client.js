@@ -23,9 +23,10 @@ export async function custom_axios({ task, body = {} }) {
 //this is just a example
 //returns json stringified of id of inserted document
 //test status : passed
-export var new_user = async () =>
+export var new_user = async ({body}) =>
 	await custom_axios({
 		task: "new_user",
+		body : body
 	});
 
 //returns json stringified of all users
@@ -53,6 +54,7 @@ export var delete_user = async ({ user_id }) =>
 //returns a json stringified boolean which indicates that user auth was done or not
 //extra description : if password is included it checks user password with included one
 //and if verf_code is there it will check it with the latest verf_code of that user (if present) in verf_codes collection
+
 //important todo think about if user's password is null and we pass null to this func too
 export var auth = async ({ user_id, password = undefined, verf_code = undefined }) =>
 	await custom_axios({
@@ -102,7 +104,7 @@ export var get_user_notes = async ({ creator_user_id }) =>
 
 //returns json : id of inserted workspace
 //test status : passed
-export var new_wokspace = async ({ title, description, collaborators = [], creator_user_id }) =>
+export var new_workspace = async ({ title, description, collaborators = [], creator_user_id }) =>
 	await custom_axios({
 		task: "new_workspace",
 		body: {
