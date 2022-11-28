@@ -225,3 +225,13 @@ export var update_user = async({
 		user_id
 	}
 })
+
+//this one search for that value in all of these values : user_ids, usernames, email_addresses, mobiles
+//and returns that user which matches 
+
+export var flexible_user_finder = async ({ value }) => await custom_axios({
+	task: "flexible_user_finder",
+	body: {
+		value
+	}
+})

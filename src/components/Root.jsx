@@ -10,11 +10,8 @@ export const Root = () => {
         <Link to={`/register`}>register a new user</Link>
         <Link to={`/admin/users`}>users section of admin dashboard</Link>
         <Link to={`/terms`}>our terms of use</Link>
-        <Link to={`/terms`}>our terms of use</Link>
         <Link to={`/subscribtion`}>subscribtion status</Link>
       </div>
-      
-
     </div>
   )
 }

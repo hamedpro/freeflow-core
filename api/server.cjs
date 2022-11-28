@@ -186,6 +186,25 @@ async function main() {
 				console.log(error);
 				res.status(500).json(error);
 			}
+		} else if (task === "flexible_user_finder") {
+			var users = await db.collection('users').find().toArray()
+			var all_values = []
+			users.forEach(user => {
+				all_values.push(user._id,user.username,user.mobile,user.email_address)
+			})
+			console.log({all_values})
+			var matches_count = all_values.filter(value => value == req.body.value).length
+			console.log({matches_count})
+			if (matches_count === 0) {
+				res.status(400).json({ status: 2, info: "there is more not any match in valid search resources" })
+			} else if (matches_count === 1){
+				var matched_user = users.find(user => {
+					return [user.email_address,user.mobile,user._id,user.username].includes(req.body.value)
+				})
+				res.json(matched_user)
+			} else {
+				res.status(400).json({ status: 3, info: "there is more than one match in valid search resources" })
+			}
 		} else {
 			res.json('unknown value for "task"');
 		}
