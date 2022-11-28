@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { get_users, get_user_workspaces } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 
@@ -31,7 +31,7 @@ const UserProfile = () => {
 			user data fetched by api :
 			<br />
 			<ObjectBox object={user} />
-			<h1>workspaces of this user</h1>
+			{/* <h1>workspaces of this user</h1>
 			{workspaces !== null &&
 				workspaces.map((workspace, index) => {
 					return (
@@ -42,7 +42,9 @@ const UserProfile = () => {
 							/>
 						</React.Fragment>
 					);
-				})}
+				})
+			} */}
+			<p>click <Link to={`/users/${user_id}/workspaces`}>here</Link> to open workspaces of this user</p>
 		</div>
 	);
 };

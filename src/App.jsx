@@ -23,7 +23,7 @@ import { RegisterCompleteUserInfo } from "./components/RegisterCompleteUserInfo"
 import { VerifyIdentity } from "./components/VerifyIdentity";
 import { YearCalendar } from "./components/YearCalendar";
 import { MonthCalendar } from "./components/MonthCalendar.jsx";
-import {WeekCalendar} from "./components/WeekCalendar";
+import { WeekCalendar } from "./components/WeekCalendar";
 import { DayCalendar } from "./components/DayCalendar";
 import { AdminDashboardUsersSection } from "./components/AdminDashboardUsersSection";
 function App() {
@@ -34,12 +34,14 @@ function App() {
 		<Routes>
 			<Route path="/" element={<Root />} />
 			<Route path="login" element={<Login />} />
-			<Route path="register" element={<RegisterPage />} />
+			<Route path="register" element={<RegisterPage />} /> {/* todo : test it */}
 			<Route path="/terms" element={<Terms />} />
 			<Route path="/users/:user_id">
 				<Route path="" element={<UserProfile />} />
 				<Route path="complete_user_registering" element={<RegisterCompleteUserInfo />} />
+				{/* todo : test it */}
 				<Route path="verification" element={<VerifyIdentity />} />
+				{/* todo : test it */}
 				<Route path="workspaces" element={<WorkspacesPage />} />
 				<Route path="workspaces/new" element={<NewWorkspace />} />
 				<Route path="workspaces/:workspace_id" element={<WorkspacePage />} />
@@ -48,6 +50,7 @@ function App() {
 					path="workspaces/:workspace_id/workflows/:workflow_id"
 					element={<Workflow />}
 				/>
+				{/* todo : test it */}
 				<Route
 					path="workspaces/:workspace_id/workflows/:workflow_id/notes/new"
 					element={<NewNote />}
@@ -66,14 +69,19 @@ function App() {
 				/>
 				<Route path="calendar">
 					<Route path="year" element={<YearCalendar />} />
+					{/* todo : test it */}
 					<Route path="month" element={<MonthCalendar />} />
+					{/* todo : test it */}
 					<Route path="week" element={<WeekCalendar />} />
+					{/* todo : test it */}
 					<Route path="day" element={<DayCalendar />} />
+					{/* todo : test it */}
 				</Route>
 			</Route>
 			<Route path="subscribtion" element={<SubscribtionPage />} />
 			<Route path="/admin">
-				<Route path="users" element={<AdminDashboardUsersSection />} /> 
+				<Route path="users" element={<AdminDashboardUsersSection />} />{" "}
+				{/* todo : test it */}
 			</Route>
 		</Routes>
 	);

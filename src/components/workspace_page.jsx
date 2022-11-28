@@ -20,25 +20,22 @@ export const WorkspacePage = () => {
 	}, []);
 	return (
 		<div>
-      <h2>WorkspacePage</h2>
-      <p>workflows of this workspace :</p>
-			{workflows !== null ?  (
-				<>
-					<div>workflows : </div>
-					{workflows.map((workflow, index) => {
-						return (
-							<React.Fragment key={index}>
-								<ObjectBox
-									object={workflow}
-									link={`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow._id}`}
-								/>
-							</React.Fragment>
-						);
-					})}
-				</>
-      ) : (
-          <p>loading data ...</p>
-      )}
+			<h2>WorkspacePage</h2>
+			<p>workflows of this workspace :</p>
+			{workflows !== null ? (
+				workflows.map((workflow, index) => {
+					return (
+						<React.Fragment key={index}>
+							<ObjectBox
+								object={workflow}
+								link={`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow._id}`}
+							/>
+						</React.Fragment>
+					);
+				})
+			) : (
+				<p>loading data ...</p>
+			)}
 		</div>
 	);
 };

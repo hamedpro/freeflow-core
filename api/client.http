@@ -19,10 +19,10 @@ task : get_users
 
 ###
 
-POST http://localhost:4000/login
+POST http://localhost:4000
 Content-Type: application/json
+task : flexible_user_finder
 
 {
-    "username" : "vahidpro",
-    "password" : "vahid"
+    "value" : "637e4be714cc596422e71b89"
 }

@@ -6,17 +6,17 @@ export const NewTask = () => {
   var nav = useNavigate()
 	var { user_id, workspace_id, workflow_id } = useParams();
 	async function submit_new_task() {
-		var tmp = (id) => document.getElementById(id).value;
+		var val = (id) => document.getElementById(id).value;
 		try {
 			var id_of_new_task = await new_task({
-				creator_user_id: user_id ,
+				creator_user_id: user_id,
 				workflow_id,
-				end_date: Number(tmp("end_date")),
-				start_date: Number(tmp("start_date")),
-				deadline_date: Number(tmp("deadline_date")),
-				linked_notes: tmp("linked_notes").split(","),
+				end_date: Number(val("end_date")),
+				start_date: Number(val("start_date")),
+				deadline_date: Number(val("deadline_date")),
+				linked_notes: val("linked_notes").split(","),
 				workspace_id,
-				parent: tmp("parent_task") === "" ? null : tmp("parent_task"),
+				parent: val("parent_task") === "" ? null : val("parent_task")
 			});
       alert("all done. navigating to the newly created task's page");
       nav(`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow_id}/tasks/${id_of_new_task}`)

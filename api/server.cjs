@@ -107,6 +107,7 @@ async function main() {
 						.collection("verification_codes")
 						.insertOne({ value: verf_code, user_id: user._id, kind: req.body.kind });
 					res.json("verification_code was sent");
+					break;
 				case "email_address":
 					var verf_code = gen_verification_code();
 					//send code to the user through api request to email sending web service
@@ -123,6 +124,7 @@ async function main() {
 						.collection("verification_codes")
 						.insertOne({ value: verf_code, user_id: user._id, kind: req.body.kind });
 					res.json("verification_code was sent");
+					break;
 				default:
 					res.status(400).send();
 			}
@@ -155,8 +157,8 @@ async function main() {
 			var inserted_row = await db.collection("tasks").insertOne(req.body)
 			res.json(inserted_row.insertedId)
 		} else if (task === "get_tasks") {
-			var filters = req.body
-			if (Object.keys(req.body).includes('_id')) {
+			var filters = req.body.filters
+			if (Object.keys(filters).includes('_id')) {
 				filters['_id'] = ObjectId(filters["_id"])
 			}
 			var tasks = await db.collection("tasks").find(filters).toArray()
@@ -190,16 +192,21 @@ async function main() {
 			var users = await db.collection('users').find().toArray()
 			var all_values = []
 			users.forEach(user => {
-				all_values.push(user._id,user.username,user.mobile,user.email_address)
+				all_values.push(user._id.toString(),user.username,user.mobile,user.email_address)
 			})
-			console.log({all_values})
 			var matches_count = all_values.filter(value => value == req.body.value).length
-			console.log({matches_count})
 			if (matches_count === 0) {
 				res.status(400).json({ status: 2, info: "there is more not any match in valid search resources" })
-			} else if (matches_count === 1){
+			} else if (matches_count === 1) {
 				var matched_user = users.find(user => {
-					return [user.email_address,user.mobile,user._id,user.username].includes(req.body.value)
+					var tmp = [
+						user.email_address,
+						user.mobile,
+						user._id.toString(),
+						user.username
+					]
+					console.log({list:tmp,value :req.body.value })
+					return tmp.includes(req.body.value)
 				})
 				res.json(matched_user)
 			} else {

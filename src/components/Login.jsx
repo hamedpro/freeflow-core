@@ -36,6 +36,7 @@ function SelectAuthType({ set_current_tab }) {
 			<button onClick={() => set_current_tab("send_verf_code")}>
 				send me verification code
 			</button>
+			<br />
 			<button onClick={() => set_current_tab("check_password")}>
 				login using my password
 			</button>
@@ -112,6 +113,7 @@ function SendVerfCode({ user, set_current_tab }) {
 		<>
 			<p>select which of this options below</p>
 			<button onClick={() => send_verf_code("mobile")}>send through sms</button>
+			<br />
 			<button onClick={() => send_verf_code("email_address")}>
 				send through email_address
 			</button>
