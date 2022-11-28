@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { get_tasks, get_workflow_tasks } from '../../api/client'
+import { get_tasks } from '../../api/client'
 import ObjectBox from './ObjectBox'
 export const Task = () => {
   var { task_id, workspace_id, workflow_id, user_id } = useParams()

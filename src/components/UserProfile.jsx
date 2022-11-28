@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { get_users, get_user_workspaces } from "../../api/client";
-import {} from "../api/client";
-import ObjectBox from "./components/ObjectBox";
+import ObjectBox from "./ObjectBox";
 
 const UserProfile = () => {
 	var { user_id } = useParams();

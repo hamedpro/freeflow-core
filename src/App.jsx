@@ -2,7 +2,6 @@ import React from "react";
 import "./App.css";
 import "./output.css";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { customAjax } from "../src/custom_ajax.js";
 //import {} from "./components";
 import { multi_lang_helper as ml } from "./common";
 import { Login } from "./components/Login";
@@ -24,11 +23,11 @@ import { RegisterCompleteUserInfo } from "./components/RegisterCompleteUserInfo"
 import { VerifyIdentity } from "./components/VerifyIdentity";
 import { YearCalendar } from "./components/YearCalendar";
 import { MonthCalendar } from "./components/MonthCalendar.jsx";
-import WeekCalendar from "./components/WeekCalendar";
+import {WeekCalendar} from "./components/WeekCalendar";
 import { DayCalendar } from "./components/DayCalendar";
+import { AdminDashboardUsersSection } from "./components/AdminDashboardUsersSection";
 function App() {
 	window.ml = ml;
-	window.customAjax = customAjax;
 	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite
 
 	return (
@@ -37,7 +36,7 @@ function App() {
 			<Route path="login" element={<Login />} />
 			<Route path="register" element={<RegisterPage />} />
 			<Route path="/terms" element={<Terms />} />
-			<Route path="users/:user_id">
+			<Route path="/users/:user_id">
 				<Route path="" element={<UserProfile />} />
 				<Route path="complete_user_registering" element={<RegisterCompleteUserInfo />} />
 				<Route path="verification" element={<VerifyIdentity />} />
@@ -50,20 +49,12 @@ function App() {
 					element={<Workflow />}
 				/>
 				<Route
-					path="workspaces/:workspace_id/workflows/:workflow_id/notes"
-					element={<Notes />}
-				/>
-				<Route
 					path="workspaces/:workspace_id/workflows/:workflow_id/notes/new"
 					element={<NewNote />}
 				/>
 				<Route
 					path="workspaces/:workspace_id/workflows/:workflow_id/notes/:note_id"
 					element={<Note />}
-				/>
-				<Route
-					path="workspaces/:workspace_id/workflows/:workflow_id/tasks"
-					element={<NewTask />}
 				/>
 				<Route
 					path="workspaces/:workspace_id/workflows/:workflow_id/tasks/new"
@@ -81,6 +72,9 @@ function App() {
 				</Route>
 			</Route>
 			<Route path="subscribtion" element={<SubscribtionPage />} />
+			<Route path="/admin">
+				<Route path="users" element={<AdminDashboardUsersSection />} /> 
+			</Route>
 		</Routes>
 	);
 }
