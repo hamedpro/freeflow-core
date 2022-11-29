@@ -34,14 +34,12 @@ function App() {
 		<Routes>
 			<Route path="/" element={<Root />} />
 			<Route path="login" element={<Login />} />
-			<Route path="register" element={<RegisterPage />} /> {/* todo : test it */}
+			<Route path="register" element={<RegisterPage />} />
 			<Route path="/terms" element={<Terms />} />
 			<Route path="/users/:user_id">
 				<Route path="" element={<UserProfile />} />
 				<Route path="complete_user_registering" element={<RegisterCompleteUserInfo />} />
-				{/* todo : test it */}
 				<Route path="verification" element={<VerifyIdentity />} />
-				{/* todo : test it */}
 				<Route path="workspaces" element={<WorkspacesPage />} />
 				<Route path="workspaces/new" element={<NewWorkspace />} />
 				<Route path="workspaces/:workspace_id" element={<WorkspacePage />} />
@@ -50,7 +48,6 @@ function App() {
 					path="workspaces/:workspace_id/workflows/:workflow_id"
 					element={<Workflow />}
 				/>
-				{/* todo : test it */}
 				<Route
 					path="workspaces/:workspace_id/workflows/:workflow_id/notes/new"
 					element={<NewNote />}
@@ -80,8 +77,7 @@ function App() {
 			</Route>
 			<Route path="subscribtion" element={<SubscribtionPage />} />
 			<Route path="/admin">
-				<Route path="users" element={<AdminDashboardUsersSection />} />{" "}
-				{/* todo : test it */}
+				<Route path="users" element={<AdminDashboardUsersSection />} />
 			</Route>
 		</Routes>
 	);

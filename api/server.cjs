@@ -69,10 +69,11 @@ async function main() {
 					);
 				}
 				if (current_verification_code.value == req.body.verf_code) {
-					var update_filter = { user_id: req.body.user_id };
+					var update_filter = { _id : ObjectId(req.body.user_id) };
 					var update_object = {};
 					update_object[current_verification_code.kind + "_is_verified"] = true;
 					await db.collection("users").updateOne(update_filter, { $set: update_object });
+					console.log({update_filter,update_object})
 					res.json(true);
 				} else {
 					res.json(false);

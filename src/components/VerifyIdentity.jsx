@@ -20,7 +20,7 @@ export const VerifyIdentity = () => {
 		var callback_url = `/`;
 	}
 	var [check_verification_code_mode, set_check_verification_code_mode] = useState(false);
-	var [selected_kind_of_verification, set_selected_kind_of_verification] = useState(null);
+	var [selected_kind_of_verification, set_selected_kind_of_verification] = useState(null); //possible values for this : email_address , mobile
 	async function send_verification_code() {
 		try {
 			await api_send_verification_code({
@@ -77,6 +77,28 @@ export const VerifyIdentity = () => {
 	if (user === null) {
 		return <p>loading user info ...</p>;
 	}
+	async function select_kind_of_verification(option) {
+		if (!user[option]) {
+			alert(
+				`you have not set this field : "${option}". so we are not able to send verification code through this method. please set it first in the box above`
+			);
+			var tmp = confirm("do you want to set it right now and continue ?");
+			if (!tmp) return;
+			try {
+				await api_update_user({
+					user_id,
+					new_value: prompt(`enter new value for ${option}`),
+					kind: option,
+				});
+				set_selected_kind_of_verification(option);
+			} catch (error) {
+				console.log(error);
+				alert("something went wrong. details in console ");
+			}
+		} else {
+			set_selected_kind_of_verification(option);
+		}
+	}
 	return (
 		<>
 			<p>use one these options to complete your account registering : </p>
@@ -95,7 +117,7 @@ export const VerifyIdentity = () => {
 							{["email_address", "mobile"].map((option, index) => {
 								return (
 									<button
-										onClick={() => set_selected_kind_of_verification(option)}
+										onClick={() => select_kind_of_verification(option)}
 										key={index}
 									>
 										{option}
@@ -144,6 +166,7 @@ export const VerifyIdentity = () => {
 					)}
 				</>
 			)}
+
 			<h2>2- just choose a password</h2>
 			<input id="password_input" />
 			<button onClick={submit_password}>submit password</button>
