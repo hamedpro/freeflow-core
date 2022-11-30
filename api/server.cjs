@@ -1,4 +1,4 @@
-require("dotenv").config(); //some comment for test
+require("dotenv").config();
 var { hash_sha_256_hex, build_pyramid, gen_verification_code } = require("./common.cjs");
 var express = require("express");
 var cookieParser = require("cookie-parser");
@@ -11,7 +11,7 @@ var path = require("path");
 var { MongoClient, ObjectId } = require("mongodb");
 const url = "mongodb://localhost:27017";
 const client = new MongoClient(url);
-var db = client.db("pink_rose");
+var db = client.db(process.env.db_name);
 async function init() {
 	["./uploaded"].forEach((path) => {
 		if (!fs.existsSync(path)) {
