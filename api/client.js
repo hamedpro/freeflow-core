@@ -23,10 +23,10 @@ export async function custom_axios({ task, body = {} }) {
 //this is just a example
 //returns json stringified of id of inserted document
 //test status : passed
-export var new_user = async ({body}) =>
+export var new_user = async ({ body }) =>
 	await custom_axios({
 		task: "new_user",
-		body : body
+		body: body,
 	});
 
 //returns json stringified of all users
@@ -125,37 +125,7 @@ export var get_user_workspaces = async ({ creator_user_id }) =>
 		task: "get_user_workspaces",
 	});
 
-// all args expect href and text are common but each time there should be only one of these : href and text
-//test status : passed
-export var new_note_section = async ({
-	href = undefined, // either this or text
-	index, // index of this section in array of that note's sections
-	note_id,
-	type, // "image" or "text",
-	text = undefined, //either this or href
-	creator_user_id,
-}) =>
-	await custom_axios({
-		task: "new_note_section",
-		body: {
-			init_date: new Date().getTime(),
-			index,
-			note_id,
-			type,
-			href,
-			text,
-			creator_user_id,
-		},
-	});
-
-export var get_note_sections = async ({ note_id }) =>
-	await custom_axios({
-		task: "get_note_sections",
-		body: {
-			note_id,
-		},
-	});
-
+	
 //returns id of inserted row
 export var new_task = async ({
 	linked_notes,
@@ -181,7 +151,23 @@ export var new_task = async ({
 			start_date,
 		},
 	});
-
+export var update_document = async ({ collection, update_filter, update_set }) =>
+	await custom_axios({
+		task: "update_document",
+		body: {
+			collection,
+			update_filter,
+			update_set,
+		},
+	});
+export var update_note = ({note_id,update_set}) => update_document({
+	//todo make sure this kind of extending functions works well
+	collection: "notes",
+	update_filter: {
+		_id: note_id
+	},
+	update_set
+})
 //todo test from here to the bottom (in current commit)
 export var get_tasks = async ({ pyramid_mode = false, filters = {} }) =>
 	await custom_axios({
@@ -200,7 +186,13 @@ export var get_workspace_workflows = async ({ workspace_id }) =>
 		},
 	});
 
-export var new_workflow = async ({workspace_id,creator_user_id, title, description, collaborators = [] }) =>
+export var new_workflow = async ({
+	workspace_id,
+	creator_user_id,
+	title,
+	description,
+	collaborators = [],
+}) =>
 	await custom_axios({
 		task: "new_workflow",
 		body: {
@@ -209,29 +201,27 @@ export var new_workflow = async ({workspace_id,creator_user_id, title, descripti
 			collaborators,
 			init_date: new Date().getTime(),
 			workspace_id,
-			creator_user_id
+			creator_user_id,
 		},
 	});
 
-export var update_user = async({
-	kind,
-	new_value,
-	user_id
-}) => await custom_axios({
-	task: "update_user",
-	body: {
-		kind,
-		new_value,
-		user_id
-	}
-})
+export var update_user = async ({ kind, new_value, user_id }) =>
+	await custom_axios({
+		task: "update_user",
+		body: {
+			kind,
+			new_value,
+			user_id,
+		},
+	});
 
 //this one search for that value in all of these values : user_ids, usernames, email_addresses, mobiles
-//and returns that user which matches 
+//and returns that user which matches
 
-export var flexible_user_finder = async ({ value }) => await custom_axios({
-	task: "flexible_user_finder",
-	body: {
-		value
-	}
-})
+export var flexible_user_finder = async ({ value }) =>
+	await custom_axios({
+		task: "flexible_user_finder",
+		body: {
+			value,
+		},
+	});

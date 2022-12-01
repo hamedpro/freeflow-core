@@ -189,6 +189,16 @@ async function main() {
 				console.log(error);
 				res.status(500).json(error);
 			}
+		} else if (task === "update_document") {
+			//body must be like : {collection : string,update_filter : object, update_set : object}
+			var update_filter = req.body.update_filter
+			if (update_filter._id !== undefined) {
+				update_filter._id = ObjectId(update_filter._id)
+			}
+			var update_statement = await db
+				.collection(req.body.collection)
+				.updateOne(update_filter, { $set: req.body.update_set });
+			res.json(update_statement);
 		} else if (task === "flexible_user_finder") {
 			var users = await db.collection('users').find().toArray()
 			var all_values = []
