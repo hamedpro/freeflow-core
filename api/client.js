@@ -125,7 +125,6 @@ export var get_user_workspaces = async ({ creator_user_id }) =>
 		task: "get_user_workspaces",
 	});
 
-	
 //returns id of inserted row
 export var new_task = async ({
 	linked_notes,
@@ -160,14 +159,15 @@ export var update_document = async ({ collection, update_filter, update_set }) =
 			update_set,
 		},
 	});
-export var update_note = ({note_id,update_set}) => update_document({
-	//todo make sure this kind of extending functions works well
-	collection: "notes",
-	update_filter: {
-		_id: note_id
-	},
-	update_set
-})
+export var update_note = ({ note_id, update_set }) =>
+	update_document({
+		//todo make sure this kind of extending functions works well
+		collection: "notes",
+		update_filter: {
+			_id: note_id,
+		},
+		update_set,
+	});
 //todo test from here to the bottom (in current commit)
 export var get_tasks = async ({ pyramid_mode = false, filters = {} }) =>
 	await custom_axios({
@@ -225,3 +225,18 @@ export var flexible_user_finder = async ({ value }) =>
 			value,
 		},
 	});
+
+export var get_workflows = async ({ filters = {} }) =>
+	await custom_axios({
+		task: "get_workflows",
+		body: {
+			filters,
+		},
+	});
+
+export var get_user_data_hierarchy = async ({ user_id }) => await custom_axios({
+	task: "get_user_data_hierarchy",
+	body: {
+		user_id
+	}
+})

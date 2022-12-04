@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { get_user_notes, get_note_sections, update_note } from "../../api/client";
+import { get_user_notes , update_note as api_update_note } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 export const Note = () => {
 	var { note_id, workspace_id, workflow_id, user_id } = useParams();

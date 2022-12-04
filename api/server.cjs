@@ -166,7 +166,7 @@ async function main() {
 			res.json(
 				req.body.pyramid_mode === true ? build_pyramid(tasks) : tasks
 			);
-			//todo add support to check also if username is not the creator but a member of that task result show up (also for notes )
+			//todo add support to check also if username is not the creator but a member of that task result show up (also for notes and ...)
 		} else if (task === "get_workspace_workflows") {
 			var filtered_workflows = await db
 				.collection("workflows")
@@ -223,7 +223,48 @@ async function main() {
 			} else {
 				res.status(400).json({ status: 3, info: "there is more than one match in valid search resources" })
 			}
-		} else {
+		} else if (task === "get_workflows") {
+			var filters = req.body.filters
+			if (Object.keys(filters).includes('_id')) {
+				filters['_id'] = ObjectId(filters["_id"])
+			}
+			res.json(await db.collection("workflows").find(filters).toArray())
+		} else if (task === "get_user_data_hierarchy") {
+			var user_id = req.body.user_id 
+			var user_workspaces = await db.collection('workspaces').find({ creator_user_id: user_id }).toArray()
+			var user_workflows = await db.collection('workflows').find({ creator_user_id: user_id }).toArray()
+			var user_notes = await db.collection('notes').find({ creator_user_id: user_id }).toArray()
+			var user_tasks = await db.collection('tasks').find({ creator_user_id: user_id }).toArray()
+			var user_hierarchy = user_workspaces.map(workspace => {
+				return {
+					type: "workspace",
+					text: "ws : " + workspace.title,
+					data : workspace,
+					children: user_workflows.filter(workflow => workflow.workspace_id == workspace._id).map(workflow => {
+						return {
+							type: "workflow",
+							data : workflow,
+							text: "wf : " + workflow.title,
+							children: [...user_notes.filter(note => note.workflow_id == workflow._id).map(note => {
+								return {
+									type : "note",
+									text: "note : " + note.title,
+									data : note
+								}
+							}), ...user_tasks.filter(task => task.workflow_id == workflow._id).map(task => {
+								return {
+									type: "task",
+									text: "task : " + task.title,
+									data : task
+								}
+							})]
+						}
+					})
+				}
+			})
+			res.json(user_hierarchy)
+		}
+		else {
 			res.json('unknown value for "task"');
 		}
 	});
