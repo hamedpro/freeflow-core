@@ -21,8 +21,8 @@ task : get_users
 
 POST http://localhost:4000
 Content-Type: application/json
-task : flexible_user_finder
+task : get_user_data_hierarchy
 
 {
-    "value" : "637e4be714cc596422e71b89"
+    "user_id" : "637e4be714cc596422e71b89"
 }

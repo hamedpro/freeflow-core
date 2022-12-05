@@ -6,7 +6,8 @@ table.custom_border td {
 	padding: 0px 10px 0px 10px;
 }
 body,
-html {
+html ,
+#root{
 	height: 100%;
 	width: 100%;
 	overflow-x: hidden;
