@@ -50,6 +50,11 @@ export const PrimarySideBar = () => {
                         indent_count :3 
                     })
                 })
+                tmp.push({
+                    text: "new note",
+                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/notes/new`,
+                    indent_count : 3
+                })
                 
                 tmp.push({
                     text: "tasks",
@@ -63,8 +68,23 @@ export const PrimarySideBar = () => {
                         indent_count :3 
                     })
                 })
+                tmp.push({
+                    text: "new task",
+                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/tasks/new`,
+                    indent_count : 3
+                })
 
             })
+            tmp.push({
+                text: "new workflow",
+                indent_count: 1,
+                url : `/users/${user_id}/workspaces/${ws._id}/workflows/new`
+            })
+        })
+        tmp.push({
+            text: "new workspace",
+            url: `/users/${user_id}/workspaces/new`,
+            indent_count : 0
         })
 		set_options(tmp) // each option should contain all required props of Option component
 	}
