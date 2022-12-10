@@ -3,17 +3,16 @@ var { hash_sha_256_hex, build_pyramid, gen_verification_code } = require("./comm
 var express = require("express");
 var cookieParser = require("cookie-parser");
 var cors = require("cors");
-var formidable = require("formidable");
 var fs = require("fs");
+var formidable = require("formidable");
 //app.use(express.static("./uploaded/"));
-var custom_upload = require("./nodejs_custom_upload.cjs").custom_upload;
 var path = require("path");
 var { MongoClient, ObjectId } = require("mongodb");
 const url = "mongodb://localhost:27017";
 const client = new MongoClient(url);
 var db = client.db(process.env.db_name);
 async function init() {
-	["./uploaded"].forEach((path) => {
+	["./uploaded", "./uploaded/resources"].forEach((path) => {
 		if (!fs.existsSync(path)) {
 			fs.mkdirSync(path);
 		}
@@ -259,13 +258,53 @@ async function main() {
 				workspaces: user_workspaces.map((ws) => {
 					return {
 						...ws,
-						workflows: user_workflows.filter(wf => wf.workspace_id == ws._id).map((wf) => {
-							return { ...wf, notes: user_notes.filter(note => note.workflow_id == wf._id), tasks: user_tasks.filter(task => task .workflow_id == wf._id) };
-						}),
+						workflows: user_workflows
+							.filter((wf) => wf.workspace_id == ws._id)
+							.map((wf) => {
+								return {
+									...wf,
+									notes: user_notes.filter((note) => note.workflow_id == wf._id),
+									tasks: user_tasks.filter((task) => task.workflow_id == wf._id),
+								};
+							}),
 					};
 				}),
 			};
 			res.json(user_hierarchy);
+		} else if (task === "upload_new_resource") {
+			var form = formidable({ UploadDir: "./uploaded/resources" });
+			res.json(
+				await new Promise((resolve, reject) => {
+					form.parse(req, async (err, fields, files) => {
+						var files_data = JSON.parse(fields.files_data);
+						var data = JSON.parse(fields.data);
+						var promises = [];
+						Object.keys(files).forEach((key) => {
+							promises.push(
+								db
+									.collection("resources")
+									.insertOne({
+										...data,
+										file_data : files_data[key]
+									})
+									.then(async (result) => {
+										var inserted_row_id = result.insertedId.toString()
+										await fs.promises.rename(files[key].filepath, path.join('./uploaded/resources/',inserted_row_id));
+										return inserted_row_id
+									}).then()
+							);
+						});
+						var new_resource_ids = await Promise.all(promises);
+						resolve(new_resource_ids);
+					});
+				})
+			);
+		} else if (task === "upload_test") {
+			custom_upload({
+				req,
+				files_names: "ff",
+			});
+			res.json({});
 		} else {
 			res.json('unknown value for "task"');
 		}

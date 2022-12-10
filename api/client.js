@@ -1,18 +1,20 @@
 import axios from "axios";
 var window = { api_endpoint: "http://localhost:4000" };
-export async function custom_axios({ task, body = {} }) {
+export async function custom_axios({ task, body = {}, content_type_json = true }) {
 	var api_endpoint = window.api_endpoint;
 	var method = "POST"; // case insensitive,
 	var route = "/";
-
+	var headers = {
+		task,
+	};
+	if (content_type_json) {
+		headers["Content-Type"] = "application/json";
+	}
 	var response = await axios({
 		url: new URL(route, api_endpoint).href,
 		method: method.toUpperCase(),
 		data: body,
-		headers: {
-			"Content-Type": "application/json",
-			task: task,
-		},
+		headers,
 		withCredentials: true,
 	});
 
@@ -234,9 +236,39 @@ export var get_workflows = async ({ filters = {} }) =>
 		},
 	});
 
-export var get_user_data_hierarchy = async ({ user_id }) => await custom_axios({
-	task: "get_user_data_hierarchy",
-	body: {
-		user_id
+export var get_user_data_hierarchy = async ({ user_id }) =>
+	await custom_axios({
+		task: "get_user_data_hierarchy",
+		body: {
+			user_id,
+		},
+	});
+
+export var upload_file = async ({ task, data = { }, input_element_id }) => {
+	var form = new FormData()
+	var files = document.getElementById(input_element_id).files 
+	var files_data = {}
+	for (var i = 0; i < files.length; i++){
+		var file = files[i.toString()]
+		form.append(i.toString(), file)
+		console.log(file)
+		files_data[i.toString()] = {}
+		for (const prop in file) {
+			files_data[i.toString()][prop] = file[prop]
+		}
 	}
+	form.append('data', JSON.stringify(data))
+	form.append('files_data', JSON.stringify(files_data))
+
+	return await custom_axios({
+		content_type_json: false,
+		body: form,
+		task
+	})
+}
+
+export var upload_new_resource = ({ data, input_element_id }) => upload_file({
+	task: "upload_new_resource",
+	data,
+	input_element_id
 })
