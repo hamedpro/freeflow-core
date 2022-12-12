@@ -6,29 +6,29 @@ clone this repositoty using this command:
 git clone https://github.com/hamedpro/pink_rose
 ```
 
-then go to this new created directory and install dependencies using this command below :
+then install a mongodb server on your system by following installation instruction provided on their website :
+https://www.mongodb.com/docs/manual/installation/
+ 
+<br />
+
+then go to this newly created directory and install global and local npm dependencies using this command below :
 
 ```
 cd pink_rose;
-npm i 
+npm i -g nodemon http-server ; npm i
 ```
+then finally init a ".env" file. this command below creates a .env file and fills it with default configuration 
 
-then create a .env file in the root and make it look like this 
+> you can then change configuration manually (if you dont want the default configs) by editing .env file directly
 
-```
-api_port=4000
-api_endpoint=http://localhost:4000
-db_name=pink_rose
-frontend_port=3000
-```
-
-and finally use this command below to create random values used for secret tokens and ... 
 ```
 node create_env_randoms.cjs
 ```
 
-then just start server and client with this command
+then to start the project (both api and frontend) in development mode run this command below 
 
 ```
 npm run dev
 ```
+
+congrats you did it !

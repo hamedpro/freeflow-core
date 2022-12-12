@@ -55,9 +55,7 @@ async function main() {
 		} else if (task === "delete_user") {
 			res.json(await db.collection("users").deleteOne({ _id: ObjectId(req.body.user_id) }));
 		} else if (task === "auth") {
-			var user = await db
-				.collection("users")
-				.findOne({ _id: ObjectId(req.body.user_id) })
+			var user = await db.collection("users").findOne({ _id: ObjectId(req.body.user_id) });
 
 			if (req.body.verf_code !== undefined) {
 				var current_verification_code = await db
@@ -69,11 +67,11 @@ async function main() {
 					);
 				}
 				if (current_verification_code.value == req.body.verf_code) {
-					var update_filter = { _id : ObjectId(req.body.user_id) };
+					var update_filter = { _id: ObjectId(req.body.user_id) };
 					var update_object = {};
 					update_object[current_verification_code.kind + "_is_verified"] = true;
 					await db.collection("users").updateOne(update_filter, { $set: update_object });
-					console.log({update_filter,update_object})
+					console.log({ update_filter, update_object });
 					res.json(true);
 				} else {
 					res.json(false);
@@ -83,9 +81,7 @@ async function main() {
 			}
 		} else if (task === "send_verification_code") {
 			// body :{ kind : "mobile"  || "email_address" , user_id : string}
-			var user = await db
-				.collection("users")
-				.findOne({ _id: ObjectId(req.body.user_id) })
+			var user = await db.collection("users").findOne({ _id: ObjectId(req.body.user_id) });
 			if (user === undefined) {
 				res.status(400).json("there is not any user even found with that details");
 				return;
@@ -130,47 +126,53 @@ async function main() {
 					res.status(400).send();
 			}
 		} else if (task === "new_note") {
-			var new_inserted_row = await db.collection("notes").insertOne(req.body)
-			res.json(new_inserted_row.insertedId)
+			var new_inserted_row = await db.collection("notes").insertOne(req.body);
+			res.json(new_inserted_row.insertedId);
 		} else if (task === "get_user_notes") {
-			res.json(await db.collection("notes").find({creator_user_id : req.body.creator_user_id}).toArray());
+			res.json(
+				await db
+					.collection("notes")
+					.find({ creator_user_id: req.body.creator_user_id })
+					.toArray()
+			);
 		} else if (task === "new_workspace") {
 			var inserted_row = await db.collection("workspaces").insertOne(req.body);
-			res.json(inserted_row.insertedId)
+			res.json(inserted_row.insertedId);
 		} else if (task === "get_user_workspaces") {
 			res.json(
-				await db.collection("workspaces").find({ creator_user_id: req.body.creator_user_id }).toArray()
+				await db
+					.collection("workspaces")
+					.find({ creator_user_id: req.body.creator_user_id })
+					.toArray()
 			);
 		} else if (task === "new_note_section") {
 			var inserted_row = await db.collection("note_sections").insertOne(req.body);
-			res.json(inserted_row.insertedId)
+			res.json(inserted_row.insertedId);
 		} else if (task === "get_note_sections") {
 			res.json(
-					await db
-						.collection("note_sections")
-						.find({
-							note_id : req.body.note_id
-						})
-						.sort({ index: 1 })
-						.toArray()
+				await db
+					.collection("note_sections")
+					.find({
+						note_id: req.body.note_id,
+					})
+					.sort({ index: 1 })
+					.toArray()
 			);
 		} else if (task === "new_task") {
-			var inserted_row = await db.collection("tasks").insertOne(req.body)
-			res.json(inserted_row.insertedId)
+			var inserted_row = await db.collection("tasks").insertOne(req.body);
+			res.json(inserted_row.insertedId);
 		} else if (task === "get_tasks") {
-			var filters = req.body.filters
-			if (Object.keys(filters).includes('_id')) {
-				filters['_id'] = ObjectId(filters["_id"])
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
 			}
-			var tasks = await db.collection("tasks").find(filters).toArray()
-			res.json(
-				req.body.pyramid_mode === true ? build_pyramid(tasks) : tasks
-			);
+			var tasks = await db.collection("tasks").find(filters).toArray();
+			res.json(req.body.pyramid_mode === true ? build_pyramid(tasks) : tasks);
 			//todo add support to check also if username is not the creator but a member of that task result show up (also for notes and ...)
 		} else if (task === "get_workspace_workflows") {
 			var filtered_workflows = await db
 				.collection("workflows")
-				.find({workspace_id: req.body.workspace_id})
+				.find({ workspace_id: req.body.workspace_id })
 				.toArray();
 			res.json(filtered_workflows);
 		} else if (task === "new_workflow") {
@@ -191,84 +193,84 @@ async function main() {
 			}
 		} else if (task === "update_document") {
 			//body must be like : {collection : string,update_filter : object, update_set : object}
-			var update_filter = req.body.update_filter
+			var update_filter = req.body.update_filter;
 			if (update_filter._id !== undefined) {
-				update_filter._id = ObjectId(update_filter._id)
+				update_filter._id = ObjectId(update_filter._id);
 			}
 			var update_statement = await db
 				.collection(req.body.collection)
 				.updateOne(update_filter, { $set: req.body.update_set });
 			res.json(update_statement);
 		} else if (task === "flexible_user_finder") {
-			var users = await db.collection('users').find().toArray()
-			var all_values = []
-			users.forEach(user => {
-				all_values.push(user._id.toString(),user.username,user.mobile,user.email_address)
-			})
-			var matches_count = all_values.filter(value => value == req.body.value).length
+			var users = await db.collection("users").find().toArray();
+			var all_values = [];
+			users.forEach((user) => {
+				all_values.push(
+					user._id.toString(),
+					user.username,
+					user.mobile,
+					user.email_address
+				);
+			});
+			var matches_count = all_values.filter((value) => value == req.body.value).length;
 			if (matches_count === 0) {
-				res.status(400).json({ status: 2, info: "there is more not any match in valid search resources" })
+				res.status(400).json({
+					status: 2,
+					info: "there is more not any match in valid search resources",
+				});
 			} else if (matches_count === 1) {
-				var matched_user = users.find(user => {
-					var tmp = [
-						user.email_address,
-						user.mobile,
-						user._id.toString(),
-						user.username
-					]
-					console.log({list:tmp,value :req.body.value })
-					return tmp.includes(req.body.value)
-				})
-				res.json(matched_user)
+				var matched_user = users.find((user) => {
+					var tmp = [user.email_address, user.mobile, user._id.toString(), user.username];
+					console.log({ list: tmp, value: req.body.value });
+					return tmp.includes(req.body.value);
+				});
+				res.json(matched_user);
 			} else {
-				res.status(400).json({ status: 3, info: "there is more than one match in valid search resources" })
+				res.status(400).json({
+					status: 3,
+					info: "there is more than one match in valid search resources",
+				});
 			}
 		} else if (task === "get_workflows") {
-			var filters = req.body.filters
-			if (Object.keys(filters).includes('_id')) {
-				filters['_id'] = ObjectId(filters["_id"])
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
 			}
-			res.json(await db.collection("workflows").find(filters).toArray())
+			res.json(await db.collection("workflows").find(filters).toArray());
 		} else if (task === "get_user_data_hierarchy") {
-			var user_id = req.body.user_id 
-			var user_workspaces = await db.collection('workspaces').find({ creator_user_id: user_id }).toArray()
-			var user_workflows = await db.collection('workflows').find({ creator_user_id: user_id }).toArray()
-			var user_notes = await db.collection('notes').find({ creator_user_id: user_id }).toArray()
-			var user_tasks = await db.collection('tasks').find({ creator_user_id: user_id }).toArray()
-			var user_hierarchy = user_workspaces.map(workspace => {
-				return {
-					type: "workspace",
-					text: "ws : " + workspace.title,
-					data : workspace,
-					children: user_workflows.filter(workflow => workflow.workspace_id == workspace._id).map(workflow => {
-						return {
-							type: "workflow",
-							data : workflow,
-							text: "wf : " + workflow.title,
-							children: [...user_notes.filter(note => note.workflow_id == workflow._id).map(note => {
-								return {
-									type : "note",
-									text: "note : " + note.title,
-									data : note
-								}
-							}), ...user_tasks.filter(task => task.workflow_id == workflow._id).map(task => {
-								return {
-									type: "task",
-									text: "task : " + task.title,
-									data : task
-								}
-							})]
-						}
-					})
-				}
-			})
-			res.json(user_hierarchy)
-		}
-		else {
+			var user_id = req.body.user_id;
+			var user_workspaces = await db
+				.collection("workspaces")
+				.find({ creator_user_id: user_id })
+				.toArray();
+			var user_workflows = await db
+				.collection("workflows")
+				.find({ creator_user_id: user_id })
+				.toArray();
+			var user_notes = await db
+				.collection("notes")
+				.find({ creator_user_id: user_id })
+				.toArray();
+			var user_tasks = await db
+				.collection("tasks")
+				.find({ creator_user_id: user_id })
+				.toArray();
+			var user_hierarchy = {
+				workspaces: user_workspaces.map((ws) => {
+					return {
+						...ws,
+						workflows: user_workflows.filter(wf => wf.workspace_id == ws._id).map((wf) => {
+							return { ...wf, notes: user_notes.filter(note => note.workflow_id == wf._id), tasks: user_tasks.filter(task => task .workflow_id == wf._id) };
+						}),
+					};
+				}),
+			};
+			res.json(user_hierarchy);
+		} else {
 			res.json('unknown value for "task"');
 		}
 	});
-	//todo add try catch blocks for all possible tasks 
+	//todo add try catch blocks for all possible tasks
 	/* 
 		to know how to use each route please 
 		look at client.js file functions
