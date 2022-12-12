@@ -1,4 +1,4 @@
-var exec = require("child_process").exec;
+var {exec} = require("child_process");
 var fs = require("fs");
 var mode = process.argv[2] == "dev" ? "dev" : "start";
 
@@ -9,4 +9,5 @@ var start_script = `(node ./api/server.cjs) & (rm -rf ./dist && npx tailwindcss 
 //todo start_script is not tested
 var dev_script = `npx tailwindcss -c ./tailwind.config.cjs -i ./src/input.css -o ./src/output.css --watch & vite --host --strictPort --port ${frontend_port} & nodemon ./api/server.cjs`;
 
-exec(`${mode == "dev" ? dev_script : start_script}`);
+var s = exec(`${mode == "dev" ? dev_script : start_script}`)
+s.stdout.on('data', data => console.log(data))
