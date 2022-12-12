@@ -11,3 +11,4 @@ var dev_script = `npx tailwindcss -c ./tailwind.config.cjs -i ./src/input.css -o
 
 var s = exec(`${mode == "dev" ? dev_script : start_script}`)
 s.stdout.on('data', data => console.log(data))
+s.stderr.on('data', data => console.log(data))
