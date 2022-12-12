@@ -10,7 +10,10 @@ var path = require("path");
 var { MongoClient, ObjectId } = require("mongodb");
 const url = "mongodb://localhost:27017";
 const client = new MongoClient(url);
-var db = client.db(process.env.db_name);
+var { frontend_port, api_port, api_endpoint, db_name } = JSON.parse(
+	fs.readFileSync("./env.json", "utf-8")
+);
+var db = client.db(db_name);
 async function init() {
 	["./uploaded", "./uploaded/resources"].forEach((path) => {
 		if (!fs.existsSync(path)) {
@@ -316,7 +319,7 @@ async function main() {
 	*/
 
 	//important todo : res.end or res.json at the end of async requests becuse axios will await until this happens
-	var server = app.listen(process.env.api_port, () => {
+	var server = app.listen(api_port, () => {
 		console.log(`server started listening`);
 	});
 }
