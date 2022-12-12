@@ -1,6 +1,6 @@
 import axios from "axios";
 var window = { api_endpoint: "http://localhost:4000" };
-export async function custom_axios({ task, body = {}, content_type_json = true }) {
+export async function custom_axios({ task, body = {}, content_type_json = true ,responseType = undefined}) {
 	var api_endpoint = window.api_endpoint;
 	var method = "POST"; // case insensitive,
 	var route = "/";
@@ -10,13 +10,18 @@ export async function custom_axios({ task, body = {}, content_type_json = true }
 	if (content_type_json) {
 		headers["Content-Type"] = "application/json";
 	}
-	var response = await axios({
+	var conf = {
 		url: new URL(route, api_endpoint).href,
 		method: method.toUpperCase(),
 		data: body,
 		headers,
 		withCredentials: true,
-	});
+		
+	}
+	if (responseType) {
+		conf.responseType = responseType
+	}
+	var response = await axios(conf);
 
 	return response.data;
 }
@@ -244,31 +249,69 @@ export var get_user_data_hierarchy = async ({ user_id }) =>
 		},
 	});
 
-export var upload_file = async ({ task, data = { }, input_element_id }) => {
-	var form = new FormData()
-	var files = document.getElementById(input_element_id).files 
-	var files_data = {}
-	for (var i = 0; i < files.length; i++){
-		var file = files[i.toString()]
-		form.append(i.toString(), file)
-		console.log(file)
-		files_data[i.toString()] = {}
+export var upload_files = async ({ task, data = {}, input_element_id }) => {
+	var form = new FormData();
+	var files = document.getElementById(input_element_id).files;
+	var files_data = {};
+	for (var i = 0; i < files.length; i++) {
+		var file = files[i.toString()];
+		form.append(i.toString(), file);
+		console.log(file);
+		files_data[i.toString()] = {};
 		for (const prop in file) {
-			files_data[i.toString()][prop] = file[prop]
+			files_data[i.toString()][prop] = file[prop];
 		}
 	}
-	form.append('data', JSON.stringify(data))
-	form.append('files_data', JSON.stringify(files_data))
+	form.append("data", JSON.stringify(data));
+	form.append("files_data", JSON.stringify(files_data));
 
 	return await custom_axios({
 		content_type_json: false,
 		body: form,
-		task
+		task,
+	});
+};
+
+export var upload_new_resources = ({ data, input_element_id }) =>
+	upload_files({
+		task: "upload_new_resources",
+		data,
+		input_element_id,
+	});
+
+export var get_resources = ({ filters = {} }) =>
+	custom_axios({
+		task: "get_resources",
+		body: {
+			filters,
+		},
+	});
+export var custom_axios_download = async ({ url ,file_name}) => {
+	var response = await axios({
+		url,
+		method: "GET",
+		withCredentials : true ,
+		responseType : "blob"
+	})
+	// create file link in browser's memory
+	const href = URL.createObjectURL(response.data);
+
+	// create "a" HTML element with href to file & click
+	const link = document.createElement("a");
+	link.href = href;
+	link.setAttribute("download", file_name); //file name should have extension, ex : fileff.pdf
+	document.body.appendChild(link);
+	link.click();
+
+	// clean up "a" element & remove ObjectURL
+	document.body.removeChild(link);
+	URL.revokeObjectURL(href);
+};
+
+export var download_resource = async ({ resource_id }) => {
+	var resource_name = (await get_resources({ filters: { _id: resource_id } }))[0].file_data.name
+	custom_axios_download({
+		url: new URL(`/resources/${resource_id}`, window.api_endpoint).href,
+		file_name : resource_name
 	})
 }
-
-export var upload_new_resource = ({ data, input_element_id }) => upload_file({
-	task: "upload_new_resource",
-	data,
-	input_element_id
-})

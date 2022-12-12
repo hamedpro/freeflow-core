@@ -1,6 +1,7 @@
 require("dotenv").config();
 var { hash_sha_256_hex, build_pyramid, gen_verification_code } = require("./common.cjs");
 var express = require("express");
+var os = require("os");
 var cookieParser = require("cookie-parser");
 var cors = require("cors");
 var fs = require("fs");
@@ -26,9 +27,11 @@ async function init() {
 }
 async function main() {
 	var app = express();
+	
 	app.use(cors({ origin: "http://localhost:3000", credentials: true })); //todo read origin from env so when port or protocol changes it will keep going working properly
 	app.use(cookieParser());
 	app.use(express.json());
+	app.use(express.static("./uploaded/"));
 	try {
 		await init();
 	} catch (e) {
@@ -274,7 +277,7 @@ async function main() {
 				}),
 			};
 			res.json(user_hierarchy);
-		} else if (task === "upload_new_resource") {
+		} else if (task === "upload_new_resources") {
 			var form = formidable({ UploadDir: "./uploaded/resources" });
 			res.json(
 				await new Promise((resolve, reject) => {
@@ -288,13 +291,17 @@ async function main() {
 									.collection("resources")
 									.insertOne({
 										...data,
-										file_data : files_data[key]
+										file_data: files_data[key],
 									})
 									.then(async (result) => {
-										var inserted_row_id = result.insertedId.toString()
-										await fs.promises.rename(files[key].filepath, path.join('./uploaded/resources/',inserted_row_id));
-										return inserted_row_id
-									}).then()
+										var inserted_row_id = result.insertedId.toString();
+										await fs.promises.rename(
+											files[key].filepath,
+											path.join("./uploaded/resources/", inserted_row_id)
+										);
+										return inserted_row_id;
+									})
+									.then()
 							);
 						});
 						var new_resource_ids = await Promise.all(promises);
@@ -308,6 +315,13 @@ async function main() {
 				files_names: "ff",
 			});
 			res.json({});
+		} else if (task === "get_resources") {
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
+			}
+			var resources = await db.collection("resources").find(filters).toArray();
+			res.json(resources);
 		} else {
 			res.json('unknown value for "task"');
 		}
