@@ -14,7 +14,8 @@ export const NewTask = () => {
 	const [notes, setNotes] = useState([]);
 	const [workflow_tasks, set_workflow_task] = useState();
 	const [selectedNotes, selectNotes] = useState(null);
-	const [selectedParentTask, selectParentTask] = useState(null);
+  const [selectedParentTask, selectParentTask] = useState(null);
+  const [title_input,set_title_input] = useState()
 	//TODO: check _locale for possible option to output the _d(date) object in jalaali's format
 	const [selected_dates, set_selected_dates] = useState({
 		end: null,
@@ -40,7 +41,8 @@ export const NewTask = () => {
 				deadline_date: selected_dates.deadline,
 				linked_notes: selectedNotes.map(i=>i.value),
 				workspace_id,
-				parent: selectedParentTask.value ,
+        parent: selectedParentTask.value,
+        title : title_input
       }
 			var id_of_new_task = await new_task(tmp);
 			alert("all done. navigating to the newly created task's page");
@@ -58,7 +60,9 @@ export const NewTask = () => {
 			<h1>NewTask</h1>
 			<h1>creator's user_id : {user_id} </h1>
 			<h1>workspace_id : {workspace_id} </h1>
-			<h1>workflow_id : {workflow_id} </h1>
+      <h1>workflow_id : {workflow_id} </h1>
+      <h2>enter a title for this task : </h2>
+      <input onChange={(ev)=>set_title_input(ev.target.value)} />
 			<h2>select notes you want to link with this task :</h2>
 			<Select
 				onChange={selectNotes}

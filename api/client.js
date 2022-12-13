@@ -142,6 +142,7 @@ export var new_task = async ({
 	creator_user_id,
 	workspace_id,
 	start_date,
+	title
 }) =>
 	await custom_axios({
 		task: "new_task",
@@ -155,6 +156,7 @@ export var new_task = async ({
 			creator_user_id,
 			workspace_id,
 			start_date,
+			title
 		},
 	});
 export var update_document = async ({ collection, update_filter, update_set }) =>
