@@ -1,28 +1,43 @@
 import React, { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
-
-const ObjectBox = ({ object, link = null, onClick = () => { } }) => {
+import { DataGrid } from "@mui/x-data-grid";
+const ObjectBox = ({ object, link = null, onClick = () => {} }) => {
 	//onClick prop will be executed before navigating to the given link
 	var nav = useNavigate();
 	if (!object) return null;
+
+	var rows = Object.keys(object).map((key, index) => {
+		return {
+			id: index,
+			col1: key,
+			col2: JSON.stringify(object[key]),
+		};
+	});
+
+	var columns = [
+		{
+			field: "col1",
+			headerName: "key",
+			width: 150,
+		},
+		{
+			field: "col2",
+			headerName: "value",
+			width: 450,
+		},
+	];
 	return (
 		<div
 			onClick={() => {
-				onClick()
+				onClick();
 				if (link !== null) {
-					nav(link)
+					nav(link);
 				}
 			}}
-			className="bg-blue-600 text-white px-2 rounded mx-4 cursor-pointer mt-2 "
+			className="px-2 rounded cursor-pointer my-2"
+			style={{height : 300 , width : "100%"}}
 		>
-			{Object.keys(object).map((key, index) => (
-				<Fragment key={index}>
-					<span className="break-all">
-						{key} : {JSON.stringify(object[key])}
-					</span>
-					<br />
-				</Fragment>
-			))}
+			<DataGrid rows={rows} columns={columns} />
 		</div>
 	);
 };
