@@ -1,9 +1,16 @@
 .month_calendar tbody tr:not(.headers):hover{
-    background-color : rgb(0, 0, 255);
+    background-color : rgb(0, 255, 149);transition: 0.2s;
 }
 .month_calendar tbody tr:not(.headers) td:hover{
-    background-color : red;
+    background-color : blue;transition: 0.2s;
+    color: white;
+    text-align: center;
 }
+.month_calendar tbody tr:not(.headers) td{
+    text-align: center;
+}
+
 .month_calendar , .month_calendar td,.month_calendar th { 
-    border :1px solid black 
+    border :1px solid black; transition: 0.2s;
+    
 }

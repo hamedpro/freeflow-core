@@ -1,7 +1,7 @@
 import React, { Fragment } from "react";
 import "./App.css";
 import "./output.css";
-import { Routes, Route, useNavigate, useLocation, useParams } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 //import {} from "./components";
 import { multi_lang_helper as ml } from "./common";
 import { Login } from "./components/Login";
@@ -20,14 +20,11 @@ import { NewTask } from "./components/NewTask";
 import { Terms } from "./components/Terms";
 import { RegisterCompleteUserInfo } from "./components/RegisterCompleteUserInfo";
 import { VerifyIdentity } from "./components/VerifyIdentity";
-import { YearCalendar } from "./components/YearCalendar";
 import { MonthCalendar } from "./components/MonthCalendar.jsx";
 import { WeekCalendar } from "./components/WeekCalendar";
 import { DayCalendar } from "./components/DayCalendar";
-import { AdminDashboardUsersSection } from "./components/AdminDashboardUsersSection";
 import { Root } from "./components/Root.jsx";
 import { PrimarySideBar } from "./components/PrimarySideBar";
-import { useEffect } from "react";
 import { NewResource } from "./components/NewResource";
 import { Resources } from "./components/Resources";
 function Wrapper() {
@@ -103,11 +100,6 @@ function Wrapper() {
 					/>
 					<Route path="calendar">
 						<Route
-							path="year"
-							element={<YearCalendar timestamp={new Date().getTime()} />}
-						/>
-						{/* todo : test it */}
-						<Route
 							path="month"
 							element={<MonthCalendar timestamp={new Date().getTime()} />}
 						/>
@@ -146,12 +138,6 @@ function App() {
 				path="/users/:user_id/*"
 				element={<Wrapper timestamp={new Date().getTime()} />}
 			></Route>
-			{/* <Route path="/admin">
-				<Route path="users" element={<AdminDashboardUsersSection timestamp={new Date().getTime()} />} />
-			</Route> */}{" "}
-			{/* todo instead of having a seperated route for admin, 
-			when loading profile of each user check if his/her account has admin previleges or not
-			and its true show admin options */}
 		</Routes>
 	);
 }
