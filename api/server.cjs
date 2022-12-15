@@ -27,7 +27,6 @@ async function init() {
 }
 async function main() {
 	var app = express();
-	
 	app.use(cors({ origin: "http://localhost:3000", credentials: true })); //todo read origin from env so when port or protocol changes it will keep going working properly
 	app.use(cookieParser());
 	app.use(express.json());
@@ -163,7 +162,26 @@ async function main() {
 					.sort({ index: 1 })
 					.toArray()
 			);
+		} else if (task === "move_task_or_event") { 
+			//todo 
 		} else if (task === "new_task") {
+			//(checking for time conflicts)
+			var current_tasks = await db
+				.collection("tasks")
+				.find({ creator_user_id: req.body.creator_user_id })
+				.toArray();
+			var conflicts = current_tasks.filter(
+				(task) => task.start_date > body.start_date || task.end_date < body.end_date
+			);
+			//todo check if end_date is after start_date or not (also for new_event)
+			//todo test this method of checking conflicts (also check for <= and >= in addition to < and >)
+			if (conflicts.length !== 0) {
+				res.send({
+					error_code: 1,
+					error_message: "where we want to insert this new task there is a task",
+				});
+				return;
+			}
 			var inserted_row = await db.collection("tasks").insertOne(req.body);
 			res.json(inserted_row.insertedId);
 		} else if (task === "get_tasks") {
@@ -322,6 +340,83 @@ async function main() {
 			}
 			var resources = await db.collection("resources").find(filters).toArray();
 			res.json(resources);
+		} else if (task === "get_collection") {
+			//body should be like this :{collection_name : string ,filters : {}}
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
+			}
+			var tasks = await db.collection(req.body.collection_name).find(filters).toArray();
+			res.json(tasks);
+		} else if (task === "new_document") {
+			//body should be like this : {collection_name : string , document : object}
+			var inserted_row = await db
+				.collection(req.body.collection_name)
+				.insertOne(req.body.document);
+			res.json(inserted_row.insertedId);
+		} else if (task === "new_event") {
+			//(checking for time conflicts)
+			var current_events = await db
+				.collection("events")
+				.find({ creator_user_id: req.body.creator_user_id })
+				.toArray();
+			var current_tasks = await db
+				.collection("tasks")
+				.find({ creator_user_id: req.body.creator_user_id })
+				.toArray();
+			var conflicts = [
+				...current_events.filter(
+					(event) => event.start_date > body.start_date || event.end_date < body.end_date
+				),
+				...current_tasks.filter(
+					(task) =>
+						task.is_done &&
+						(task.start_date > body.start_date || task.end_date < body.end_date)
+				),
+			];
+			//todo test this method of checking conflicts
+			if (conflicts.length !== 0) {
+				res.send({
+					error_code: 1,
+					error_message:
+						"where we want to insert this new event there is a done task or an existing event",
+				});
+				return;
+			}
+			var inserted_row = await db.collection("events").insertOne(req.body);
+			res.json(inserted_row.insertedId);
+		} else if (task === "mark_task_as_done") {
+			//body should be like this : {task_id : string}
+			//first check if we do this there will be any conflict or not
+			var events = await db.collection("events").find().toArray();
+			var this_task = await db
+				.collection("tasks")
+				.findOne({ _id: ObjectId(req.body.task_id) });
+			var has_conflicts =
+				events.filter(
+					(event) =>
+						event.start_date > this_task.start_date ||
+						event.end_date < this_task.end_date
+				).length !== 0;
+			if (has_conflicts) {
+				res.json({
+					error_code: 1,
+					error_message:
+						"if this task's done status change to true there will be a conflict with an existing event",
+				});
+				return;
+			}
+			await db
+				.collection("tasks")
+				.updateOne({ _id: ObjectId(req.body.task_id) }, { is_done: true });
+			res.json({});
+		} else if (task === "delete_document") {
+			//body should look like this : {filter_object : object , collection_name : string}
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
+			}
+			res.json(await db.collection(req.body.collection_name).deleteOne(filters));
 		} else {
 			res.json('unknown value for "task"');
 		}

@@ -1,6 +1,11 @@
 import axios from "axios";
 var window = { api_endpoint: "http://localhost:4000" };
-export async function custom_axios({ task, body = {}, content_type_json = true ,responseType = undefined}) {
+export async function custom_axios({
+	task,
+	body = {},
+	content_type_json = true,
+	responseType = undefined,
+}) {
 	var api_endpoint = window.api_endpoint;
 	var method = "POST"; // case insensitive,
 	var route = "/";
@@ -16,10 +21,9 @@ export async function custom_axios({ task, body = {}, content_type_json = true ,
 		data: body,
 		headers,
 		withCredentials: true,
-		
-	}
+	};
 	if (responseType) {
-		conf.responseType = responseType
+		conf.responseType = responseType;
 	}
 	var response = await axios(conf);
 
@@ -136,12 +140,12 @@ export var get_user_workspaces = async ({ creator_user_id }) =>
 export var new_task = async ({
 	linked_notes,
 	end_date,
-	deadline_date,
 	workflow_id,
 	creator_user_id,
 	workspace_id,
 	start_date,
-	title
+	title,
+	category_id,
 }) =>
 	await custom_axios({
 		task: "new_task",
@@ -153,7 +157,73 @@ export var new_task = async ({
 			creator_user_id,
 			workspace_id,
 			start_date,
-			title
+			title,
+			category_id,
+		},
+	});
+//returns id of new inserted document
+export var new_calendar_category = async ({ user_id, color, name }) => await custom_axios({
+	task: "new_document",
+	body: {
+		collection_name: "calendar_categories",
+		document: {
+			user_id,color,name
+		}
+	}
+})
+//returns an array of calendar categories with the given user_id 
+export var get_calendar_categories = async ({ user_id }) => await custom_axios({
+	task: "get_collection",
+	body: {
+		collection_name: 'calendar_categories',
+		filters: {
+			user_id
+		}
+	}
+})
+//returns the result of deleteOne method of mongodb 
+export var delete_task = async ({ task_id }) => await custom_axios({
+	task: "delete_document",
+	body: {
+		filters: {
+			_id : task_id 
+		},
+		collection_name : "tasks"
+	}
+})
+//returns the result of deleteOne method of mongodb 
+export var delete_event = async ({ event_id }) => await custom_axios({
+	task: "delete_document",
+	body: {
+		filters: {
+			_id : event_id 
+		},
+		collection_name : "events"
+	}
+})
+
+
+//returns id of inserted row
+export var new_event = async ({
+	end_date,
+	workflow_id,
+	creator_user_id,
+	workspace_id,
+	start_date,
+	title,
+	category_id,
+}) =>
+	await custom_axios({
+		task: "new_task",
+		body: {
+			init_date: new Date().getTime(),
+			end_date,
+			workflow_id,
+			creator_user_id,
+			workspace_id,
+			start,
+			title,
+			category_id,
 		},
 	});
 export var update_document = async ({ collection, update_filter, update_set }) =>
@@ -284,13 +354,13 @@ export var get_resources = ({ filters = {} }) =>
 			filters,
 		},
 	});
-export var custom_axios_download = async ({ url ,file_name}) => {
+export var custom_axios_download = async ({ url, file_name }) => {
 	var response = await axios({
 		url,
 		method: "GET",
-		withCredentials : true ,
-		responseType : "blob"
-	})
+		withCredentials: true,
+		responseType: "blob",
+	});
 	// create file link in browser's memory
 	const href = URL.createObjectURL(response.data);
 
@@ -307,9 +377,9 @@ export var custom_axios_download = async ({ url ,file_name}) => {
 };
 
 export var download_resource = async ({ resource_id }) => {
-	var resource_name = (await get_resources({ filters: { _id: resource_id } }))[0].file_data.name
+	var resource_name = (await get_resources({ filters: { _id: resource_id } }))[0].file_data.name;
 	custom_axios_download({
 		url: new URL(`/resources/${resource_id}`, window.api_endpoint).href,
-		file_name : resource_name
-	})
-}
+		file_name: resource_name,
+	});
+};
