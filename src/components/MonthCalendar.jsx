@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { get_tasks } from "../../api/client";
 import { custom_range } from "../common";
 import "./MonthCalendarStyles.css";
-
+import { month_names, day_names ,get_months_days_count} from "../common";
 export const MonthCalendar = ({ }) => {
 	var nav = useNavigate()
 	var [query_params,set_query_params] = useSearchParams()
@@ -22,36 +22,11 @@ export const MonthCalendar = ({ }) => {
 		get_data;
 	}, []);
 	var dev_mode = false;
-	var month_names = [
-		"January",
-		"February",
-		"March",
-		"April",
-		"May",
-		"June",
-		"July",
-		"August",
-		"September",
-		"October",
-		"November",
-		"December",
-	].map((i) => i.toLowerCase());
-	var day_names = [
-		"Sunday",
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday",
-	].map((i) => i.toLowerCase());
+	
 	var [selected_month, select_month] = useState(query_params.get('default') !== null ? query_params.get('default').split('-')[1] : month_names[new Date().getMonth()]);
 	var [selected_year, select_year] = useState(query_params.get('default') !== null ? Number(query_params.get('default').split('-')[0]) :new Date().getFullYear());
 	function get_month_number(month_name) {
 		return month_names.indexOf(month_name) + 1;
-	}
-	function get_months_days_count(year) {
-		return [31, year % 4 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 	}
 
 	function gen_start_and_end(year, month_name) {

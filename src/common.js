@@ -155,3 +155,30 @@ export function get_start_and_end(timestamp, mode = "day") {
         end : d+ (3600 * 1000 * 24)
     }
 }
+export var month_names = [
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December",
+].map((i) => i.toLowerCase());
+export var day_names = [
+	"Sunday",
+	"Monday",
+	"Tuesday",
+	"Wednesday",
+	"Thursday",
+	"Friday",
+	"Saturday",
+].map((i) => i.toLowerCase());
+
+export function get_months_days_count(year) {
+	return [31, year % 4 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+}
