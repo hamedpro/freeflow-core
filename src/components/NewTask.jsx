@@ -12,20 +12,15 @@ export const NewTask = () => {
 	var nav = useNavigate();
 	var { user_id, workspace_id, workflow_id } = useParams();
 	const [notes, setNotes] = useState([]);
-	const [workflow_tasks, set_workflow_task] = useState();
-	const [selectedNotes, selectNotes] = useState(null);
-  const [selectedParentTask, selectParentTask] = useState(null);
+	const [selectedNotes, selectNotes] = useState([]);
   const [title_input,set_title_input] = useState()
 	//TODO: check _locale for possible option to output the _d(date) object in jalaali's format
 	const [selected_dates, set_selected_dates] = useState({
 		end: null,
-		deadline: null,
 		start: null,
 	});
 
 	async function get_data() {
-		var tmp = await get_tasks({ filters: { workflow_id } });
-		set_workflow_task(tmp);
 		setNotes(await get_user_notes({ creator_user_id: user_id }));
 	}
 	useEffect(() => {
@@ -38,10 +33,8 @@ export const NewTask = () => {
 				workflow_id,
 				end_date: selected_dates.end,
 				start_date: selected_dates.start,
-				deadline_date: selected_dates.deadline,
 				linked_notes: selectedNotes.map(i=>i.value),
 				workspace_id,
-        parent: selectedParentTask.value,
         title : title_input
       }
 			var id_of_new_task = await new_task(tmp);
@@ -54,7 +47,7 @@ export const NewTask = () => {
 			alert("something went wrong. details in console");
 		}
 	}
-	if (!workflow_tasks || !notes) return <h1>still loading data ...</h1>;
+	if (!notes) return <h1>still loading data ...</h1>;
 	return (
 		<div className="p-2">
 			<h1>NewTask</h1>
@@ -77,27 +70,8 @@ export const NewTask = () => {
 				value={selectedNotes}
 			/>
 			<br />
-			<h2>
-				select which one of this workflow's tasks you want to set as this task's parent in
-				tasks hierarchy:
-			</h2>
-			<Select
-				onChange={selectParentTask}
-				options={[
-					{ value: null, label: "this task has not any parent" },
-					...workflow_tasks.map((task) => {
-						return {
-							value: task._id,
-							label: task.title,
-						};
-					}),
-				]}
-				isSearchable
-				value={selectedParentTask}
-			/>
-			<br />
-			<h2>select 'start', 'end' and deadline dates for this task : </h2>
-			{["start", "deadline", "end"].map((type, index) => {
+			<h2>select 'start' and 'end' dates for this task : </h2>
+			{["start", "end"].map((type, index) => {
 				return (
 					<div key={index} className="mb-3 block">
 						<LocalizationProvider dateAdapter={AdapterDayjs}>

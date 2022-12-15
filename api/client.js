@@ -135,7 +135,6 @@ export var get_user_workspaces = async ({ creator_user_id }) =>
 //returns id of inserted row
 export var new_task = async ({
 	linked_notes,
-	parent,
 	end_date,
 	deadline_date,
 	workflow_id,
@@ -149,9 +148,7 @@ export var new_task = async ({
 		body: {
 			init_date: new Date().getTime(),
 			linked_notes,
-			parent,
 			end_date,
-			deadline_date,
 			workflow_id,
 			creator_user_id,
 			workspace_id,
@@ -178,11 +175,10 @@ export var update_note = ({ note_id, update_set }) =>
 		update_set,
 	});
 //todo test from here to the bottom (in current commit)
-export var get_tasks = async ({ pyramid_mode = false, filters = {} }) =>
+export var get_tasks = async ({ filters = {} }) =>
 	await custom_axios({
 		task: "get_tasks",
 		body: {
-			pyramid_mode,
 			filters,
 		},
 	});

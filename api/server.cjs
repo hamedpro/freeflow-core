@@ -172,7 +172,7 @@ async function main() {
 				filters["_id"] = ObjectId(filters["_id"]);
 			}
 			var tasks = await db.collection("tasks").find(filters).toArray();
-			res.json(req.body.pyramid_mode === true ? build_pyramid(tasks) : tasks);
+			res.json(tasks);
 			//todo add support to check also if username is not the creator but a member of that task result show up (also for notes and ...)
 		} else if (task === "get_workspace_workflows") {
 			var filtered_workflows = await db
