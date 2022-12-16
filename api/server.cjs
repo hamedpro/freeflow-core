@@ -16,7 +16,7 @@ var { frontend_port, api_port, api_endpoint, db_name } = JSON.parse(
 );
 var db = client.db(db_name);
 async function init() {
-	["./uploaded", "./uploaded/resources"].forEach((path) => {
+	["./uploaded", "./uploaded/resources", "./uploaded/profile_images"].forEach((path) => {
 		if (!fs.existsSync(path)) {
 			fs.mkdirSync(path);
 		}
@@ -162,8 +162,8 @@ async function main() {
 					.sort({ index: 1 })
 					.toArray()
 			);
-		} else if (task === "move_task_or_event") { 
-			//todo 
+		} else if (task === "move_task_or_event") {
+			//todo
 		} else if (task === "new_task") {
 			//(checking for time conflicts)
 			var current_tasks = await db
@@ -295,6 +295,28 @@ async function main() {
 				}),
 			};
 			res.json(user_hierarchy);
+		} else if (task === "set_new_profile_picture") {
+			var form = formidable({ UploadDir: "./uploaded/profile_images" });
+			await new Promise((resolve, reject) => {
+				form.parse(req, async (err, fields, files) => {
+					var { user_id } = JSON.parse(fields.data);
+					var user = await db.collection('users').findOne({ _id: ObjectId(user_id) })
+					if (user.profile_image) {
+						fs.rmSync(`./uploaded/profile_images/${user.profile_image}`,{force : true})
+					}
+					var file = files[Object.keys(files)[0]];
+					var new_file_name = `${user_id}-${file.originalFilename}`;
+					fs.renameSync(file.filepath, `./uploaded/profile_images/${new_file_name}`);
+					await db
+						.collection("users")
+						.updateOne(
+							{ _id: ObjectId(user_id) },
+							{ $set: { profile_image: new_file_name } }
+						);
+					resolve();
+				});
+			});
+			res.json({});
 		} else if (task === "upload_new_resources") {
 			var form = formidable({ UploadDir: "./uploaded/resources" });
 			res.json(
