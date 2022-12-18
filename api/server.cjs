@@ -1,5 +1,10 @@
 require("dotenv").config();
-var { hash_sha_256_hex, build_pyramid, gen_verification_code } = require("./common.cjs");
+var {
+	hash_sha_256_hex,
+	build_pyramid,
+	gen_verification_code,
+	is_there_any_conflict,
+} = require("./common.cjs");
 var express = require("express");
 var os = require("os");
 var cookieParser = require("cookie-parser");
@@ -165,24 +170,69 @@ async function main() {
 		} else if (task === "move_task_or_event") {
 			//todo
 		} else if (task === "new_task") {
-			//(checking for time conflicts)
+			//checking for time conflicts
 			var current_tasks = await db
 				.collection("tasks")
 				.find({ creator_user_id: req.body.creator_user_id })
 				.toArray();
-			var conflicts = current_tasks.filter(
-				(task) => task.start_date > body.start_date || task.end_date < body.end_date
-			);
-			//todo check if end_date is after start_date or not (also for new_event)
-			//todo test this method of checking conflicts (also check for <= and >= in addition to < and >)
-			if (conflicts.length !== 0) {
+			if (!(body.start_date > body.end_date)) {
+				res.json({
+					has_error: true,
+					error: "start_date should be after end_date (not equal or before)",
+				});
+				return;
+			}
+			if (
+				is_there_any_conflict({
+					start: body.start_date,
+					end: body.end_date,
+					items: current_tasks,
+				})
+			) {
 				res.send({
-					error_code: 1,
-					error_message: "where we want to insert this new task there is a task",
+					has_error: true,
+					error: "where we wanted to insert this new new task there is a task",
 				});
 				return;
 			}
 			var inserted_row = await db.collection("tasks").insertOne(req.body);
+			res.json(inserted_row.insertedId);
+		} else if (task === "new_event") {
+			if (!(body.start_date > body.end_date)) {
+				res.json({
+					has_error: true,
+					error: "start_date should be after end_date (not equal or before)",
+				});
+				return;
+			}
+			//(checking for time conflicts)
+			var current_events = await db
+				.collection("events")
+				.find({ creator_user_id: req.body.creator_user_id })
+				.toArray();
+			var current_tasks = await db
+				.collection("tasks")
+				.find({ creator_user_id: req.body.creator_user_id })
+				.toArray();
+			if (
+				is_there_any_conflict({
+					start: body.start_date,
+					end: body.end_date,
+					items: current_events,
+				}) ||
+				is_there_any_conflict({
+					start: body.start_date,
+					end: body.end_date,
+					items: current_tasks.filter((i) => i.is_done === true),
+				})
+			) {
+				res.send({
+					has_error: true,
+					error: "we can not insert this new event becuse this insertion will cause a conflict",
+				});
+				return;
+			}
+			var inserted_row = await db.collection("events").insertOne(req.body);
 			res.json(inserted_row.insertedId);
 		} else if (task === "get_tasks") {
 			var filters = req.body.filters;
@@ -300,9 +350,11 @@ async function main() {
 			await new Promise((resolve, reject) => {
 				form.parse(req, async (err, fields, files) => {
 					var { user_id } = JSON.parse(fields.data);
-					var user = await db.collection('users').findOne({ _id: ObjectId(user_id) })
+					var user = await db.collection("users").findOne({ _id: ObjectId(user_id) });
 					if (user.profile_image) {
-						fs.rmSync(`./uploaded/profile_images/${user.profile_image}`,{force : true})
+						fs.rmSync(`./uploaded/profile_images/${user.profile_image}`, {
+							force: true,
+						});
 					}
 					var file = files[Object.keys(files)[0]];
 					var new_file_name = `${user_id}-${file.originalFilename}`;
@@ -376,37 +428,6 @@ async function main() {
 				.collection(req.body.collection_name)
 				.insertOne(req.body.document);
 			res.json(inserted_row.insertedId);
-		} else if (task === "new_event") {
-			//(checking for time conflicts)
-			var current_events = await db
-				.collection("events")
-				.find({ creator_user_id: req.body.creator_user_id })
-				.toArray();
-			var current_tasks = await db
-				.collection("tasks")
-				.find({ creator_user_id: req.body.creator_user_id })
-				.toArray();
-			var conflicts = [
-				...current_events.filter(
-					(event) => event.start_date > body.start_date || event.end_date < body.end_date
-				),
-				...current_tasks.filter(
-					(task) =>
-						task.is_done &&
-						(task.start_date > body.start_date || task.end_date < body.end_date)
-				),
-			];
-			//todo test this method of checking conflicts
-			if (conflicts.length !== 0) {
-				res.send({
-					error_code: 1,
-					error_message:
-						"where we want to insert this new event there is a done task or an existing event",
-				});
-				return;
-			}
-			var inserted_row = await db.collection("events").insertOne(req.body);
-			res.json(inserted_row.insertedId);
 		} else if (task === "mark_task_as_done") {
 			//body should be like this : {task_id : string}
 			//first check if we do this there will be any conflict or not
@@ -414,17 +435,17 @@ async function main() {
 			var this_task = await db
 				.collection("tasks")
 				.findOne({ _id: ObjectId(req.body.task_id) });
-			var has_conflicts =
-				events.filter(
-					(event) =>
-						event.start_date > this_task.start_date ||
-						event.end_date < this_task.end_date
-				).length !== 0;
-			if (has_conflicts) {
+
+			if (
+				is_there_any_conflict({
+					end: this_task.end_date,
+					end: this_task.start_date,
+					items: events,
+				})
+			) {
 				res.json({
-					error_code: 1,
-					error_message:
-						"if this task's done status change to true there will be a conflict with an existing event",
+					has_error: true,
+					error: "if this task's done status change to true there will be a conflict between this new done task and an existing event",
 				});
 				return;
 			}
