@@ -181,6 +181,16 @@ export var get_calendar_categories = async ({ user_id }) => await custom_axios({
 		}
 	}
 })
+
+export var get_user_events = async ({ user_id }) => await custom_axios({
+	task: "get_collection",
+	body: {
+		collection_name: "events",
+		filters: {
+			creator_user_id : user_id
+		}
+	}
+})
 //returns the result of deleteOne method of mongodb 
 export var delete_task = async ({ task_id }) => await custom_axios({
 	task: "delete_document",
@@ -214,14 +224,14 @@ export var new_event = async ({
 	category_id,
 }) =>
 	await custom_axios({
-		task: "new_task",
+		task: "new_event",
 		body: {
 			init_date: new Date().getTime(),
 			end_date,
 			workflow_id,
 			creator_user_id,
 			workspace_id,
-			start,
+			start_date,
 			title,
 			category_id,
 		},

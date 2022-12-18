@@ -35,6 +35,7 @@ import {
 } from "@mui/icons-material";
 import UserProfile from "./components/UserProfile";
 import { UserSettings } from "./components/UserSettings";
+import { NewEvent } from "./components/NewEvent";
 function TopBar() {
 	var { user_id } = useParams();
 	return (
@@ -163,7 +164,12 @@ function Wrapper() {
 								path="month"
 								element={<MonthCalendar timestamp={new Date().getTime()} />}
 							/>
-							{/* todo : test it */}
+							<Route
+								path="new-event"
+								element={<NewEvent timestamp={new Date().getTime()} />}
+							/>
+
+							{/* todo : test all calendar sub routes */}
 							<Route
 								path="week"
 								element={<WeekCalendar timestamp={new Date().getTime()} />}
