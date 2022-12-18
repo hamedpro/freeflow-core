@@ -171,6 +171,13 @@ export var new_calendar_category = async ({ user_id, color, name }) => await cus
 		}
 	}
 })
+export var new_document = async ({collection_name,document}) => await custom_axios({
+	task: "new_document",
+	body: {
+		collection_name,
+		document
+	}
+})
 //returns an array of calendar categories with the given user_id 
 export var get_calendar_categories = async ({ user_id }) => await custom_axios({
 	task: "get_collection",
@@ -181,7 +188,13 @@ export var get_calendar_categories = async ({ user_id }) => await custom_axios({
 		}
 	}
 })
-
+export var get_collection = async ({collection_name,filters }) => await custom_axios({
+	task: "get_collection",
+	body: {
+		collection_name,
+		filters
+	}
+})
 export var get_user_events = async ({ user_id }) => await custom_axios({
 	task: "get_collection",
 	body: {
@@ -199,6 +212,13 @@ export var delete_task = async ({ task_id }) => await custom_axios({
 			_id : task_id 
 		},
 		collection_name : "tasks"
+	}
+})
+export var delete_document = async ({collection_name,filters}) => custom_axios({
+	task: "delete_document",
+	body: {
+		filters,
+		collection_name
 	}
 })
 //returns the result of deleteOne method of mongodb 
@@ -393,3 +413,29 @@ export var download_resource = async ({ resource_id }) => {
 		file_name: resource_name,
 	});
 };
+
+export var new_comment = ({ date, text, user_id, workspace_id, workflow_id, note_id, task_id }) => new_document({
+	collection_name: "comments",
+	document: { date, text, user_id, workspace_id, workflow_id, note_id, task_id, resource_id }
+})
+
+export var get_comments = ({ filters }) => get_collection({
+	collection_name: "comments",
+	filters
+})
+
+export var delete_comment = ({ filters }) => delete_document({
+	collection_name: "comments",
+	filters
+})
+
+export var edit_comment = ({ new_text, comment_id }) => update_document({
+	collection: "comments",
+	update_filter: {
+		_id : comment_id
+	},
+	update_set: {
+		text: new_text,
+		edited : true
+	}
+})
