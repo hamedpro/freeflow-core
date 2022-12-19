@@ -416,7 +416,7 @@ export var download_resource = async ({ resource_id }) => {
 
 export var new_comment = ({ date, text, user_id, workspace_id, workflow_id, note_id, task_id }) => new_document({
 	collection_name: "comments",
-	document: { date, text, user_id, workspace_id, workflow_id, note_id, task_id, resource_id }
+	document: { date, text, user_id, workspace_id, workflow_id, note_id, task_id }
 })
 
 export var get_comments = ({ filters }) => get_collection({
