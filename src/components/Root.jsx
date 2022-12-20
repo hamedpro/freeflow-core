@@ -1,7 +1,8 @@
-import React from 'react'
+import React from "react";
+import { } from "../../api/client";
 
 export const Root = () => {
-  return (
-    <div>Root</div>
-  )
-}
+	return (
+		<h1>here is root route of the website</h1>
+	);
+};

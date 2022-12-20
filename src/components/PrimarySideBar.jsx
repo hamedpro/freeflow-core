@@ -32,6 +32,11 @@ export const PrimarySideBar = () => {
                 indent_count: 0,
                 url : `/users/${user_id}/workspaces/${ws._id}`
             })
+            tmp.push({
+                text: `ws resources`,
+                indent_count: 1,
+                url : `/users/${user_id}/workspaces/${ws._id}/resources`
+            })
             ws.workflows.forEach(wf => {
                 tmp.push({
                     text: `wf : ${wf.title}`,
@@ -74,11 +79,28 @@ export const PrimarySideBar = () => {
                     indent_count : 3
                 })
 
+                tmp.push({
+                    text: "resources",
+                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/resources`,
+                    indent_count : 2
+                })
+                tmp.push({
+                    text: "new resource",
+                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/resources/new`,
+                    indent_count : 3
+                })
+
             })
+            
             tmp.push({
                 text: "new workflow",
                 indent_count: 1,
                 url : `/users/${user_id}/workspaces/${ws._id}/workflows/new`
+            })
+            tmp.push({
+                text: "new resource",
+                indent_count: 1,
+                url : `/users/${user_id}/workspaces/${ws._id}/resources/new`
             })
         })
         tmp.push({

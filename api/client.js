@@ -1,20 +1,31 @@
 import axios from "axios";
 var window = { api_endpoint: "http://localhost:4000" };
-export async function custom_axios({ task, body = {} }) {
+export async function custom_axios({
+	task,
+	body = {},
+	content_type_json = true,
+	responseType = undefined,
+}) {
 	var api_endpoint = window.api_endpoint;
 	var method = "POST"; // case insensitive,
 	var route = "/";
-
-	var response = await axios({
+	var headers = {
+		task,
+	};
+	if (content_type_json) {
+		headers["Content-Type"] = "application/json";
+	}
+	var conf = {
 		url: new URL(route, api_endpoint).href,
 		method: method.toUpperCase(),
 		data: body,
-		headers: {
-			"Content-Type": "application/json",
-			task: task,
-		},
+		headers,
 		withCredentials: true,
-	});
+	};
+	if (responseType) {
+		conf.responseType = responseType;
+	}
+	var response = await axios(conf);
 
 	return response.data;
 }
@@ -128,26 +139,121 @@ export var get_user_workspaces = async ({ creator_user_id }) =>
 //returns id of inserted row
 export var new_task = async ({
 	linked_notes,
-	parent,
 	end_date,
-	deadline_date,
 	workflow_id,
 	creator_user_id,
 	workspace_id,
 	start_date,
+	title,
+	category_id,
 }) =>
 	await custom_axios({
 		task: "new_task",
 		body: {
 			init_date: new Date().getTime(),
 			linked_notes,
-			parent,
 			end_date,
-			deadline_date,
 			workflow_id,
 			creator_user_id,
 			workspace_id,
 			start_date,
+			title,
+			category_id,
+		},
+	});
+//returns id of new inserted document
+export var new_calendar_category = async ({ user_id, color, name }) => await custom_axios({
+	task: "new_document",
+	body: {
+		collection_name: "calendar_categories",
+		document: {
+			user_id,color,name
+		}
+	}
+})
+export var new_document = async ({collection_name,document}) => await custom_axios({
+	task: "new_document",
+	body: {
+		collection_name,
+		document
+	}
+})
+//returns an array of calendar categories with the given user_id 
+export var get_calendar_categories = async ({ user_id }) => await custom_axios({
+	task: "get_collection",
+	body: {
+		collection_name: 'calendar_categories',
+		filters: {
+			user_id
+		}
+	}
+})
+export var get_collection = async ({collection_name,filters }) => await custom_axios({
+	task: "get_collection",
+	body: {
+		collection_name,
+		filters
+	}
+})
+export var get_user_events = async ({ user_id }) => await custom_axios({
+	task: "get_collection",
+	body: {
+		collection_name: "events",
+		filters: {
+			creator_user_id : user_id
+		}
+	}
+})
+//returns the result of deleteOne method of mongodb 
+export var delete_task = async ({ task_id }) => await custom_axios({
+	task: "delete_document",
+	body: {
+		filters: {
+			_id : task_id 
+		},
+		collection_name : "tasks"
+	}
+})
+export var delete_document = async ({collection_name,filters}) => custom_axios({
+	task: "delete_document",
+	body: {
+		filters,
+		collection_name
+	}
+})
+//returns the result of deleteOne method of mongodb 
+export var delete_event = async ({ event_id }) => await custom_axios({
+	task: "delete_document",
+	body: {
+		filters: {
+			_id : event_id 
+		},
+		collection_name : "events"
+	}
+})
+
+
+//returns id of inserted row
+export var new_event = async ({
+	end_date,
+	workflow_id,
+	creator_user_id,
+	workspace_id,
+	start_date,
+	title,
+	category_id,
+}) =>
+	await custom_axios({
+		task: "new_event",
+		body: {
+			init_date: new Date().getTime(),
+			end_date,
+			workflow_id,
+			creator_user_id,
+			workspace_id,
+			start_date,
+			title,
+			category_id,
 		},
 	});
 export var update_document = async ({ collection, update_filter, update_set }) =>
@@ -169,11 +275,10 @@ export var update_note = ({ note_id, update_set }) =>
 		update_set,
 	});
 //todo test from here to the bottom (in current commit)
-export var get_tasks = async ({ pyramid_mode = false, filters = {} }) =>
+export var get_tasks = async ({ filters = {} }) =>
 	await custom_axios({
 		task: "get_tasks",
 		body: {
-			pyramid_mode,
 			filters,
 		},
 	});
@@ -234,9 +339,103 @@ export var get_workflows = async ({ filters = {} }) =>
 		},
 	});
 
-export var get_user_data_hierarchy = async ({ user_id }) => await custom_axios({
-	task: "get_user_data_hierarchy",
-	body: {
-		user_id
+export var get_user_data_hierarchy = async ({ user_id }) =>
+	await custom_axios({
+		task: "get_user_data_hierarchy",
+		body: {
+			user_id,
+		},
+	});
+
+export var upload_files = async ({ task, data = {}, input_element_id }) => {
+	var form = new FormData();
+	var files = document.getElementById(input_element_id).files;
+	var files_data = {};
+	for (var i = 0; i < files.length; i++) {
+		var file = files[i.toString()];
+		form.append(i.toString(), file);
+		console.log(file);
+		files_data[i.toString()] = {};
+		for (const prop in file) {
+			files_data[i.toString()][prop] = file[prop];
+		}
+	}
+	form.append("data", JSON.stringify(data));
+	form.append("files_data", JSON.stringify(files_data));
+
+	return await custom_axios({
+		content_type_json: false,
+		body: form,
+		task,
+	});
+};
+
+export var upload_new_resources = ({ data, input_element_id }) =>
+	upload_files({
+		task: "upload_new_resources",
+		data,
+		input_element_id,
+	});
+
+export var get_resources = ({ filters = {} }) =>
+	custom_axios({
+		task: "get_resources",
+		body: {
+			filters,
+		},
+	});
+export var custom_axios_download = async ({ url, file_name }) => {
+	var response = await axios({
+		url,
+		method: "GET",
+		withCredentials: true,
+		responseType: "blob",
+	});
+	// create file link in browser's memory
+	const href = URL.createObjectURL(response.data);
+
+	// create "a" HTML element with href to file & click
+	const link = document.createElement("a");
+	link.href = href;
+	link.setAttribute("download", file_name); //file name should have extension, ex : fileff.pdf
+	document.body.appendChild(link);
+	link.click();
+
+	// clean up "a" element & remove ObjectURL
+	document.body.removeChild(link);
+	URL.revokeObjectURL(href);
+};
+
+export var download_resource = async ({ resource_id }) => {
+	var resource_name = (await get_resources({ filters: { _id: resource_id } }))[0].file_data.name;
+	custom_axios_download({
+		url: new URL(`/resources/${resource_id}`, window.api_endpoint).href,
+		file_name: resource_name,
+	});
+};
+
+export var new_comment = ({ date, text, user_id, workspace_id, workflow_id, note_id, task_id }) => new_document({
+	collection_name: "comments",
+	document: { date, text, user_id, workspace_id, workflow_id, note_id, task_id }
+})
+
+export var get_comments = ({ filters }) => get_collection({
+	collection_name: "comments",
+	filters
+})
+
+export var delete_comment = ({ filters }) => delete_document({
+	collection_name: "comments",
+	filters
+})
+
+export var edit_comment = ({ new_text, comment_id }) => update_document({
+	collection: "comments",
+	update_filter: {
+		_id : comment_id
+	},
+	update_set: {
+		text: new_text,
+		edited : true
 	}
 })

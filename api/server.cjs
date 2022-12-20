@@ -1,19 +1,27 @@
 require("dotenv").config();
-var { hash_sha_256_hex, build_pyramid, gen_verification_code } = require("./common.cjs");
+var {
+	hash_sha_256_hex,
+	build_pyramid,
+	gen_verification_code,
+	is_there_any_conflict,
+} = require("./common.cjs");
 var express = require("express");
+var os = require("os");
 var cookieParser = require("cookie-parser");
 var cors = require("cors");
-var formidable = require("formidable");
 var fs = require("fs");
+var formidable = require("formidable");
 //app.use(express.static("./uploaded/"));
-var custom_upload = require("./nodejs_custom_upload.cjs").custom_upload;
 var path = require("path");
 var { MongoClient, ObjectId } = require("mongodb");
-const url = "mongodb://localhost:27017";
+const url = "mongodb://127.0.0.1:27017";
 const client = new MongoClient(url);
-var db = client.db(process.env.db_name);
+var { frontend_port, api_port, api_endpoint, db_name } = JSON.parse(
+	fs.readFileSync("./env.json", "utf-8")
+);
+var db = client.db(db_name);
 async function init() {
-	["./uploaded"].forEach((path) => {
+	["./uploaded", "./uploaded/resources", "./uploaded/profile_images"].forEach((path) => {
 		if (!fs.existsSync(path)) {
 			fs.mkdirSync(path);
 		}
@@ -27,6 +35,7 @@ async function main() {
 	app.use(cors({ origin: "http://localhost:3000", credentials: true })); //todo read origin from env so when port or protocol changes it will keep going working properly
 	app.use(cookieParser());
 	app.use(express.json());
+	app.use(express.static("./uploaded/"));
 	try {
 		await init();
 	} catch (e) {
@@ -158,8 +167,72 @@ async function main() {
 					.sort({ index: 1 })
 					.toArray()
 			);
+		} else if (task === "move_task_or_event") {
+			//todo
 		} else if (task === "new_task") {
+			//checking for time conflicts
+			var current_tasks = await db
+				.collection("tasks")
+				.find({ creator_user_id: req.body.creator_user_id })
+				.toArray();
+			if (body.end_date <=  body.start_date) {
+				res.json({
+					has_error: true,
+					error: "start_date should be after end_date (not equal or before)",
+				});
+				return;
+			}
+			if (
+				is_there_any_conflict({
+					start: body.start_date,
+					end: body.end_date,
+					items: current_tasks,
+				})
+			) {
+				res.send({
+					has_error: true,
+					error: "where we wanted to insert this new new task there is a task",
+				});
+				return;
+			}
 			var inserted_row = await db.collection("tasks").insertOne(req.body);
+			res.json(inserted_row.insertedId);
+		} else if (task === "new_event") {
+			if (body.end_date <=  body.start_date) {
+				res.json({
+					has_error: true,
+					error: "start_date should be after end_date (not equal or before)",
+				});
+				return;
+			}
+			//(checking for time conflicts)
+			var current_events = await db
+				.collection("events")
+				.find({ creator_user_id: req.body.creator_user_id })
+				.toArray();
+			var current_tasks = await db
+				.collection("tasks")
+				.find({ creator_user_id: req.body.creator_user_id })
+				.toArray();
+			if (
+				is_there_any_conflict({
+					start: body.start_date,
+					end: body.end_date,
+					items: current_events,
+				}) ||
+				is_there_any_conflict({
+					start: body.start_date,
+					end: body.end_date,
+					items: current_tasks.filter((i) => i.is_done === true),
+				})
+			) {
+				res.send({
+					has_error: true,
+					error: "we can not insert this new event becuse this insertion will cause a conflict",
+				});
+				return;
+			}
+			var inserted_row = await db.collection("events").insertOne(req.body);
 			res.json(inserted_row.insertedId);
 		} else if (task === "get_tasks") {
 			var filters = req.body.filters;
@@ -167,7 +240,7 @@ async function main() {
 				filters["_id"] = ObjectId(filters["_id"]);
 			}
 			var tasks = await db.collection("tasks").find(filters).toArray();
-			res.json(req.body.pyramid_mode === true ? build_pyramid(tasks) : tasks);
+			res.json(tasks);
 			//todo add support to check also if username is not the creator but a member of that task result show up (also for notes and ...)
 		} else if (task === "get_workspace_workflows") {
 			var filtered_workflows = await db
@@ -259,13 +332,134 @@ async function main() {
 				workspaces: user_workspaces.map((ws) => {
 					return {
 						...ws,
-						workflows: user_workflows.filter(wf => wf.workspace_id == ws._id).map((wf) => {
-							return { ...wf, notes: user_notes.filter(note => note.workflow_id == wf._id), tasks: user_tasks.filter(task => task .workflow_id == wf._id) };
-						}),
+						workflows: user_workflows
+							.filter((wf) => wf.workspace_id == ws._id)
+							.map((wf) => {
+								return {
+									...wf,
+									notes: user_notes.filter((note) => note.workflow_id == wf._id),
+									tasks: user_tasks.filter((task) => task.workflow_id == wf._id),
+								};
+							}),
 					};
 				}),
 			};
 			res.json(user_hierarchy);
+		} else if (task === "set_new_profile_picture") {
+			var form = formidable({ UploadDir: "./uploaded/profile_images" });
+			await new Promise((resolve, reject) => {
+				form.parse(req, async (err, fields, files) => {
+					var { user_id } = JSON.parse(fields.data);
+					var user = await db.collection("users").findOne({ _id: ObjectId(user_id) });
+					if (user.profile_image) {
+						fs.rmSync(`./uploaded/profile_images/${user.profile_image}`, {
+							force: true,
+						});
+					}
+					var file = files[Object.keys(files)[0]];
+					var new_file_name = `${user_id}-${file.originalFilename}`;
+					fs.renameSync(file.filepath, `./uploaded/profile_images/${new_file_name}`);
+					await db
+						.collection("users")
+						.updateOne(
+							{ _id: ObjectId(user_id) },
+							{ $set: { profile_image: new_file_name } }
+						);
+					resolve();
+				});
+			});
+			res.json({});
+		} else if (task === "upload_new_resources") {
+			var form = formidable({ UploadDir: "./uploaded/resources" });
+			res.json(
+				await new Promise((resolve, reject) => {
+					form.parse(req, async (err, fields, files) => {
+						var files_data = JSON.parse(fields.files_data);
+						var data = JSON.parse(fields.data);
+						var promises = [];
+						Object.keys(files).forEach((key) => {
+							promises.push(
+								db
+									.collection("resources")
+									.insertOne({
+										...data,
+										file_data: files_data[key],
+									})
+									.then(async (result) => {
+										var inserted_row_id = result.insertedId.toString();
+										await fs.promises.rename(
+											files[key].filepath,
+											path.join("./uploaded/resources/", inserted_row_id)
+										);
+										return inserted_row_id;
+									})
+									.then()
+							);
+						});
+						var new_resource_ids = await Promise.all(promises);
+						resolve(new_resource_ids);
+					});
+				})
+			);
+		} else if (task === "upload_test") {
+			custom_upload({
+				req,
+				files_names: "ff",
+			});
+			res.json({});
+		} else if (task === "get_resources") {
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
+			}
+			var resources = await db.collection("resources").find(filters).toArray();
+			res.json(resources);
+		} else if (task === "get_collection") {
+			//body should be like this :{collection_name : string ,filters : {}}
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
+			}
+			var tasks = await db.collection(req.body.collection_name).find(filters).toArray();
+			res.json(tasks);
+		} else if (task === "new_document") {
+			//body should be like this : {collection_name : string , document : object}
+			var inserted_row = await db
+				.collection(req.body.collection_name)
+				.insertOne(req.body.document);
+			res.json(inserted_row.insertedId);
+		} else if (task === "mark_task_as_done") {
+			//body should be like this : {task_id : string}
+			//first check if we do this there will be any conflict or not
+			var events = await db.collection("events").find().toArray();
+			var this_task = await db
+				.collection("tasks")
+				.findOne({ _id: ObjectId(req.body.task_id) });
+
+			if (
+				is_there_any_conflict({
+					end: this_task.end_date,
+					end: this_task.start_date,
+					items: events,
+				})
+			) {
+				res.json({
+					has_error: true,
+					error: "if this task's done status change to true there will be a conflict between this new done task and an existing event",
+				});
+				return;
+			}
+			await db
+				.collection("tasks")
+				.updateOne({ _id: ObjectId(req.body.task_id) }, { is_done: true });
+			res.json({});
+		} else if (task === "delete_document") {
+			//body should look like this : {filter_object : object , collection_name : string}
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
+			}
+			res.json(await db.collection(req.body.collection_name).deleteOne(filters));
 		} else {
 			res.json('unknown value for "task"');
 		}
@@ -277,7 +471,7 @@ async function main() {
 	*/
 
 	//important todo : res.end or res.json at the end of async requests becuse axios will await until this happens
-	var server = app.listen(process.env.api_port, () => {
+	var server = app.listen(api_port, () => {
 		console.log(`server started listening`);
 	});
 }

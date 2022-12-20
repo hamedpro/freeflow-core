@@ -1,53 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { get_tasks } from "../../api/client";
 import { custom_range } from "../common";
 import "./MonthCalendarStyles.css";
-
+import { month_names, day_names ,get_months_days_count} from "../common";
 export const MonthCalendar = ({ }) => {
-    var {user_id} = useParams()
-    var [tasks, set_tasks] = useState(null)
-    async function get_data() {
-        set_tasks(await get_tasks({
-            filters: {
-                _id : user_id
-            }
-        }))
-    }
-    useEffect(() => {
-        get_data
-    },[])
-	var dev_mode = true;
-	var month_names = [
-		"January",
-		"February",
-		"March",
-		"April",
-		"May",
-		"June",
-		"July",
-		"August",
-		"September",
-		"October",
-		"November",
-		"December",
-	].map((i) => i.toLowerCase());
-	var day_names = [
-		"Sunday",
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday",
-	].map((i) => i.toLowerCase());
-	var [selected_month, select_month] = useState(month_names[new Date().getMonth()]);
-	var [selected_year, select_year] = useState(new Date().getFullYear());
+	var nav = useNavigate()
+	var [query_params,set_query_params] = useSearchParams()
+	var { user_id } = useParams();
+	var [tasks, set_tasks] = useState(null);
+	async function get_data() {
+		set_tasks(
+			await get_tasks({
+				filters: {
+					_id: user_id,
+				},
+			})
+		);
+	}
+	useEffect(() => {
+		get_data;
+	}, []);
+	var dev_mode = false;
+	
+	var [selected_month, select_month] = useState(query_params.get('default') !== null ? query_params.get('default').split('-')[1] : month_names[new Date().getMonth()]);
+	var [selected_year, select_year] = useState(query_params.get('default') !== null ? Number(query_params.get('default').split('-')[0]) :new Date().getFullYear());
 	function get_month_number(month_name) {
 		return month_names.indexOf(month_name) + 1;
-	}
-	function get_months_days_count(year) {
-		return [31, year % 4 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 	}
 
 	function gen_start_and_end(year, month_name) {
@@ -61,8 +40,7 @@ export const MonthCalendar = ({ }) => {
 		tasks !== null
 			? tasks.filter(
 					(task) =>
-						task.start_date > filter_times.start &&
-						task.end_date < filter_times.end
+						task.start_date > filter_times.start && task.end_date < filter_times.end
 			  )
 			: null;
 	function calc_calnedar_parts() {
@@ -106,12 +84,14 @@ export const MonthCalendar = ({ }) => {
 	//take care if becuse of setState being async we can not use its value right there in component function body (may selected_month be undefined there)
 
 	return (
-		<React.Fragment>
-            <h1>MonthCalendar</h1>
+		<div className="p-2">
+			<h1>MonthCalendar</h1>
 			<select
 				onChange={(e) => {
 					select_month(e.target.value);
 				}}
+				value={selected_month}
+				className="px-2"
 			>
 				{month_names.map((month_name, index) => {
 					return (
@@ -121,6 +101,13 @@ export const MonthCalendar = ({ }) => {
 					);
 				})}
 			</select>
+			<span className="mx-3">of</span>
+			<input
+				type="number"
+				onChange={(e) => select_year(Number(e.target.value))}
+				value={selected_year}
+				className="inline-block px-2"
+			/>
 			<div className={["border border-red-400", dev_mode ? "" : "hidden"].join(" ")}>
 				selected month = {selected_month}
 				<br />
@@ -134,7 +121,7 @@ export const MonthCalendar = ({ }) => {
 				result of calc_calnedar_parts function : {JSON.stringify(calc_calnedar_parts())}
 			</div>
 
-			<table className="month_calendar">
+			<table className="month_calendar my-2">
 				<tbody>
 					<tr className="headers">
 						<th>sunday</th>
@@ -147,23 +134,18 @@ export const MonthCalendar = ({ }) => {
 					</tr>
 					{calc_calnedar_parts().map((calendar_part, index) => {
 						return (
-							<tr
-								key={index}
-							>
+							<tr key={index}>
 								{calendar_part.map((day, index2) => {
-									return (
-										<td
-											key={index2}
-										>
-											{day !== null ? day : "null"}
-										</td>
-									);
+									return <td className="cursor-pointer" key={index2} onClick={() => {
+										if (day === null) return 
+										nav(`/users/${user_id}/calendar/day?default=${selected_year}-${selected_month}-${day}`)
+									} }>{day !== null ? day : "-"}</td>;
 								})}
 							</tr>
 						);
 					})}
 				</tbody>
 			</table>
-		</React.Fragment>
+		</div>
 	);
 };

@@ -2,3 +2,4 @@ also take care about todos and notes of corp_webapp repository
 consider that you may save value of new Date().getTime() and in the future users's region change and date calculations go wrong so do something to cover all possible cases of utc and local changes related issues
 use utc timestamps everywhere saving or processing a date and just use local date in showing step and say it exactly
 take care about this in future cases : that if route change for ex from /users/:34234 to /users/:44444 the rendered component will not re render and this is handled by passing a timestamp as prop to the route element
+add env.json to gitignore when it starts to have personal important env vars
