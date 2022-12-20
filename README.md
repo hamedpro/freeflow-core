@@ -11,11 +11,11 @@ https://www.mongodb.com/docs/manual/installation/
  
 <br />
 
-then go to this newly created directory and install global and local npm dependencies using this command below :
+then go to this newly created directory and install npm dependencies using this command below :
 
 ```
 cd pink_rose;
-npm i -g nodemon http-server ; npm i
+npm install;
 ```
 then finally modify env.json file if you want to change default configurations for ports api and frontend are using and ...
 
