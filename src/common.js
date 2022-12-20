@@ -185,7 +185,7 @@ export function get_months_days_count(year) {
 export function timestamp_filled_range({ start, end, items }) {
 	let result = [...items]
 	result = result.sort((i1, i2) => i2.start_date - i1.end_date).filter(i => i.end_date > start && i.start_date < end)
-	if(result.length === 0) return []
+	if(result.length === 0) return [{value : null , start_date : start,end_date : end}]
 	if (result[0].start_date < start) {
 		result[0].start_date = start;
 	} else if (result[0].start_date > start) {

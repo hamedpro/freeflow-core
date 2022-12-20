@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { get_calendar_categories, get_tasks, get_user_events } from "../../api/client";
-import {
-	month_names,
-	timestamp_filled_range,
-} from "../common";
+import ObjectBox from "./ObjectBox";
+import { month_names, timestamp_filled_range } from "../common";
 import { Section } from "./Section";
 export const DayCalendar = () => {
 	var { user_id } = useParams();
@@ -34,14 +32,31 @@ export const DayCalendar = () => {
 		});
 		var events = await get_user_events({ user_id });
 		set_day_tasks(
-			tasks.filter(
-				(task) => task.start_date >= start_timestamp && task.end_date <= end_timestamp
-			)
+			tasks
+				.filter(
+					(task) => task.start_date >= start_timestamp && task.end_date <= end_timestamp
+				)
+				.map((i) => {
+					return {
+						...i,
+						human_readble_start_date: new Date(i.start_date).toString(),
+						human_readble_end_date: new Date(i.end_date).toString(),
+					};
+				})
 		);
 		set_day_events(
-			events.filter(
-				(event) => event.start_date >= start_timestamp && event.end_date <= end_timestamp
-			)
+			events
+				.filter(
+					(event) =>
+						event.start_date >= start_timestamp && event.end_date <= end_timestamp
+				)
+				.map((i) => {
+					return {
+						...i,
+						human_readble_start_date: new Date(i.start_date).toString(),
+						human_readble_end_date: new Date(i.end_date).toString(),
+					};
+				})
 		);
 		set_calendar_categories(await get_calendar_categories({ user_id }));
 	}
@@ -60,13 +75,32 @@ export const DayCalendar = () => {
 				<p>
 					to {end_timestamp} : {new Date(end_timestamp).toDateString()}
 				</p>
-				tasks of this day : {JSON.stringify(day_tasks)}
-				events of this day : {JSON.stringify(day_events)}
+				<Section title="day tasks">
+					tasks of this day :{" "}
+					{day_tasks.map((task) => {
+						return (
+							<Fragment key={task._id}>
+								<ObjectBox object={task} />
+							</Fragment>
+						);
+					})}
+				</Section>
+				<Section title={"day events"}>
+					events of this day :{" "}
+					{day_events.map((event) => {
+						return (
+							<Fragment key={event._id}>
+								<ObjectBox object={event} />
+							</Fragment>
+						);
+					})}
+				</Section>
+
 				<Section title="bars">
 					{[
 						{ start: start_timestamp, end: start_timestamp + 12 * 3600 * 1000 },
 						{ start: start_timestamp + 12 * 3600 * 1000, end: end_timestamp },
-					].map((object,object_index)=> {
+					].map((object, object_index) => {
 						return (
 							<div className="flex" key={object_index}>
 								<div className="w-1/5">
@@ -87,8 +121,11 @@ export const DayCalendar = () => {
 									></div>
 									{[
 										{ items: JSON.parse(JSON.stringify(day_tasks)), ...object },
-										{ items: JSON.parse(JSON.stringify(day_events)), ...object },
-									].map((type,type_index) => {
+										{
+											items: JSON.parse(JSON.stringify(day_events)),
+											...object,
+										},
+									].map((type, type_index) => {
 										return (
 											<div
 												key={type_index}
@@ -104,8 +141,8 @@ export const DayCalendar = () => {
 																	position: "absolute",
 																	left: item.start_percent + "%",
 																	width:
-																		item.end_percent -
-																		item.start_percent +
+																		(item.end_percent -
+																		item.start_percent) +
 																		"%",
 																	height: "100%",
 																	backgroundColor:
