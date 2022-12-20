@@ -14,7 +14,7 @@ var formidable = require("formidable");
 //app.use(express.static("./uploaded/"));
 var path = require("path");
 var { MongoClient, ObjectId } = require("mongodb");
-const url = "mongodb://localhost:27017";
+const url = "mongodb://127.0.0.1:27017";
 const client = new MongoClient(url);
 var { frontend_port, api_port, api_endpoint, db_name } = JSON.parse(
 	fs.readFileSync("./env.json", "utf-8")
