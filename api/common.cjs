@@ -49,7 +49,7 @@ function is_there_any_conflict({ start, end, items }) {
 		items.filter((item) => {
 			item_start = item.start_date;
 			item_end = item.end_date;
-			var conflict_situations = [
+			var possible_conflicts = [
 				/* 	these are situations that if an
 					item has we undertand that it has
 					conflict with that range
@@ -62,60 +62,23 @@ function is_there_any_conflict({ start, end, items }) {
 					each range is imagined like this : before---start---in---end---after
 				  	and each item_start or item_end is either in one of these 5 places
 				*/
-				["before", "in"],
-				["before", "end"],
-				["before", "after"],
-				["start", "in"],
-				["start", "end"],
-				["start", "after"],
-				["in", "in"],
-				["in", "end"],
-				["in", "after"],
+				{ situation: ["before", "in"], bool: item_start < start && start<item_end && item_end< end },
+				{ situation: ["before", "end"], bool: item_start < start && item_end === end },
+				{ situation: ["before", "after"], bool: item_start < start && item_end > end },
+				{ situation: ["start", "in"], bool: item_start === start && start < item_end  && item_end< end },
+				{ situation: ["start", "end"], bool: item_start === start && item_end === end },
+				{ situation: ["start", "after"], bool:  item_start === start && item_end > end },
+				{ situation: ["in", "in"], bool: start < item_start && item_start < end && start < item_end && item_end < end },
+				{ situation: ["in", "end"], bool:  start < item_start && item_start < end &&   item_end === end  },
+				{ situation: ["in", "after"], bool: start < item_start && item_start < end && item_end > end  },
 			];
-			var bools = conflict_situations.map((situation) => {
-				let tmp = [];
-				situation.forEach((i) => {
-					switch (situation[i]) {
-						case "before":
-							if (index === 0) {
-								tmp.push(item_start < start);
-							} else {
-								tmp.push(item_end < start);
-							}
-							break;
-						case "start":
-							if (index === 0) {
-								tmp.push(item_start === start);
-							} else {
-								tmp.push(end_date === start);
-							}
-							break;
-						case "in":
-							if (index === 0) {
-								tmp.push(start < item_start < end);
-							} else {
-								tmp.push(start < end_date < end);
-							}
-							break;
-						case "end":
-							if (index === 0) {
-								tmp.push(item_start === end);
-							} else {
-								tmp.push(end_date === end);
-							}
-							break;
-						case "after":
-							if (index === 0) {
-								tmp.push(item_start > end);
-							} else {
-								tmp.push(item_end > end);
-							}
-							break;
-					}
-				});
-				return tmp[0] && tmp[1];
-			});
-			return bools.filter((i) => i === true).length === bools.length;
+			var conflicts = possible_conflicts.filter((i) => i.bool)
+			if (conflicts.length !== 0) {
+				//console.log(JSON.stringify({ item, situation: conflicts.map(i => i.situation) }))
+				return true;
+			} else {
+				return false
+			}
 		}).length !== 0
 	);
 }
@@ -125,5 +88,5 @@ module.exports = {
 	pretty_stringify,
 	build_pyramid,
 	gen_verification_code,
-	is_there_any_conflict
+	is_there_any_conflict,
 };

@@ -31,8 +31,11 @@ export const NewEvent = () => {
             ...input_values,
             creator_user_id : user_id
         })
-        console.log(result)
-        alert('done')
+		if (result.has_error) {
+			alert("Error! : " + result.error)
+		} else {
+			alert('done')
+		}
     }
     var [input_values, set_input_values] = useState({
         title : null

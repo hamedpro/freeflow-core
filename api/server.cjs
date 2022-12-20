@@ -175,7 +175,7 @@ async function main() {
 				.collection("tasks")
 				.find({ creator_user_id: req.body.creator_user_id })
 				.toArray();
-			if (!(body.start_date > body.end_date)) {
+			if (body.end_date <=  body.start_date) {
 				res.json({
 					has_error: true,
 					error: "start_date should be after end_date (not equal or before)",
@@ -198,7 +198,7 @@ async function main() {
 			var inserted_row = await db.collection("tasks").insertOne(req.body);
 			res.json(inserted_row.insertedId);
 		} else if (task === "new_event") {
-			if (!(body.start_date > body.end_date)) {
+			if (body.end_date <=  body.start_date) {
 				res.json({
 					has_error: true,
 					error: "start_date should be after end_date (not equal or before)",

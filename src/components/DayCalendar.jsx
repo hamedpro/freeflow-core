@@ -17,9 +17,9 @@ export const DayCalendar = () => {
 		var day = Number(tmp.split("-")[2]);
 	} else {
 		var d = new Date();
-		var year = d.getUTCFullYear();
-		var month = d.getUTCMonth() + 1;
-		var day = d.getUTCDate();
+		var year = d.getFullYear();
+		var month = d.getMonth() + 1;
+		var day = d.getDate();
 	}
 
 	var start_timestamp = new Date(year, month - 1, day).getTime();

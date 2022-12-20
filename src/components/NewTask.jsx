@@ -43,13 +43,18 @@ export const NewTask = () => {
 				linked_notes: selectedNotes.map((i) => i.value),
 				workspace_id,
 				title: title_input,
-				category_id : selected_calendar_category.value._id
+				category_id: selected_calendar_category.value._id,
 			};
-			var id_of_new_task = await new_task(tmp);
-			alert("all done. navigating to the newly created task's page");
-			nav(
-				`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow_id}/tasks/${id_of_new_task}`
-			);
+			var result = await new_task(tmp);
+			if (result.has_error) {
+				alert("Error! : " + result.error);
+			} else {
+				var id_of_new_task = result;
+				alert("all done. navigating to the newly created task's page");
+				nav(
+					`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow_id}/tasks/${id_of_new_task}`
+				);
+			}
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -93,8 +98,10 @@ export const NewTask = () => {
 						name: document.getElementById("new_calendar_category_name_input").value,
 						color: document.getElementById("new_calendar_category_color_input").value,
 					});
-					alert('new calendar category was added to your profile successfuly.above options will be updated. please select it')
-					get_data()
+					alert(
+						"new calendar category was added to your profile successfuly.above options will be updated. please select it"
+					);
+					get_data();
 				}}
 			>
 				create a new category
