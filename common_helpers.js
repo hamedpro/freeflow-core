@@ -253,7 +253,7 @@ export var day_names = [
 export function get_months_days_count(year) {
 	return [31, year % 4 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 }
-export function timestamp_filled_range({ start, end, items,range_label,type_label }) {
+export function timestamp_filled_range({ start, end, items}) {
 	let result = [
 		...items.map((i) => {
 			return { ...i };
@@ -262,7 +262,10 @@ export function timestamp_filled_range({ start, end, items,range_label,type_labe
 	result = result
 		.sort((i1, i2) => i1.start_date - i2.start_date)
 		.filter((i) => is_there_any_conflict({ items: [i], start, end }));
-	if (result.length === 0) return [{ value: null, start_date: start, end_date: end }];
+	if (result.length === 0) {
+		result = [{ value: null, start_date: start, end_date: end ,start_percent : 0,end_percent : 100}]
+		return result;
+	}
 	if (result[0].start_date !== start) {
 		if (result[0].start_date < start) {
 			result[0].start_date = start;
