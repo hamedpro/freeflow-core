@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { eraseCookie } from "../frontend_helpers.js";
+import { eraseCookie } from "../../common_helpers.js";
 
 export const UserDashboard = () => {
 	return (

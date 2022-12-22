@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, custom_axios, flexible_user_finder, send_verification_code } from "../../api/client";
-import { setCookie } from "../frontend_helpers.js";
+import { setCookie } from "../../common_helpers.js";
 import { Section } from "./section";
 import { StyledInput } from "./styled_elements";
 

@@ -2,9 +2,9 @@ import React, { Fragment, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { get_calendar_categories, get_tasks, get_user_events } from "../../api/client";
 import ObjectBox from "./ObjectBox";
-import { month_names, timestamp_filled_range } from "../frontend_helpers";
+import { month_names, timestamp_filled_range } from "../../common_helpers.js";
 import { Section } from "./Section";
-import { is_there_any_conflict } from "../../common_helpers.cjs";
+import { is_there_any_conflict } from "../../common_helpers.js";
 export const DayCalendar = () => {
 	var { user_id } = useParams();
 	var [day_tasks, set_day_tasks] = useState(null);
