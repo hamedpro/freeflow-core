@@ -106,8 +106,8 @@ export const DayCalendar = () => {
 
 				<Section title="bars">
 					{[
-						{ start: start_timestamp, end: start_timestamp + 12 * 3600 * 1000 },
-						{ start: start_timestamp + 12 * 3600 * 1000, end: end_timestamp },
+						{ start: start_timestamp, end: start_timestamp + 12 * 3600 * 1000, range_label : "day_half_1"},
+						{ start: start_timestamp + 12 * 3600 * 1000, end: end_timestamp, range_label : "day_half_2" },
 					].map((object, object_index) => {
 						return (
 							<div className="flex" key={object_index}>
@@ -128,10 +128,11 @@ export const DayCalendar = () => {
 										style={{ height: "30px" }}
 									></div>
 									{[
-										{ items: JSON.parse(JSON.stringify(day_tasks)), ...object },
+										{ items: JSON.parse(JSON.stringify(day_tasks)), ...object ,type_label : 'tasks'},
 										{
 											items: JSON.parse(JSON.stringify(day_events)),
 											...object,
+											type_label : 'events'
 										},
 									].map((type, type_index) => {
 										return (
