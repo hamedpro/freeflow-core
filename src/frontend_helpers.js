@@ -1,3 +1,4 @@
+import { is_there_any_conflict } from "../common_helpers.cjs";
 export function toHHMMSS(seconds) {
 	var sec_num = parseInt(seconds, 10);
 	var hours = Math.floor(sec_num / 3600);
@@ -183,18 +184,32 @@ export function get_months_days_count(year) {
 	return [31, year % 4 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 }
 export function timestamp_filled_range({ start, end, items }) {
-	let result = [...items]
-	result = result.sort((i1, i2) => i2.start_date - i1.end_date).filter(i => i.end_date > start && i.start_date < end)
-	if(result.length === 0) return [{value : null , start_date : start,end_date : end}]
-	if (result[0].start_date < start) {
-		result[0].start_date = start;
-	} else if (result[0].start_date > start) {
-		result.unshift({ value: null, start_date: start, end_date: result[0].start_date });
+	let result = [
+		...items.map((i) => {
+			return { ...i };
+		}),
+	];
+	result = result
+		.sort((i1, i2) => i1.end_date - i2.start_date)
+		.filter((i) => is_there_any_conflict({ items: [i], start, end }));
+	if (result.length === 0) return [{ value: null, start_date: start, end_date: end }];
+	if (result[0].start_date !== start) {
+		if (result[0].start_date < start) {
+			result[0].start_date = start;
+		} else {
+			result.unshift({ value: null, start_date: start, end_date: result[0].start_date });
+		}
 	}
-	if (result[result.length - 1].end_date > end) {
-		result[result.length - 1].end_date = end;
-	} else if (result[result.length - 1].end_date < end) {
-		result.push({ value: null, start_date: result[result.length - 1].end_date, end_date: end });
+	if (result[result.length - 1].end_date !== end) {
+		if (result[result.length - 1].end_date > end) {
+			result[result.length - 1].end_date = end;
+		} else {
+			result.push({
+				value: null,
+				start_date: result[result.length - 1].end_date,
+				end_date: end,
+			});
+		}
 	}
 	while (true) {
 		let index_to_fill = null;

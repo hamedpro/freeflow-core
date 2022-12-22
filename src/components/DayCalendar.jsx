@@ -2,8 +2,9 @@ import React, { Fragment, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { get_calendar_categories, get_tasks, get_user_events } from "../../api/client";
 import ObjectBox from "./ObjectBox";
-import { month_names, timestamp_filled_range } from "../common";
+import { month_names, timestamp_filled_range } from "../frontend_helpers";
 import { Section } from "./Section";
+import { is_there_any_conflict } from "../../common_helpers.cjs";
 export const DayCalendar = () => {
 	var { user_id } = useParams();
 	var [day_tasks, set_day_tasks] = useState(null);
@@ -33,8 +34,12 @@ export const DayCalendar = () => {
 		var events = await get_user_events({ user_id });
 		set_day_tasks(
 			tasks
-				.filter(
-					(task) => task.start_date >= start_timestamp && task.end_date <= end_timestamp
+				.filter((task) =>
+					is_there_any_conflict({
+						start: start_timestamp,
+						end: end_timestamp,
+						items: [task],
+					})
 				)
 				.map((i) => {
 					return {
@@ -46,9 +51,12 @@ export const DayCalendar = () => {
 		);
 		set_day_events(
 			events
-				.filter(
-					(event) =>
-						event.start_date >= start_timestamp && event.end_date <= end_timestamp
+				.filter((event) =>
+					is_there_any_conflict({
+						start: start_timestamp,
+						end: end_timestamp,
+						items: [event],
+					})
 				)
 				.map((i) => {
 					return {
@@ -141,8 +149,8 @@ export const DayCalendar = () => {
 																	position: "absolute",
 																	left: item.start_percent + "%",
 																	width:
-																		(item.end_percent -
-																		item.start_percent) +
+																		item.end_percent -
+																		item.start_percent +
 																		"%",
 																	height: "100%",
 																	backgroundColor:

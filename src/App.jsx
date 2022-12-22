@@ -3,7 +3,7 @@ import "./App.css";
 import "./output.css";
 import { Routes, Route, useLocation, Link, useParams } from "react-router-dom";
 //import {} from "./components";
-import { month_names, multi_lang_helper as ml } from "./common";
+import { month_names, multi_lang_helper as ml } from "./frontend_helpers.js";
 import { Login } from "./components/Login";
 import { RegisterPage } from "./components/register_page";
 import { WorkspacePage } from "./components/workspace_page";

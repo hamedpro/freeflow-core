@@ -1,10 +1,8 @@
 require("dotenv").config();
 var {
-	hash_sha_256_hex,
-	build_pyramid,
 	gen_verification_code,
 	is_there_any_conflict,
-} = require("./common.cjs");
+} = require("./api_helpers.cjs");
 var express = require("express");
 var os = require("os");
 var cookieParser = require("cookie-parser");
