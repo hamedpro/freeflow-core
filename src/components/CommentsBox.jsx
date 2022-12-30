@@ -1,7 +1,16 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { useMatch, useParams } from "react-router-dom";
-import { get_comments, new_comment, edit_comment, delete_comment } from "../../api/client";
+import {
+	get_comments,
+	new_comment,
+	edit_comment,
+	delete_comment,
+	get_workflows,
+	get_user_notes,
+	get_resources,
+	get_tasks,
+} from "../../api/client";
 import Comment from "./Comment";
 const CommentSBox = ({ user_id }) => {
 	var urlParams = useParams();
@@ -43,7 +52,40 @@ const CommentSBox = ({ user_id }) => {
 					text: inputComment,
 					user_id,
 				};
-				tmp[current_field] = urlParams[current_field];
+				switch (current_field) {
+					case "workspace_id":
+						tmp.workspace_id = urlParams.workspace_id;
+						break;
+					case "workflow_id":
+						var workflow = (
+							await get_workflows({ filters: { _id: urlParams["workflow_id"] } })
+						)[0];
+						tmp["workflow_id"] = workflow._id;
+						tmp["workspace_id"] = workflow.workspace_id;
+						break;
+					case "note_id":
+						var note = (await get_user_notes({ creator_user_id: user_id })).find(
+							(i) => i._id === urlParams.note_id
+						);
+						tmp.workspace_id = note.workspace_id;
+						tmp.workflow_id = note.workflow_id;
+						tmp.note_id = note._id;
+						break;
+					case "resource_id":
+						var resource = (
+							await get_resources({ filters: { _id: urlParams["resource_id"] } })
+						)[0];
+						tmp.workspace_id = resource.workspace_id;
+						tmp.workflow_id = resource.workflow_id;
+						tmp.resource_id = resource._id;
+						break;
+					case "task_id":
+						var task = (await get_tasks({ filters: { _id: urlParams["task_id"] } }))[0];
+						tmp.workspace_id = task.workspace_id;
+						tmp.workflow_id = task.workflow_id;
+						tmp.task_id = task._id;
+						break;
+				}
 				await new_comment(tmp);
 				getCommentsHandler();
 			}
@@ -57,6 +99,7 @@ const CommentSBox = ({ user_id }) => {
 		delete_comment({
 			filters: {
 				user_id,
+				_id: commentId,
 			},
 		});
 		getCommentsHandler();
