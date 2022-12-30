@@ -7,7 +7,7 @@ import { month_names, day_names ,get_months_days_count} from "../../common_helpe
 export const MonthCalendar = ({ }) => {
 	var nav = useNavigate()
 	var [query_params,set_query_params] = useSearchParams()
-	var { user_id } = useParams();
+	var { user_id } = localStorage.getItem("user_id");
 	var [tasks, set_tasks] = useState(null);
 	async function get_data() {
 		set_tasks(

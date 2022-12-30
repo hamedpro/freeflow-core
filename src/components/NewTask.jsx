@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { TextField } from "@mui/material";
 //import AdapterMoment from "@date-io/jalaali";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -16,7 +16,11 @@ import Select from "react-select";
 //TODO: component re-renders
 export const NewTask = () => {
 	var nav = useNavigate();
-	var { user_id, workspace_id, workflow_id } = useParams();
+var [search_params, set_search_params] = useSearchParams();
+var workspace_id = search_params.get("workspace_id");
+var workflow_id = search_params.get("workflow_id");
+
+var user_id = localStorage.getItem("user_id");
 	const [notes, setNotes] = useState(null);
 	const [selectedNotes, selectNotes] = useState([]);
 	const [title_input, set_title_input] = useState();

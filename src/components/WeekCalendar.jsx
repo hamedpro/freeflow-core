@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { get_start_and_end } from "../../common_helpers.js";
 
 export const WeekCalendar = () => {
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var [searchParams, setSearchParams] = useSearchParams();
 	var timestamp = searchParams.has("timestamp")
 		? // the week will be considered from the start point of the first sunday before the timestamp until 7*24*3600*1000 milli seconds later

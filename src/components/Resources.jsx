@@ -4,7 +4,8 @@ import { useParams } from 'react-router-dom'
 import { download_resource, get_resources } from '../../api/client'
 import ObjectBox from './ObjectBox'
 export const Resources = () => {
-  var {user_id,workspace_id,workflow_id } = useParams()
+  var { workspace_id, workflow_id } = useParams();
+  var user_id = localStorage.getItem("user_id");
   var [resources, set_resources] = useState(null)
   async function get_data() {
     var filters =  {

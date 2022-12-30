@@ -2,7 +2,6 @@ import React from "react";
 import "./App.css";
 import "./output.css";
 import { Routes, Route, useLocation, Link, useParams } from "react-router-dom";
-//import {} from "./components";
 import { month_names, multi_lang_helper as ml } from "../common_helpers.js";
 import { Login } from "./components/Login";
 import { RegisterPage } from "./components/register_page";
@@ -38,8 +37,9 @@ import { UserSettings } from "./components/UserSettings";
 import { NewEvent } from "./components/NewEvent";
 import { Events } from "./components/Events";
 import { Event } from "./components/Event";
+import { Resource } from "./components/Resource";
 function TopBar() {
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	return (
 		<div
 			className="w-full bg-blue-600 overflow-y-hidden flex items-center px-3 space-x-3"
@@ -92,17 +92,10 @@ function Wrapper() {
 							path=""
 							element={<UserDashboard timestamp={new Date().getTime()} />}
 						/>
-
-						<Route
-							path="profile"
-							element={<UserProfile timestamp={new Date().getTime()} />}
-						/>
-
 						<Route
 							path="settings"
 							element={<UserSettings timestamp={new Date().getTime()} />}
 						/>
-
 						<Route
 							path="verification"
 							element={<VerifyIdentity timestamp={new Date().getTime()} />}
@@ -120,69 +113,59 @@ function Wrapper() {
 							element={<WorkspacePage timestamp={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/new"
+							path="workflows/new"
 							element={<NewWorkflow timestamp={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id"
+							path="workflows/:workflow_id"
 							element={<Workflow timestamp={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/resources/new"
+							path="resources/new"
 							element={<NewResource timestamp={new Date().getTime()} />}
+						/>
+						<Route
+							path="resources/:resource_id"
+							element={<Resource timestamp={new Date().getTime()} />}
 						/>
 
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/resources"
-							element={<Resources timestamp={new Date().getTime()} />}
-						/>
-						<Route
-							path="workspaces/:workspace_id/resources/new"
-							element={<NewResource timestamp={new Date().getTime()} />}
-						/>
-
-						<Route
-							path="workspaces/:workspace_id/resources"
-							element={<Resources timestamp={new Date().getTime()} />}
-						/>
-						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/notes/new"
+							path="notes/new"
 							element={<NewNote timestamp={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/notes/:note_id"
+							path="notes/:note_id"
 							element={<Note timestamp={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/tasks/new"
+							path="tasks/new"
 							element={<NewTask timestamp={new Date().getTime()} />}
 						/>
 						<Route
-							path="workspaces/:workspace_id/workflows/:workflow_id/tasks/:task_id"
+							path="tasks/:task_id"
 							element={<Task timestamp={new Date().getTime()} />}
 						/>
+						<Route
+							path="events"
+							element={<Events timestamp={new Date().getTime()} />}
+						/>
+						<Route
+							path="events/new"
+							element={<NewEvent timestamp={new Date().getTime()} />}
+						/>
+
+						<Route
+							path="events/:event_id"
+							element={<Event timestamp={new Date().getTime()} />}
+						/>
+
 						<Route path="calendar">
 							<Route
 								path="month"
 								element={<MonthCalendar timestamp={new Date().getTime()} />}
 							/>
-							<Route
-								path="events"
-								element={<Events timestamp={new Date().getTime()} />}
-							/>
-							<Route
-								path="events/new"
-								element={<NewEvent timestamp={new Date().getTime()} />}
-							/>
-							<Route
-								path="events/:event_id"
-								element={<Event timestamp={new Date().getTime()} />}
-							/>
+
 							{/* todo : test all calendar sub routes */}
-							<Route
-								path="week"
-								element={<WeekCalendar timestamp={new Date().getTime()} />}
-							/>
 							<Route
 								path="day"
 								element={<DayCalendar timestamp={new Date().getTime()} />}
@@ -205,11 +188,16 @@ function App() {
 			<Route path="/register" element={<RegisterPage timestamp={new Date().getTime()} />} />
 			<Route path="/terms" element={<Terms timestamp={new Date().getTime()} />} />
 			<Route
-				path="subscribtion"
+				path="/subscribtion"
 				element={<SubscribtionPage timestamp={new Date().getTime()} />}
 			/>
+
 			<Route
-				path="/users/:user_id/*"
+				path="/users/:user_id"
+				element={<UserProfile timestamp={new Date().getTime()} />}
+			/>
+			<Route
+				path="/dashboard/*"
 				element={<Wrapper timestamp={new Date().getTime()} />}
 			></Route>
 		</Routes>

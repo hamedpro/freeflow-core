@@ -20,7 +20,7 @@ function Option({ text,indent_count,url }) {
 }
 
 export const PrimarySideBar = () => {
-    var {user_id} = useParams();
+    var user_id = localStorage.getItem("user_id");
 	var [options, set_options] = useState();
 	var loc = useLocation();
 	async function get_data() {

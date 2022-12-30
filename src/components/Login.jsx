@@ -61,7 +61,7 @@ function CheckPassword({ user, set_current_tab }) {
 			});
 			if (response === true) {
 				alert("auth was performed!");
-				setCookie("identity", JSON.stringify({ user_id: user._id }), 2);
+				window.localStorage.setItem("user_id", user._id);
 				custom_nav("/");
 			} else {
 				alert("your password was wrong. please check it and try again");
@@ -140,7 +140,7 @@ function CheckVerfCode({ user, set_current_tab }) {
 			});
 			if (response === true) {
 				alert("auth was performed!");
-				setCookie("identity", JSON.stringify({ user_id: user._id }), 2);
+				window.localStorage.setItem("user_id", user._id);
 				custom_nav("/");
 			} else {
 				alert("verification code was not correct. please try checking what you have typed");

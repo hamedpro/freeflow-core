@@ -42,7 +42,6 @@ async function main() {
 	app.all("/", async (req, res) => {
 		var task = req.headers.task;
 		var body = req.body;
-
 		if (task === undefined) {
 			res.json(`there is not any task in request's body`);
 		} else if (task === "new_user") {

@@ -4,11 +4,11 @@ import { get_user_workspaces } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 
 export const WorkspacesPage = () => {
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var [workspaces, set_workspaces] = useState(null);
 	async function get_data() {
 		try {
-			set_workspaces(await get_user_workspaces({ creator_user_id : user_id }));
+			set_workspaces(await get_user_workspaces({ creator_user_id: user_id }));
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");

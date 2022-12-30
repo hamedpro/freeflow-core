@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useMatch, useParams } from "react-router-dom";
+import { useMatch, useParams, useSearchParams } from "react-router-dom";
 import { get_users, upload_new_resources } from "../../api/client";
 import Select from "react-select";
 export const NewResource = () => {
-	var { workspace_id, user_id, workflow_id } = useParams();
+	var [search_params, set_search_params] = useSearchParams();
+
+	var workspace_id = search_params.get("workspace_id");
+	var workflow_id = search_params.get("workflow_id");
+
+	var user_id = localStorage.getItem("user_id");
 	function upload_files_handler() {
 		var collaborators = selected_collaborators.map((i) => {
 			return { access_level: 1, user_id: i.value };

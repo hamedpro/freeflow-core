@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { get_users, new_workflow } from "../../api/client";
 import Select from "react-select";
 const NewWorkflow = () => {
 	var nav = useNavigate();
-	var { workspace_id, user_id } = useParams();
+	var [search_params, set_search_params] = useSearchParams();
+	var workspace_id = search_params.get("workspace_id");
+	var user_id = localStorage.getItem("user_id");
 	async function submit_new_workflow() {
 		try {
 			var id_of_new_workflow = await new_workflow({

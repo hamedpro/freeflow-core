@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { get_users, new_workspace } from "../../api/client";
 import Select from "react-select"
 const NewWorkspace = () => {
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var nav = useNavigate()
 	async function submit_new_workspace() {
 		var title = document.getElementById("title").value;

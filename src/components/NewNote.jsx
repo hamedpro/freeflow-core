@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { get_users, new_note } from "../../api/client";
 import Select from "react-select";
 export const NewNote = () => {
 	var nav = useNavigate();
-	var { user_id, workspace_id, workflow_id } = useParams();
+	var [search_params, set_search_params] = useSearchParams();
+
+	var workspace_id = search_params.get("workspace_id");
+	var workflow_id = search_params.get("workflow_id");
+
+	var user_id = localStorage.getItem("user_id");
 	async function submit_new_note() {
 		var collaborators = selected_collaborators.map((i) => {
 			return { access_level: 1, user_id: i.value };

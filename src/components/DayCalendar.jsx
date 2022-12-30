@@ -183,7 +183,7 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 }
 export const DayCalendar = () => {
 	var nav = useNavigate();
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var [day_tasks, set_day_tasks] = useState(null);
 	var [day_events, set_day_events] = useState(null);
 	var [calendar_categories, set_calendar_categories] = useState(null);

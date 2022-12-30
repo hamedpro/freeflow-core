@@ -6,7 +6,8 @@ import CommentsBox from "./CommentsBox.jsx";
 import ObjectBox from "./ObjectBox.jsx";
 export const WorkspacePage = () => {
   var nav = useNavigate();
-  var { workspace_id, user_id } = useParams();
+	var { workspace_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
   var [workflows, set_workflows] = useState(null);
   async function get_data() {
     try {
@@ -20,25 +21,22 @@ export const WorkspacePage = () => {
     get_data();
   }, []);
   return (
-    <div>
-      <h2>WorkspacePage</h2>
-      <p>workflows of this workspace :</p>
-      {workflows !== null ? (
-        workflows.map((workflow, index) => (
-          <React.Fragment key={index}>
-            <ObjectBox
-              object={workflow}
-              link={`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow._id}`}
-            />
-          </React.Fragment>
-        ))
-      ) : (
-        <p>loading data ...</p>
-      )}
-      <CommentsBox
-        user_id={user_id}
-        urlParams={useParams()}
-      />
-    </div>
+		<div>
+			<h2>WorkspacePage</h2>
+			<p>workflows of this workspace :</p>
+			{workflows !== null ? (
+				workflows.map((workflow, index) => (
+					<React.Fragment key={index}>
+						<ObjectBox
+							object={workflow}
+							link={`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow._id}`}
+						/>
+					</React.Fragment>
+				))
+			) : (
+				<p>loading data ...</p>
+			)}
+			<CommentsBox user_id={user_id} />
+		</div>
   );
 };

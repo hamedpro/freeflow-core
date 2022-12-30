@@ -9,7 +9,7 @@ import {
 import { Section } from "./section";
 export const VerifyIdentity = () => {
 	var nav = useNavigate();
-	var { user_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var [user, set_user] = useState(null);
 	var callback_url = `/users/${user_id}`;
 	var [check_verification_code_mode, set_check_verification_code_mode] = useState(false);
