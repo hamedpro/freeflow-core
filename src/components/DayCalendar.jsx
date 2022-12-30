@@ -79,9 +79,9 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 							}{" "}
 							different catrgories as explained below :
 						</p>
-						{day_tasks_percenatages.map((i) => {
+						{day_tasks_percenatages.map((i, index) => {
 							return (
-								<p>
+								<p key={index}>
 									{i.name} : {i.percent}%
 								</p>
 							);
@@ -117,9 +117,9 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 							}{" "}
 							different catrgories as explained below :
 						</p>
-						{day_events_percenatages.map((i) => {
+						{day_events_percenatages.map((i, index) => {
 							return (
-								<p>
+								<p key={index}>
 									{i.name} : {i.percent}%
 								</p>
 							);
@@ -145,16 +145,18 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 				<p>table</p>
 				<table>
 					<thead>
-						<th>category name</th>
-						<th>planned percent</th>
-						<th>real percent</th>
+						<tr>
+							<th>category name</th>
+							<th>planned percent</th>
+							<th>real percent</th>
+						</tr>
 					</thead>
 					<tbody>
 						{calendar_categories
 							.filter((i) => i.name !== "empty")
-							.map((cal_cat) => {
+							.map((cal_cat, index) => {
 								return (
-									<tr>
+									<tr key={index}>
 										<td>{cal_cat.name}</td>
 										<td>
 											{
