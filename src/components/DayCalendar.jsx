@@ -2,11 +2,80 @@ import React, { Fragment, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { get_calendar_categories, get_tasks, get_user_events } from "../../api/client";
 import ObjectBox from "./ObjectBox";
-import { month_names, timestamp_filled_range } from "../../common_helpers.js";
+import { month_names, sum_array, timestamp_filled_range } from "../../common_helpers.js";
 import { Section } from "./Section";
 import { is_there_any_conflict } from "../../common_helpers.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Pie } from "react-chartjs-2";
+ChartJS.register(ArcElement, Tooltip, Legend);
+function Analytics({ calendar_categories, day_tasks, day_events }) {
+	var day_tasks_percenatages = calendar_categories.map((cal_cat) => {
+		return {
+			name: cal_cat.name,
+			percent:
+				(sum_array(
+					day_tasks
+						.filter((i) => i.category_id === cal_cat._id)
+						.map((i) => i.end_date - i.start_date)
+				) /
+					(3600 * 1000 * 24)) *
+				100,
+		};
+	});
+	day_tasks_percenatages.push({
+		name: "empty",
+		percent: 100 - sum_array(day_tasks_percenatages.map((i) => i.percent)),
+	});
+	var day_events_percenatages = calendar_categories.map((cal_cat) => {
+		return {
+			name: cal_cat.name,
+			percent:
+				(sum_array(
+					day_events
+						.filter((i) => i.category_id === cal_cat._id)
+						.map((i) => i.end_date - i.start_date)
+				) /
+					(3600 * 1000 * 24)) *
+				100,
+		};
+	});
+	day_events_percenatages.push({
+		name: "empty",
+		percent: 100 - sum_array(day_events_percenatages.map((i) => i.percent)),
+	});
+	return (
+		<>
+			<Section title="tasks analytics">
+				<Pie
+					data={{
+						labels: day_tasks_percenatages.map((i) => i.name),
+						datasets: [
+							{
+								label: "percentage",
+								data: day_tasks_percenatages.map((i) => i.percent),
+							},
+						],
+					}}
+				/>
+			</Section>
+			<Section title="events analytics">
+				<Pie
+					data={{
+						labels: day_events_percenatages.map((i) => i.name),
+						datasets: [
+							{
+								label: "percentage",
+								data: day_events_percenatages.map((i) => i.percent),
+							},
+						],
+					}}
+				/>
+			</Section>
+		</>
+	);
+}
 export const DayCalendar = () => {
-	var nav = useNavigate()
+	var nav = useNavigate();
 	var { user_id } = useParams();
 	var [day_tasks, set_day_tasks] = useState(null);
 	var [day_events, set_day_events] = useState(null);
@@ -34,14 +103,8 @@ export const DayCalendar = () => {
 		});
 		var events = await get_user_events({ user_id });
 		set_day_tasks(
-			tasks
-				.filter((task) =>
-					is_there_any_conflict({
-						start: start_timestamp,
-						end: end_timestamp,
-						items: [task],
-					})
-				)
+			timestamp_filled_range({ start: start_timestamp, end: end_timestamp, items: tasks })
+				.filter((i) => i.value !== null)
 				.map((i) => {
 					return {
 						...i,
@@ -50,15 +113,10 @@ export const DayCalendar = () => {
 					};
 				})
 		);
+		timestamp_filled_range({ start: start_timestamp, end: end_timestamp, items: tasks });
 		set_day_events(
-			events
-				.filter((event) =>
-					is_there_any_conflict({
-						start: start_timestamp,
-						end: end_timestamp,
-						items: [event],
-					})
-				)
+			timestamp_filled_range({ start: start_timestamp, end: end_timestamp, items: events })
+				.filter((i) => i.value !== null)
 				.map((i) => {
 					return {
 						...i,
@@ -71,13 +129,15 @@ export const DayCalendar = () => {
 	}
 	function open_item_page(item) {
 		if (item.value === null) {
-			alert('there is not any task or event where you clicked')
-			return 
+			alert("there is not any task or event where you clicked");
+			return;
 		}
 		if (item.type_label === "tasks") {
-			nav(`/users/${item.creator_user_id}/workspaces/${item.workspace_id}/workflows/${item.workflow_id}/tasks/${item._id}`)
+			nav(
+				`/users/${item.creator_user_id}/workspaces/${item.workspace_id}/workflows/${item.workflow_id}/tasks/${item._id}`
+			);
 		} else if (item.type_label) {
-			nav(`/users/${item.creator_user_id}/calendar/events/${item._id}`)
+			nav(`/users/${item.creator_user_id}/calendar/events/${item._id}`);
 		}
 	}
 	useEffect(() => {
@@ -86,121 +146,135 @@ export const DayCalendar = () => {
 	if (calendar_categories === null || day_events === null || day_tasks === null)
 		return <h1>loading data ...</h1>;
 	return (
-		<>
-			<div className="p-2">
-				<div>DayCalendar</div>
-				<p>
-					showing from {start_timestamp} : {new Date(start_timestamp).toDateString()}
-				</p>
-				<p>
-					to {end_timestamp} : {new Date(end_timestamp).toDateString()}
-				</p>
-				<Section title="day tasks">
-					tasks of this day :{" "}
-					{day_tasks.map((task) => {
-						return (
-							<Fragment key={task._id}>
-								<ObjectBox object={task} />
-							</Fragment>
-						);
-					})}
-				</Section>
-				<Section title={"day events"}>
-					events of this day :{" "}
-					{day_events.map((event) => {
-						return (
-							<Fragment key={event._id}>
-								<ObjectBox object={event} />
-							</Fragment>
-						);
-					})}
-				</Section>
+		<div className="p-2">
+			<div>DayCalendar</div>
+			<p>
+				showing from {start_timestamp} : {new Date(start_timestamp).toDateString()}
+			</p>
+			<p>
+				to {end_timestamp} : {new Date(end_timestamp).toDateString()}
+			</p>
+			<Section title="day tasks">
+				tasks of this day :{" "}
+				{day_tasks.map((task) => {
+					return (
+						<Fragment key={task._id}>
+							<ObjectBox object={task} />
+						</Fragment>
+					);
+				})}
+			</Section>
+			<Section title={"day events"}>
+				events of this day :{" "}
+				{day_events.map((event) => {
+					return (
+						<Fragment key={event._id}>
+							<ObjectBox object={event} />
+						</Fragment>
+					);
+				})}
+			</Section>
 
-				<Section title="bars">
-					{[
-						{ start: start_timestamp, end: start_timestamp + 12 * 3600 * 1000, range_label : "day_half_1"},
-						{ start: start_timestamp + 12 * 3600 * 1000, end: end_timestamp, range_label : "day_half_2" },
-					].map((object, object_index) => {
-						return (
-							<div className="flex" key={object_index}>
-								<div className="w-1/5">
-									<div className="text-center" style={{ height: "30px" }}>
-										time
-									</div>
-									<div className="text-center" style={{ height: "30px" }}>
-										tasks
-									</div>
-									<div className="text-center" style={{ height: "30px" }}>
-										events
-									</div>
+			<Section title="bars">
+				{[
+					{
+						start: start_timestamp,
+						end: start_timestamp + 12 * 3600 * 1000,
+						range_label: "day_half_1",
+					},
+					{
+						start: start_timestamp + 12 * 3600 * 1000,
+						end: end_timestamp,
+						range_label: "day_half_2",
+					},
+				].map((object, object_index) => {
+					return (
+						<div className="flex" key={object_index}>
+							<div className="w-1/5">
+								<div className="text-center" style={{ height: "30px" }}>
+									time
 								</div>
-								<div className="w-4/5">
-									<div
-										className="w-full bg-red-400"
-										style={{ height: "30px" }}
-									></div>
-									{[
-										{ items: JSON.parse(JSON.stringify(day_tasks)), ...object ,type_label : 'tasks'},
-										{
-											items: JSON.parse(JSON.stringify(day_events)),
-											...object,
-											type_label : 'events'
-										},
-									].map((type, type_index) => {
-										return (
-											<div
-												key={type_index}
-												className="w-full bg-stone-100 relative"
-												style={{ height: "30px" }}
-											>
-												{timestamp_filled_range({ ...type }).map(item => {return {...item,type_label : type.type_label}}).map(
-													(item, index, array) => {
-														return (
-															<div
-																key={index}
-																style={{
-																	position: "absolute",
-																	left: item.start_percent + "%",
-																	width:
-																		item.end_percent -
-																		item.start_percent +
-																		"%",
-																	height: "100%",
-																	backgroundColor:
-																		item.value === null
-																			? "white"
-																			: calendar_categories.find(
-																					(i) =>
-																						i._id ==
-																						item.category_id
-																			).color,
-																	overflow: "hidden",
-																	whiteSpace: "nowrap",
-																	textOverflow : "ellipsis"
-																}}
-																className={`${
-																	index !== 0 ? "border-l" : ""
-																} ${
-																	index !== array.length - 1
-																		? "border-r"
-																		: ""
-																	} border-stone-400 flex justify-center items-center`}
-																onClick={()=>open_item_page(item)}
-															>
-																{item.title}
-															</div>
-														);
-													}
-												)}
-											</div>
-										);
-									})}
+								<div className="text-center" style={{ height: "30px" }}>
+									tasks
+								</div>
+								<div className="text-center" style={{ height: "30px" }}>
+									events
 								</div>
 							</div>
-						);
-					})}
-				</Section>
-			</div>
-		</>
+							<div className="w-4/5">
+								<div className="w-full bg-red-400" style={{ height: "30px" }}></div>
+								{[
+									{
+										items: JSON.parse(JSON.stringify(day_tasks)),
+										...object,
+										type_label: "tasks",
+									},
+									{
+										items: JSON.parse(JSON.stringify(day_events)),
+										...object,
+										type_label: "events",
+									},
+								].map((type, type_index) => {
+									return (
+										<div
+											key={type_index}
+											className="w-full bg-stone-100 relative"
+											style={{ height: "30px" }}
+										>
+											{timestamp_filled_range({ ...type })
+												.map((item) => {
+													return { ...item, type_label: type.type_label };
+												})
+												.map((item, index, array) => {
+													return (
+														<div
+															key={index}
+															style={{
+																position: "absolute",
+																left: item.start_percent + "%",
+																width:
+																	item.end_percent -
+																	item.start_percent +
+																	"%",
+																height: "100%",
+																backgroundColor:
+																	item.value === null
+																		? "white"
+																		: calendar_categories.find(
+																				(i) =>
+																					i._id ==
+																					item.category_id
+																		  ).color,
+																overflow: "hidden",
+																whiteSpace: "nowrap",
+																textOverflow: "ellipsis",
+															}}
+															className={`${
+																index !== 0 ? "border-l" : ""
+															} ${
+																index !== array.length - 1
+																	? "border-r"
+																	: ""
+															} border-stone-400 flex justify-center items-center`}
+															onClick={() => open_item_page(item)}
+														>
+															{item.title}
+														</div>
+													);
+												})}
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					);
+				})}
+			</Section>
+			<Analytics
+				day_events={day_events}
+				day_tasks={day_tasks}
+				calendar_categories={calendar_categories}
+			/>
+		</div>
 	);
 };

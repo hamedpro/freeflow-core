@@ -312,3 +312,10 @@ export function timestamp_filled_range({ start, end, items}) {
 	});
 	return result;
 }
+export function sum_array(array){
+	var total = 0;
+	array.forEach(number => {
+		total += number
+	})
+	return total
+}
