@@ -32,75 +32,64 @@ export const PrimarySideBar = () => {
 				indent_count: 0,
 				url: `/dashboard/workspaces/${ws._id}`,
 			});
-            tmp.push({
-				text: `ws resources`,
-				indent_count: 1,
-				url: `/dashboard/workspaces/${ws._id}/resources`,
-			});
-            ws.workflows.forEach(wf => {
-                tmp.push({
+			ws.workflows.forEach((wf) => {
+				tmp.push({
 					text: `wf : ${wf.title}`,
-					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}`,
+					url: `/dashboard/workflows/${wf._id}`,
 					indent_count: 1,
 				});
-                tmp.push({
+				tmp.push({
 					text: "notes",
-					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/notes`,
+					url: `/dashboard/workflows/${wf._id}`,
 					indent_count: 2,
 				});
-                wf.notes.forEach(note => {
-                    tmp.push({
+				wf.notes.forEach((note) => {
+					tmp.push({
 						text: `note : ${note.title}`,
-						url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/notes/${note._id}`,
+						url: `/dashboard/notes/${note._id}`,
 						indent_count: 3,
 					});
-                })
-                tmp.push({
+				});
+				tmp.push({
 					text: "new note",
-					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/notes/new`,
+					url: `/dashboard/notes/new?workspace_id=${ws._id}&workflow_id=${wf._id}`,
 					indent_count: 3,
 				});
-                
-                tmp.push({
+
+				tmp.push({
 					text: "tasks",
-					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/tasks`,
+					url: `/dashboard/workflows/${wf._id}`,
 					indent_count: 2,
 				});
-                wf.tasks.forEach(task => {
-                    tmp.push({
+				wf.tasks.forEach((task) => {
+					tmp.push({
 						text: `task : ${task.title}`,
-						url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/tasks/${task._id}`,
+						url: `/dashboard/tasks/${task._id}`,
 						indent_count: 3,
 					});
-                })
-                tmp.push({
+				});
+				tmp.push({
 					text: "new task",
-					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/tasks/new`,
+					url: `/dashboard/tasks/new?workspace_id=${ws._id}&workflow_id=${wf._id}`,
 					indent_count: 3,
 				});
 
-                tmp.push({
+				tmp.push({
 					text: "resources",
-					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/resources`,
+					url: `/dashboard/workflows/${wf._id}`,
 					indent_count: 2,
 				});
-                tmp.push({
+				tmp.push({
 					text: "new resource",
-					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/resources/new`,
+					url: `/dashboard/resources/new?workspace_id=${ws._id}&workflow_id=${wf._id}`,
 					indent_count: 3,
 				});
+			});
 
-            })
-            
-            tmp.push({
+			tmp.push({
 				text: "new workflow",
 				indent_count: 1,
-				url: `/dashboard/workspaces/${ws._id}/workflows/new`,
-			});
-            tmp.push({
-				text: "new resource",
-				indent_count: 1,
-				url: `/dashboard/workspaces/${ws._id}/resources/new`,
+				url: `/dashboard/workflows/new?workspace_id=${ws._id}`,
 			});
         })
         tmp.push({

@@ -16,11 +16,11 @@ import Select from "react-select";
 //TODO: component re-renders
 export const NewTask = () => {
 	var nav = useNavigate();
-var [search_params, set_search_params] = useSearchParams();
-var workspace_id = search_params.get("workspace_id");
-var workflow_id = search_params.get("workflow_id");
+	var [search_params, set_search_params] = useSearchParams();
+	var workspace_id = search_params.get("workspace_id");
+	var workflow_id = search_params.get("workflow_id");
 
-var user_id = localStorage.getItem("user_id");
+	var user_id = localStorage.getItem("user_id");
 	const [notes, setNotes] = useState(null);
 	const [selectedNotes, selectNotes] = useState([]);
 	const [title_input, set_title_input] = useState();
@@ -30,19 +30,21 @@ var user_id = localStorage.getItem("user_id");
 		end: null,
 		start: null,
 	});
-	var [all_users, set_all_users] = useState(null)
-	
+	var [all_users, set_all_users] = useState(null);
+
 	async function get_data() {
 		setNotes(await get_user_notes({ creator_user_id: user_id }));
 		set_calendar_categories(await get_calendar_categories({ user_id }));
-		set_all_users(await get_users({ filters: {} }))
+		set_all_users(await get_users({ filters: {} }));
 	}
-	var [selected_collaborators,set_selected_collaborators] = useState([])
+	var [selected_collaborators, set_selected_collaborators] = useState([]);
 	useEffect(() => {
 		get_data();
 	}, []);
 	async function submit_new_task() {
-		var collaborators = selected_collaborators.map(i => { return { access_level: 1, user_id: i.value } })
+		var collaborators = selected_collaborators.map((i) => {
+			return { access_level: 1, user_id: i.value };
+		});
 		try {
 			var tmp = {
 				creator_user_id: user_id,
@@ -53,7 +55,7 @@ var user_id = localStorage.getItem("user_id");
 				workspace_id,
 				title: title_input,
 				category_id: selected_calendar_category.value._id,
-				collaborators
+				collaborators,
 			};
 			var result = await new_task(tmp);
 			if (result.has_error) {
@@ -69,7 +71,8 @@ var user_id = localStorage.getItem("user_id");
 		}
 	}
 	var [selected_calendar_category, select_calendar_category] = useState(null);
-	if (all_users === null || notes === null || calendar_categories === null) return <h1>still loading data ...</h1>;
+	if (all_users === null || notes === null || calendar_categories === null)
+		return <h1>still loading data ...</h1>;
 	return (
 		<div className="p-2">
 			<h1>NewTask</h1>

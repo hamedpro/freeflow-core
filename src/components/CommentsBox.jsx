@@ -1,14 +1,13 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import {
-  get_comments,
-  new_comment,
-  edit_comment,
-  delete_comment,
-} from "../../api/client";
+import { useMatch, useParams } from "react-router-dom";
+import { get_comments, new_comment, edit_comment, delete_comment } from "../../api/client";
 import Comment from "./Comment";
 const CommentSBox = ({ user_id }) => {
-	const lastUrlParamKey = Object.keys(urlParams).at(-1);
+	var urlParams = useParams();
+	var current_field = Object.keys(urlParams).find((i) => {
+		return ["workspace_id", "workflow_id", "task_id", "resource_id", "note_id"].includes(i);
+	});
 	const [editId, setEditId] = useState("");
 	const [inputComment, setInputComment] = useState("");
 	const [comments, setComments] = useState([]);
@@ -20,7 +19,7 @@ const CommentSBox = ({ user_id }) => {
 		const filters = {
 			user_id,
 		};
-		filters[lastUrlParamKey] = await urlParams[lastUrlParamKey];
+		filters[current_field] = urlParams[current_field];
 		try {
 			const loadedCommnets = await get_comments({
 				filters,
@@ -39,11 +38,13 @@ const CommentSBox = ({ user_id }) => {
 				setEditId("");
 				getCommentsHandler();
 			} else {
-				await new_comment({
+				var tmp = {
 					date: new Date().getTime(),
 					text: inputComment,
-					...urlParams,
-				});
+					user_id,
+				};
+				tmp[current_field] = urlParams[current_field];
+				await new_comment(tmp);
 				getCommentsHandler();
 			}
 			setInputComment("");
