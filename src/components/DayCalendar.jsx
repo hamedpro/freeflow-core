@@ -20,11 +20,14 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 				) /
 					(3600 * 1000 * 24)) *
 				100,
+			color: cal_cat.color,
+			category_id: cal_cat._id,
 		};
 	});
 	day_tasks_percenatages.push({
 		name: "empty",
 		percent: 100 - sum_array(day_tasks_percenatages.map((i) => i.percent)),
+		color: "white",
 	});
 	var day_events_percenatages = calendar_categories.map((cal_cat) => {
 		return {
@@ -37,39 +40,141 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 				) /
 					(3600 * 1000 * 24)) *
 				100,
+			color: cal_cat.color,
+			category_id: cal_cat._id,
 		};
 	});
 	day_events_percenatages.push({
 		name: "empty",
 		percent: 100 - sum_array(day_events_percenatages.map((i) => i.percent)),
+		color: "white",
 	});
 	return (
 		<>
 			<Section title="tasks analytics">
-				<Pie
-					data={{
-						labels: day_tasks_percenatages.map((i) => i.name),
-						datasets: [
+				<div className="flex">
+					<div className="w-1/2">
+						<Pie
+							data={{
+								labels: day_tasks_percenatages.map((i) => i.name),
+								datasets: [
+									{
+										label: "percentage",
+										data: day_tasks_percenatages.map((i) => i.percent),
+										backgroundColor: day_tasks_percenatages.map((i) => i.color),
+										borderColor: "black",
+									},
+								],
+							}}
+						/>
+					</div>
+					<div className="w-1/2">
+						<p>
+							you have defined {calendar_categories.length} calendar categories at
+							all. you had {day_tasks.length} tasks in this day and they are from{" "}
 							{
-								label: "percentage",
-								data: day_tasks_percenatages.map((i) => i.percent),
-							},
-						],
-					}}
-				/>
+								day_tasks_percenatages.filter(
+									(i) => i.percent !== 0 && i.name !== "empty"
+								).length
+							}{" "}
+							different catrgories as explained below :
+						</p>
+						{day_tasks_percenatages.map((i) => {
+							return (
+								<p>
+									{i.name} : {i.percent}%
+								</p>
+							);
+						})}
+					</div>
+				</div>
 			</Section>
 			<Section title="events analytics">
-				<Pie
-					data={{
-						labels: day_events_percenatages.map((i) => i.name),
-						datasets: [
+				<div className="flex">
+					<div className="w-1/2">
+						<Pie
+							data={{
+								labels: day_events_percenatages.map((i) => i.name),
+								datasets: [
+									{
+										label: "percentage",
+										data: day_events_percenatages.map((i) => i.percent),
+										backgroundColor: day_tasks_percenatages.map((i) => i.color),
+										borderColor: "black",
+									},
+								],
+							}}
+						/>
+					</div>
+					<div className="w-1/2">
+						<p>
+							you have defined {calendar_categories.length} calendar categories at
+							all. you had {day_events.length} events in this day and they are from{" "}
 							{
-								label: "percentage",
-								data: day_events_percenatages.map((i) => i.percent),
-							},
-						],
-					}}
-				/>
+								day_events_percenatages.filter(
+									(i) => i.percent !== 0 && i.name !== "empty"
+								).length
+							}{" "}
+							different catrgories as explained below :
+						</p>
+						{day_events_percenatages.map((i) => {
+							return (
+								<p>
+									{i.name} : {i.percent}%
+								</p>
+							);
+						})}
+					</div>
+				</div>
+			</Section>
+			<Section title="overall analytics">
+				<h1>
+					a detailed comparison between your plan for this day and what has actually
+					happened :
+				</h1>
+				{day_tasks.length !== 0 ? (
+					<p>
+						you have successfully turned{" "}
+						{(day_tasks.filter((i) => i.is_done === true).length / day_tasks.length) *
+							100}
+						% of today's tasks to events (it means marking them as done)
+					</p>
+				) : (
+					<p>you have not defined any task in this day</p>
+				)}
+				<p>table</p>
+				<table>
+					<thead>
+						<th>category name</th>
+						<th>planned percent</th>
+						<th>real percent</th>
+					</thead>
+					<tbody>
+						{calendar_categories
+							.filter((i) => i.name !== "empty")
+							.map((cal_cat) => {
+								return (
+									<tr>
+										<td>{cal_cat.name}</td>
+										<td>
+											{
+												day_tasks_percenatages.find(
+													(i) => i.category_id === cal_cat._id
+												).percent
+											}
+										</td>
+										<td>
+											{
+												day_events_percenatages.find(
+													(i) => i.category_id === cal_cat._id
+												).percent
+											}
+										</td>
+									</tr>
+								);
+							})}
+					</tbody>
+				</table>
 			</Section>
 		</>
 	);
