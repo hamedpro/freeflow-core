@@ -7,6 +7,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import {
 	get_calendar_categories,
+	get_users,
 	get_user_notes,
 	new_calendar_category,
 	new_task,
@@ -25,15 +26,19 @@ export const NewTask = () => {
 		end: null,
 		start: null,
 	});
-
+	var [all_users, set_all_users] = useState(null)
+	
 	async function get_data() {
 		setNotes(await get_user_notes({ creator_user_id: user_id }));
 		set_calendar_categories(await get_calendar_categories({ user_id }));
+		set_all_users(await get_users({ filters: {} }))
 	}
+	var [selected_collaborators,set_selected_collaborators] = useState([])
 	useEffect(() => {
 		get_data();
 	}, []);
 	async function submit_new_task() {
+		var collaborators = selected_collaborators.map(i => { return { access_level: 1, user_id: i.value } })
 		try {
 			var tmp = {
 				creator_user_id: user_id,
@@ -44,6 +49,7 @@ export const NewTask = () => {
 				workspace_id,
 				title: title_input,
 				category_id: selected_calendar_category.value._id,
+				collaborators
 			};
 			var result = await new_task(tmp);
 			if (result.has_error) {
@@ -61,7 +67,7 @@ export const NewTask = () => {
 		}
 	}
 	var [selected_calendar_category, select_calendar_category] = useState(null);
-	if (notes === null || calendar_categories === null) return <h1>still loading data ...</h1>;
+	if (all_users === null || notes === null || calendar_categories === null) return <h1>still loading data ...</h1>;
 	return (
 		<div className="p-2">
 			<h1>NewTask</h1>
@@ -141,6 +147,21 @@ export const NewTask = () => {
 					</div>
 				);
 			})}
+			<h1>choose collaborators of this new workspace :</h1>
+			<Select
+				onChange={set_selected_collaborators}
+				value={selected_collaborators}
+				options={[
+					...all_users.map((user) => {
+						return {
+							value: user._id,
+							label: `@${user.username}`,
+						};
+					}),
+				]}
+				isMulti
+				isSearchable
+			/>
 			<button onClick={submit_new_task}>submit</button>
 		</div>
 	);

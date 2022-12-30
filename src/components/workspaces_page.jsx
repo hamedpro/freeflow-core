@@ -4,7 +4,6 @@ import { get_user_workspaces } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 
 export const WorkspacesPage = () => {
-	var nav = useNavigate();
 	var { user_id } = useParams();
 	var [workspaces, set_workspaces] = useState(null);
 	async function get_data() {
