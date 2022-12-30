@@ -61,9 +61,7 @@ var user_id = localStorage.getItem("user_id");
 			} else {
 				var id_of_new_task = result;
 				alert("all done. navigating to the newly created task's page");
-				nav(
-					`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow_id}/tasks/${id_of_new_task}`
-				);
+				nav(`/dashboard/tasks/${id_of_new_task}`);
 			}
 		} catch (error) {
 			console.log(error);

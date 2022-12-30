@@ -240,11 +240,9 @@ export const DayCalendar = () => {
 			return;
 		}
 		if (item.type_label === "tasks") {
-			nav(
-				`/users/${item.creator_user_id}/workspaces/${item.workspace_id}/workflows/${item.workflow_id}/tasks/${item._id}`
-			);
+			nav(`/dashboard/tasks/${item._id}`);
 		} else if (item.type_label) {
-			nav(`/users/${item.creator_user_id}/calendar/events/${item._id}`);
+			nav(`/dashboard/events/${item._id}`);
 		}
 	}
 	useEffect(() => {

@@ -23,9 +23,7 @@ export const NewNote = () => {
 				collaborators,
 			});
 			alert("all done. navigating to newly created note's page");
-			nav(
-				`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow_id}/notes/${id_of_new_note}`
-			);
+			nav(`/dashboard/notes/${id_of_new_note}`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");

@@ -138,7 +138,9 @@ export const MonthCalendar = ({ }) => {
 								{calendar_part.map((day, index2) => {
 									return <td className="cursor-pointer" key={index2} onClick={() => {
 										if (day === null) return 
-										nav(`/users/${user_id}/calendar/day?default=${selected_year}-${selected_month}-${day}`)
+										nav(
+											`/dashboard/calendar/day?default=${selected_year}-${selected_month}-${day}`
+										);
 									} }>{day !== null ? day : "-"}</td>;
 								})}
 							</tr>

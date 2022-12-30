@@ -19,7 +19,7 @@ const NewWorkflow = () => {
 				}),
 			});
 			alert(`all done!. navigating to newly created workflow's page...`);
-			nav(`/users/${user_id}/workspaces/${workspace_id}/workflows/${id_of_new_workflow}`);
+			nav(`/dashboard/workflows/${id_of_new_workflow}`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");

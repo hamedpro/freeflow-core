@@ -44,7 +44,9 @@ const UserProfile = () => {
 					);
 				})
 			} */}
-			<p>click <Link to={`/users/${user_id}/workspaces`}>here</Link> to open workspaces of this user</p>
+			<p>
+				click <Link to={`/dashboard/workspaces`}>here</Link> to open workspaces of this user
+			</p>
 		</div>
 	);
 };

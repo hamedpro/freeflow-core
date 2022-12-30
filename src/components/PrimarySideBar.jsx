@@ -28,86 +28,86 @@ export const PrimarySideBar = () => {
         var tmp = []
         user_data_hierarchy.workspaces.forEach(ws => {
             tmp.push({
-                text: `ws : ${ws.title}`,
-                indent_count: 0,
-                url : `/users/${user_id}/workspaces/${ws._id}`
-            })
+				text: `ws : ${ws.title}`,
+				indent_count: 0,
+				url: `/dashboard/workspaces/${ws._id}`,
+			});
             tmp.push({
-                text: `ws resources`,
-                indent_count: 1,
-                url : `/users/${user_id}/workspaces/${ws._id}/resources`
-            })
+				text: `ws resources`,
+				indent_count: 1,
+				url: `/dashboard/workspaces/${ws._id}/resources`,
+			});
             ws.workflows.forEach(wf => {
                 tmp.push({
-                    text: `wf : ${wf.title}`,
-                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}`,
-                    indent_count : 1
-                })
+					text: `wf : ${wf.title}`,
+					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}`,
+					indent_count: 1,
+				});
                 tmp.push({
-                    text: "notes",
-                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/notes`,
-                    indent_count : 2
-                })
+					text: "notes",
+					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/notes`,
+					indent_count: 2,
+				});
                 wf.notes.forEach(note => {
                     tmp.push({
-                        text: `note : ${note.title}`,
-                        url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/notes/${note._id}`,
-                        indent_count :3 
-                    })
+						text: `note : ${note.title}`,
+						url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/notes/${note._id}`,
+						indent_count: 3,
+					});
                 })
                 tmp.push({
-                    text: "new note",
-                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/notes/new`,
-                    indent_count : 3
-                })
+					text: "new note",
+					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/notes/new`,
+					indent_count: 3,
+				});
                 
                 tmp.push({
-                    text: "tasks",
-                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/tasks`,
-                    indent_count : 2
-                })
+					text: "tasks",
+					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/tasks`,
+					indent_count: 2,
+				});
                 wf.tasks.forEach(task => {
                     tmp.push({
-                        text: `task : ${task.title}`,
-                        url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/tasks/${task._id}`,
-                        indent_count :3 
-                    })
+						text: `task : ${task.title}`,
+						url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/tasks/${task._id}`,
+						indent_count: 3,
+					});
                 })
                 tmp.push({
-                    text: "new task",
-                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/tasks/new`,
-                    indent_count : 3
-                })
+					text: "new task",
+					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/tasks/new`,
+					indent_count: 3,
+				});
 
                 tmp.push({
-                    text: "resources",
-                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/resources`,
-                    indent_count : 2
-                })
+					text: "resources",
+					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/resources`,
+					indent_count: 2,
+				});
                 tmp.push({
-                    text: "new resource",
-                    url: `/users/${user_id}/workspaces/${ws._id}/workflows/${wf._id}/resources/new`,
-                    indent_count : 3
-                })
+					text: "new resource",
+					url: `/dashboard/workspaces/${ws._id}/workflows/${wf._id}/resources/new`,
+					indent_count: 3,
+				});
 
             })
             
             tmp.push({
-                text: "new workflow",
-                indent_count: 1,
-                url : `/users/${user_id}/workspaces/${ws._id}/workflows/new`
-            })
+				text: "new workflow",
+				indent_count: 1,
+				url: `/dashboard/workspaces/${ws._id}/workflows/new`,
+			});
             tmp.push({
-                text: "new resource",
-                indent_count: 1,
-                url : `/users/${user_id}/workspaces/${ws._id}/resources/new`
-            })
+				text: "new resource",
+				indent_count: 1,
+				url: `/dashboard/workspaces/${ws._id}/resources/new`,
+			});
         })
         tmp.push({
-            text: "new workspace",
-            url: `/users/${user_id}/workspaces/new`,
-            indent_count : 0
-        })
+			text: "new workspace",
+			url: `/dashboard/workspaces/new`,
+			indent_count: 0,
+		});
 		set_options(tmp) // each option should contain all required props of Option component
 	}
 	useEffect(() => {

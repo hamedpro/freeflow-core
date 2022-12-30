@@ -19,12 +19,10 @@ import { NewTask } from "./components/NewTask";
 import { Terms } from "./components/Terms";
 import { VerifyIdentity } from "./components/VerifyIdentity";
 import { MonthCalendar } from "./components/MonthCalendar.jsx";
-import { WeekCalendar } from "./components/WeekCalendar";
 import { DayCalendar } from "./components/DayCalendar";
 import { Root } from "./components/Root.jsx";
 import { PrimarySideBar } from "./components/PrimarySideBar";
 import { NewResource } from "./components/NewResource";
-import { Resources } from "./components/Resources";
 import {
 	CalendarMonthRounded,
 	HomeOutlined,
@@ -46,13 +44,13 @@ function TopBar() {
 			style={{ height: "8%" }}
 		>
 			<div className="w-1/5">
-				<Link to={`/users/${user_id}/settings`}>
+				<Link to={`/dashboard/settings`}>
 					<Settings style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
-				<Link to={`/users/${user_id}/profile`}>
+				<Link to={`/dashboard/profile`}>
 					<Person2Outlined style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
-				<Link to={`/users/${user_id}/`}>
+				<Link to={`/dashboard/`}>
 					<HomeOutlined style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
 			</div>
@@ -61,11 +59,11 @@ function TopBar() {
 					<CalendarMonthRounded />
 					<div>
 						{new Date().getUTCFullYear()} /{" "}
-						<Link to={`/users/${user_id}/calendar/month`}>
+						<Link to={`/dashboard/calendar/month`}>
 							{month_names[new Date().getMonth()]}
 						</Link>{" "}
 						/{" "}
-						{<Link to={`/users/${user_id}/calendar/day`}>{new Date().getDate()}</Link>}
+						{<Link to={`/dashboard/calendar/day`}>{new Date().getDate()}</Link>}
 					</div>
 				</div>
 				<div className="flex items-center space-x-3 h-5/6 my-2 ">

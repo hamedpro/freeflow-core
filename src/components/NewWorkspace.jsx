@@ -18,7 +18,7 @@ const NewWorkspace = () => {
 				collaborators
 			});
 			alert("all done!. navigating to newly created workspace's page ...");
-			nav(`/users/${user_id}/workspaces/${id_of_new_workspace}/`)
+			nav(`/dashboard/workspaces/${id_of_new_workspace}/`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");

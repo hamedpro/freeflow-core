@@ -32,10 +32,7 @@ const Workflow = () => {
 					{notes.map((note, index) => {
 						return (
 							<React.Fragment key={index}>
-								<ObjectBox
-									object={note}
-									link={`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow_id}/notes/${note._id}`}
-								/>
+								<ObjectBox object={note} link={`/dashboard/notes/${note._id}`} />
 							</React.Fragment>
 						);
 					})}
@@ -47,10 +44,7 @@ const Workflow = () => {
 					{tasks.map((task, index) => {
 						return (
 							<React.Fragment key={index}>
-								<ObjectBox
-									object={task}
-									link={`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow_id}/tasks/${task._id}`}
-								/>
+								<ObjectBox object={task} link={`/dashboard/tasks/${task._id}`} />
 							</React.Fragment>
 						);
 					})}

@@ -29,7 +29,7 @@ export const WorkspacePage = () => {
 					<React.Fragment key={index}>
 						<ObjectBox
 							object={workflow}
-							link={`/users/${user_id}/workspaces/${workspace_id}/workflows/${workflow._id}`}
+							link={`/dashboard/workflows/${workflow._id}`}
 						/>
 					</React.Fragment>
 				))
