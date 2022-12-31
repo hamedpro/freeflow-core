@@ -321,6 +321,7 @@ async function main() {
 				.collection("tasks")
 				.find({ creator_user_id: user_id })
 				.toArray();
+			var resources = await db.collection("resources").find().toArray();
 			var user_hierarchy = {
 				workspaces: user_workspaces.map((ws) => {
 					return {
@@ -332,6 +333,9 @@ async function main() {
 									...wf,
 									notes: user_notes.filter((note) => note.workflow_id == wf._id),
 									tasks: user_tasks.filter((task) => task.workflow_id == wf._id),
+									resources: resources.filter(
+										(resource) => resource.workflow_id == wf._id
+									),
 								};
 							}),
 					};

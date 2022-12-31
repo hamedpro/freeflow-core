@@ -79,6 +79,13 @@ export const PrimarySideBar = () => {
 					url: `/dashboard/workflows/${wf._id}`,
 					indent_count: 2,
 				});
+				wf.resources.map((resource) => {
+					tmp.push({
+						text: `resource : ${resource._id}`,
+						url: `/dashboard/resources/${resource._id}`,
+						indent_count: 3,
+					});
+				});
 				tmp.push({
 					text: "new resource",
 					url: `/dashboard/resources/new?workspace_id=${ws._id}&workflow_id=${wf._id}`,
