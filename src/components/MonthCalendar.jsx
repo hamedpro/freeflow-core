@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { get_tasks } from "../../api/client";
+import { custom_get_collection, get_tasks } from "../../api/client";
 import { custom_range } from "../../common_helpers.js";
 import "./MonthCalendarStyles.css";
 import { month_names, day_names ,get_months_days_count} from "../../common_helpers.js";
 export const MonthCalendar = ({ }) => {
 	var nav = useNavigate()
 	var [query_params,set_query_params] = useSearchParams()
-	var { user_id } = localStorage.getItem("user_id");
+	var user_id = localStorage.getItem("user_id");
 	var [tasks, set_tasks] = useState(null);
 	async function get_data() {
 		set_tasks(
-			await get_tasks({
-				filters: {
-					_id: user_id,
-				},
+			await custom_get_collection({
+				context: "tasks",
+				user_id,
 			})
 		);
 	}

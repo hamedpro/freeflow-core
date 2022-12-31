@@ -13,10 +13,10 @@ export const NewResource = () => {
 		var collaborators = selected_collaborators.map((i) => {
 			return { access_level: 1, user_id: i.value };
 		});
+		collaborators.push({ access_level: 3, user_id });
 		upload_new_resources({
 			input_element_id: "files_input",
 			data: {
-				user_id,
 				workspace_id,
 				workflow_id,
 				collaborators,

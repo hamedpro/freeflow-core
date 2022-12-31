@@ -10,8 +10,7 @@ export const Events = () => {
 	async function get_data() {
 		var events = await get_collection({
 			collection_name: "events",
-			filters: {
-				creator_user_id: user_id,
+			filters: {user_id,
 			},
 		});
 		set_events(events);

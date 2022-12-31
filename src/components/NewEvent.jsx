@@ -8,9 +8,7 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useEffect } from "react";
 import {
 	get_calendar_categories,
-	get_user_notes,
 	new_calendar_category,
-	new_task,
 } from "../../api/client";
 import Select from "react-select";
 export const NewEvent = () => {
@@ -28,7 +26,7 @@ export const NewEvent = () => {
 			workspace_id,
 			category_id: selected_calendar_category.value._id,
 			...input_values,
-			creator_user_id: user_id,
+			user_id,
 		});
 		if (result.has_error) {
 			alert("Error! : " + result.error);

@@ -1,4 +1,4 @@
-import { gen_verification_code } from "../common_helpers.js";
+import { check_being_collaborator, gen_verification_code } from "../common_helpers.js";
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -161,21 +161,29 @@ async function main() {
 			var user_id = req.body.user_id;
 			var user_workspaces = await db
 				.collection("workspaces")
-				.find({ creator_user_id: user_id })
-				.toArray();
+				.find()
+				.toArray()
+				.filter((i) => check_being_collaborator(i, user_id));
 			var user_workflows = await db
 				.collection("workflows")
-				.find({ creator_user_id: user_id })
-				.toArray();
+				.find()
+				.toArray()
+				.filter((i) => check_being_collaborator(i, user_id));
 			var user_notes = await db
 				.collection("notes")
-				.find({ creator_user_id: user_id })
-				.toArray();
+				.find()
+				.toArray()
+				.filter((i) => check_being_collaborator(i, user_id));
 			var user_tasks = await db
 				.collection("tasks")
-				.find({ creator_user_id: user_id })
-				.toArray();
-			var resources = await db.collection("resources").find().toArray();
+				.find()
+				.toArray()
+				.filter((i) => check_being_collaborator(i, user_id));
+			var resources = await db
+				.collection("resources")
+				.find()
+				.toArray()
+				.filter((i) => check_being_collaborator(i, user_id));
 			var user_hierarchy = {
 				workspaces: user_workspaces.map((ws) => {
 					return {
@@ -298,6 +306,15 @@ async function main() {
 				filters["_id"] = ObjectId(filters["_id"]);
 			}
 			res.json(await db.collection(req.body.collection_name).deleteOne(filters));
+		} else if (task === "custom_get_collection") {
+			//lets explain what it does by an example :
+			//if context is "workspaces" and user_id is 'something' :
+			//it returns all workspaces which this user is a collaborator of
+			//and also this is true about workflows , tasks , resources , notes
+			var result = (await db.collection(req.body.context).find().toArray()).filter((item) =>
+				check_being_collaborator(item, req.body.user_id)
+			);
+			res.json(result);
 		} else {
 			res.json('unknown value for "task"');
 		}

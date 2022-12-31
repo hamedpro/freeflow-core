@@ -14,9 +14,9 @@ export const NewNote = () => {
 		var collaborators = selected_collaborators.map((i) => {
 			return { access_level: 1, user_id: i.value };
 		});
+		collaborators.push({ access_level: 3, user_id });
 		try {
 			var id_of_new_note = await new_note({
-				creator_user_id: user_id,
 				workflow_id,
 				title: document.getElementById("title").value,
 				workspace_id,

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { get_users, get_user_workspaces } from "../../api/client";
+import { custom_get_collection, get_users } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 
 const UserProfile = () => {
@@ -17,7 +17,7 @@ const UserProfile = () => {
 				},
 			});
 			set_user(filtered_users[0]);
-			set_workspaces(await get_user_workspaces({ creator_user_id: user_id }));
+			set_workspaces(await custom_get_collection({context : "workspaces",user_id}));
 		} catch (error) {
 			console.log(error);
 		}

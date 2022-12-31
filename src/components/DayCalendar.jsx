@@ -1,6 +1,11 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { get_calendar_categories, get_tasks, get_user_events } from "../../api/client";
+import {
+	custom_get_collection,
+	get_calendar_categories,
+	get_tasks,
+	get_user_events,
+} from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import { month_names, sum_array, timestamp_filled_range } from "../../common_helpers.js";
 import { Section } from "./Section";
@@ -203,11 +208,7 @@ export const DayCalendar = () => {
 	var start_timestamp = new Date(year, month - 1, day).getTime();
 	var end_timestamp = start_timestamp + 3600 * 1000 * 24;
 	async function get_data() {
-		var tasks = await get_tasks({
-			filters: {
-				creator_user_id: user_id,
-			},
-		});
+		var tasks = await custom_get_collection({ context: "tasks", user_id });
 		var events = await get_user_events({ user_id });
 		set_day_tasks(
 			timestamp_filled_range({ start: start_timestamp, end: end_timestamp, items: tasks })

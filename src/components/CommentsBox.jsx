@@ -7,9 +7,9 @@ import {
 	edit_comment,
 	delete_comment,
 	get_workflows,
-	get_user_notes,
 	get_resources,
 	get_tasks,
+	custom_get_collection,
 } from "../../api/client";
 import Comment from "./Comment";
 const CommentSBox = ({ user_id }) => {
@@ -64,7 +64,7 @@ const CommentSBox = ({ user_id }) => {
 						tmp["workspace_id"] = workflow.workspace_id;
 						break;
 					case "note_id":
-						var note = (await get_user_notes({ creator_user_id: user_id })).find(
+						var note = (await custom_get_collection({context : "notes",user_id})).find(
 							(i) => i._id === urlParams.note_id
 						);
 						tmp.workspace_id = note.workspace_id;

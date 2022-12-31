@@ -7,16 +7,17 @@ const NewWorkflow = () => {
 	var [search_params, set_search_params] = useSearchParams();
 	var workspace_id = search_params.get("workspace_id");
 	var user_id = localStorage.getItem("user_id");
+	var collaborators = selected_collaborators.map((i) => {
+		return { access_level: 1, user_id: i.value };
+	});
+	collaborators.push({ access_level: 3, user_id });
 	async function submit_new_workflow() {
 		try {
 			var id_of_new_workflow = await new_workflow({
 				workspace_id,
-				creator_user_id: user_id,
 				title: document.getElementById("title").value,
 				description: document.getElementById("description").value,
-				collaborators: selected_collaborators.map((i) => {
-					return { access_level: 1, user_id: i.value };
-				}),
+				collaborators,
 			});
 			alert(`all done!. navigating to newly created workflow's page...`);
 			nav(`/dashboard/workflows/${id_of_new_workflow}`);

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { get_tasks, get_user_notes } from "../../api/client";
+import { custom_get_collection, get_tasks } from "../../api/client";
 import CommentsBox from "./CommentsBox";
 import ObjectBox from "./ObjectBox";
 const Workflow = () => {
@@ -12,7 +12,7 @@ const Workflow = () => {
 	var [tasks, set_tasks] = useState(null);
 	async function get_data() {
 		try {
-			var response = await get_user_notes({ creator_user_id: user_id });
+			var response = await custom_get_collection({context : "notes",user_id});
 			set_notes(response.filter((note) => note.workflow_id === workflow_id));
 			set_tasks(await get_tasks({ filters: { workflow_id } }));
 		} catch (error) {

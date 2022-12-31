@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { get_user_workspaces } from "../../api/client";
+import { custom_get_collection } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 
 export const WorkspacesPage = () => {
@@ -8,7 +7,7 @@ export const WorkspacesPage = () => {
 	var [workspaces, set_workspaces] = useState(null);
 	async function get_data() {
 		try {
-			set_workspaces(await get_user_workspaces({ creator_user_id: user_id }));
+			set_workspaces(await custom_get_collection({context : "workspaces",user_id}));
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");

@@ -7,7 +7,7 @@ import ImageTool from "@editorjs/image";
 import Checklist from "@editorjs/checklist";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { get_user_notes, update_note } from "../../api/client";
+import { custom_get_collection, update_note } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import CommentsBox from "./CommentsBox";
 export const Note = () => {
@@ -17,7 +17,7 @@ export const Note = () => {
   var [editor_js_instanse, set_editor_js_instance] = useState(null);
 
   async function init_component() {
-		var tmp = (await get_user_notes({ creator_user_id: user_id })).find(
+		var tmp = (await custom_get_collection({context : "notes",user_id})).find(
 			(note) => note._id == note_id
 		);
 		setNote(tmp);

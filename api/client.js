@@ -37,6 +37,14 @@ export var get_collection = async ({ collection_name, filters }) =>
 			filters,
 		},
 	});
+export var custom_get_collection = async ({ context, user_id }) =>
+	await custom_axios({
+		task: "custom_get_collection",
+		body: {
+			context,
+			user_id,
+		},
+	});
 export var delete_document = async ({ collection_name, filters }) =>
 	custom_axios({
 		task: "delete_document",
@@ -100,25 +108,18 @@ export var send_verification_code = async ({ kind, user_id }) =>
 			user_id,
 		},
 	});
-export var new_note = ({ creator_user_id, title, workflow_id, workspace_id }) =>
+export var new_note = ({ collaborators, title, workflow_id, workspace_id }) =>
 	new_document({
 		collection_name: "notes",
 		document: {
-			creator_user_id,
+			collaborators,
 			title,
 			init_date: new Date().getTime(),
 			workflow_id,
 			workspace_id,
 		},
 	});
-export var get_user_notes = ({ creator_user_id }) =>
-	get_collection({
-		collection_name: "notes",
-		filters: {
-			creator_user_id,
-		},
-	});
-export var new_workspace = async ({ title, description, collaborators = [], creator_user_id }) =>
+export var new_workspace = async ({ title, description, collaborators }) =>
 	new_document({
 		collection_name: "workspaces",
 		document: {
@@ -126,21 +127,13 @@ export var new_workspace = async ({ title, description, collaborators = [], crea
 			title,
 			description,
 			collaborators,
-			creator_user_id,
-		},
-	});
-export var get_user_workspaces = ({ creator_user_id }) =>
-	get_collection({
-		collection_name: "workspaces",
-		filters: {
-			creator_user_id,
 		},
 	});
 export var new_task = ({
 	linked_notes,
 	end_date,
 	workflow_id,
-	creator_user_id,
+	collaborators,
 	workspace_id,
 	start_date,
 	title,
@@ -153,7 +146,7 @@ export var new_task = ({
 			linked_notes,
 			end_date,
 			workflow_id,
-			creator_user_id,
+			collaborators,
 			workspace_id,
 			start_date,
 			title,
@@ -181,7 +174,7 @@ export var get_user_events = ({ user_id }) =>
 	get_collection({
 		collection_name: "events",
 		filters: {
-			creator_user_id: user_id,
+			user_id
 		},
 	});
 export var delete_task = ({ task_id }) =>
@@ -201,7 +194,7 @@ export var delete_event = ({ event_id }) =>
 export var new_event = ({
 	end_date,
 	workflow_id,
-	creator_user_id,
+	user_id,
 	workspace_id,
 	start_date,
 	title,
@@ -213,7 +206,7 @@ export var new_event = ({
 			init_date: new Date().getTime(),
 			end_date,
 			workflow_id,
-			creator_user_id,
+			user_id,
 			workspace_id,
 			start_date,
 			title,
@@ -222,7 +215,6 @@ export var new_event = ({
 	});
 export var update_note = ({ note_id, update_set }) =>
 	update_document({
-		//todo make sure this kind of extending functions works well
 		collection: "notes",
 		update_filter: {
 			_id: note_id,
@@ -242,7 +234,7 @@ export var get_workspace_workflows = ({ workspace_id }) =>
 			workspace_id,
 		},
 	});
-export var new_workflow = ({ workspace_id, creator_user_id, title, description, collaborators = [] }) =>
+export var new_workflow = ({ workspace_id, title, description, collaborators }) =>
 	new_document({
 		collection_name: "workflows",
 		document: {
@@ -251,7 +243,6 @@ export var new_workflow = ({ workspace_id, creator_user_id, title, description, 
 			collaborators,
 			init_date: new Date().getTime(),
 			workspace_id,
-			creator_user_id,
 		},
 	});
 export var update_user = ({ kind, new_value, user_id }) => {
@@ -260,7 +251,7 @@ export var update_user = ({ kind, new_value, user_id }) => {
 	return update_document({
 		collection: "users",
 		update_filter: {
-			user_id,
+			_id : user_id,
 		},
 		update_set,
 	});
@@ -296,7 +287,6 @@ export var upload_files = async ({ task, data = {}, input_element_id }) => {
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i.toString()];
 		form.append(i.toString(), file);
-		console.log(file);
 		files_data[i.toString()] = {};
 		for (const prop in file) {
 			files_data[i.toString()][prop] = file[prop];

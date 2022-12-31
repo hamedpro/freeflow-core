@@ -6,13 +6,11 @@ import ObjectBox from "./ObjectBox";
 
 export const Event = () => {
 	var { event_id } = useParams();
-	var user_id = localStorage.getItem("user_id");
 	var [event, set_event] = useState(null);
 	async function get_data() {
 		var event = (await get_collection({
 			collection_name: "events",
 			filters: {
-				creator_user_id : user_id,
 				_id: event_id,
 			},
 		}))[0];

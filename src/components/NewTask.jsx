@@ -6,9 +6,9 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import {
+	custom_get_collection,
 	get_calendar_categories,
 	get_users,
-	get_user_notes,
 	new_calendar_category,
 	new_task,
 } from "../../api/client";
@@ -33,7 +33,7 @@ export const NewTask = () => {
 	var [all_users, set_all_users] = useState(null);
 
 	async function get_data() {
-		setNotes(await get_user_notes({ creator_user_id: user_id }));
+		setNotes(await custom_get_collection({context : "notes",user_id}));
 		set_calendar_categories(await get_calendar_categories({ user_id }));
 		set_all_users(await get_users({ filters: {} }));
 	}
@@ -45,9 +45,9 @@ export const NewTask = () => {
 		var collaborators = selected_collaborators.map((i) => {
 			return { access_level: 1, user_id: i.value };
 		});
+		collaborators.push({ access_level: 3, user_id });
 		try {
-			var tmp = {
-				creator_user_id: user_id,
+			var result = await new_task({
 				workflow_id,
 				end_date: selected_dates.end,
 				start_date: selected_dates.start,
@@ -56,8 +56,7 @@ export const NewTask = () => {
 				title: title_input,
 				category_id: selected_calendar_category.value._id,
 				collaborators,
-			};
-			var result = await new_task(tmp);
+			});
 			if (result.has_error) {
 				alert("Error! : " + result.error);
 			} else {
