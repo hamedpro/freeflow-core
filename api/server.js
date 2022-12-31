@@ -1,13 +1,13 @@
-import {gen_verification_code} from "../common_helpers.js"
-import express from "express"
-import cookieParser from "cookie-parser"
-import cors from "cors"
-import fs from "fs"
-import formidable from "formidable"
+import { gen_verification_code } from "../common_helpers.js";
+import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import fs from "fs";
+import formidable from "formidable";
 //app.use(express.static("./uploaded/"));
-import path from "path"
-import { MongoClient, ObjectId } from "mongodb"
-import { is_there_any_conflict } from "../common_helpers.js"
+import path from "path";
+import { MongoClient, ObjectId } from "mongodb";
+import { is_there_any_conflict } from "../common_helpers.js";
 const url = "mongodb://127.0.0.1:27017";
 const client = new MongoClient(url);
 var { frontend_port, api_port, api_endpoint, db_name } = JSON.parse(
@@ -44,18 +44,6 @@ async function main() {
 		var body = req.body;
 		if (task === undefined) {
 			res.json(`there is not any task in request's body`);
-		} else if (task === "new_user") {
-			var operation = await db.collection("users").insertOne(body);
-			res.json(operation.insertedId);
-		} else if (task === "get_users") {
-			var filters = req.body.filters === undefined ? {} : req.body.filters;
-			if (Object.keys(filters).includes("_id")) {
-				filters["_id"] = ObjectId(filters["_id"]);
-			}
-			var users = await db.collection("users").find(filters).toArray();
-			res.json(users);
-		} else if (task === "delete_user") {
-			res.json(await db.collection("users").deleteOne({ _id: ObjectId(req.body.user_id) }));
 		} else if (task === "auth") {
 			var user = await db.collection("users").findOne({ _id: ObjectId(req.body.user_id) });
 
@@ -127,136 +115,8 @@ async function main() {
 				default:
 					res.status(400).send();
 			}
-		} else if (task === "new_note") {
-			var new_inserted_row = await db.collection("notes").insertOne(req.body);
-			res.json(new_inserted_row.insertedId);
-		} else if (task === "get_user_notes") {
-			res.json(
-				await db
-					.collection("notes")
-					.find({ creator_user_id: req.body.creator_user_id })
-					.toArray()
-			);
-		} else if (task === "new_workspace") {
-			var inserted_row = await db.collection("workspaces").insertOne(req.body);
-			res.json(inserted_row.insertedId);
-		} else if (task === "get_user_workspaces") {
-			res.json(
-				await db
-					.collection("workspaces")
-					.find({ creator_user_id: req.body.creator_user_id })
-					.toArray()
-			);
-		} else if (task === "new_note_section") {
-			var inserted_row = await db.collection("note_sections").insertOne(req.body);
-			res.json(inserted_row.insertedId);
-		} else if (task === "get_note_sections") {
-			res.json(
-				await db
-					.collection("note_sections")
-					.find({
-						note_id: req.body.note_id,
-					})
-					.sort({ index: 1 })
-					.toArray()
-			);
 		} else if (task === "move_task_or_event") {
 			//todo
-		} else if (task === "new_task") {
-			//checking for time conflicts
-			var current_tasks = await db
-				.collection("tasks")
-				.find({ creator_user_id: req.body.creator_user_id })
-				.toArray();
-			if (body.end_date <=  body.start_date) {
-				res.json({
-					has_error: true,
-					error: "start_date should be after end_date (not equal or before)",
-				});
-				return;
-			}
-			if (
-				is_there_any_conflict({
-					start: body.start_date,
-					end: body.end_date,
-					items: current_tasks,
-				})
-			) {
-				res.send({
-					has_error: true,
-					error: "where we wanted to insert this new new task there is a task",
-				});
-				return;
-			}
-			var inserted_row = await db.collection("tasks").insertOne(req.body);
-			res.json(inserted_row.insertedId);
-		} else if (task === "new_event") {
-			if (body.end_date <=  body.start_date) {
-				res.json({
-					has_error: true,
-					error: "start_date should be after end_date (not equal or before)",
-				});
-				return;
-			}
-			//(checking for time conflicts)
-			var current_events = await db
-				.collection("events")
-				.find({ creator_user_id: req.body.creator_user_id })
-				.toArray();
-			var current_tasks = await db
-				.collection("tasks")
-				.find({ creator_user_id: req.body.creator_user_id })
-				.toArray();
-			if (
-				is_there_any_conflict({
-					start: body.start_date,
-					end: body.end_date,
-					items: current_events,
-				}) ||
-				is_there_any_conflict({
-					start: body.start_date,
-					end: body.end_date,
-					items: current_tasks.filter((i) => i.is_done === true),
-				})
-			) {
-				res.send({
-					has_error: true,
-					error: "we can not insert this new event becuse this insertion will cause a conflict",
-				});
-				return;
-			}
-			var inserted_row = await db.collection("events").insertOne(req.body);
-			res.json(inserted_row.insertedId);
-		} else if (task === "get_tasks") {
-			var filters = req.body.filters;
-			if (Object.keys(filters).includes("_id")) {
-				filters["_id"] = ObjectId(filters["_id"]);
-			}
-			var tasks = await db.collection("tasks").find(filters).toArray();
-			res.json(tasks);
-			//todo add support to check also if username is not the creator but a member of that task result show up (also for notes and ...)
-		} else if (task === "get_workspace_workflows") {
-			var filtered_workflows = await db
-				.collection("workflows")
-				.find({ workspace_id: req.body.workspace_id })
-				.toArray();
-			res.json(filtered_workflows);
-		} else if (task === "new_workflow") {
-			var inserted_row = await db.collection("workflows").insertOne(req.body);
-			res.json(inserted_row.insertedId);
-		} else if (task === "update_user") {
-			try {
-				//body must be like : {user_id , kind : db_column_name,new_value}
-				var update_object = {};
-				update_object[req.body.kind] = req.body.new_value;
-				var update_statement = await db
-					.collection("users")
-					.updateOne({ _id: ObjectId(req.body.user_id) }, { $set: update_object });
-				res.json(update_statement);
-			} catch (error) {
-				console.log(error);
-				res.status(500).json(error);
-			}
 		} else if (task === "update_document") {
 			//body must be like : {collection : string,update_filter : object, update_set : object}
 			var update_filter = req.body.update_filter;
@@ -297,12 +157,6 @@ async function main() {
 					info: "there is more than one match in valid search resources",
 				});
 			}
-		} else if (task === "get_workflows") {
-			var filters = req.body.filters;
-			if (Object.keys(filters).includes("_id")) {
-				filters["_id"] = ObjectId(filters["_id"]);
-			}
-			res.json(await db.collection("workflows").find(filters).toArray());
 		} else if (task === "get_user_data_hierarchy") {
 			var user_id = req.body.user_id;
 			var user_workspaces = await db
@@ -398,19 +252,6 @@ async function main() {
 					});
 				})
 			);
-		} else if (task === "upload_test") {
-			custom_upload({
-				req,
-				files_names: "ff",
-			});
-			res.json({});
-		} else if (task === "get_resources") {
-			var filters = req.body.filters;
-			if (Object.keys(filters).includes("_id")) {
-				filters["_id"] = ObjectId(filters["_id"]);
-			}
-			var resources = await db.collection("resources").find(filters).toArray();
-			res.json(resources);
 		} else if (task === "get_collection") {
 			//body should be like this :{collection_name : string ,filters : {}}
 			var filters = req.body.filters;

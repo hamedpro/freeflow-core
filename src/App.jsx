@@ -47,7 +47,7 @@ function TopBar() {
 				<Link to={`/dashboard/settings`}>
 					<Settings style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
-				<Link to={`/dashboard/profile`}>
+				<Link to={`/users/${user_id}`}>
 					<Person2Outlined style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
 				<Link to={`/dashboard/`}>
@@ -62,8 +62,7 @@ function TopBar() {
 						<Link to={`/dashboard/calendar/month`}>
 							{month_names[new Date().getMonth()]}
 						</Link>{" "}
-						/{" "}
-						{<Link to={`/dashboard/calendar/day`}>{new Date().getDate()}</Link>}
+						/ {<Link to={`/dashboard/calendar/day`}>{new Date().getDate()}</Link>}
 					</div>
 				</div>
 				<div className="flex items-center space-x-3 h-5/6 my-2 ">
