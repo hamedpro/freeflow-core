@@ -85,87 +85,75 @@ function Wrapper() {
 				</div>
 				<div className="w-4/5 bg-blue-400 h-full overflow-y-auto h-9/10">
 					<Routes>
-						<Route
-							path=""
-							element={<UserDashboard timestamp={new Date().getTime()} />}
-						/>
+						<Route path="" element={<UserDashboard key={new Date().getTime()} />} />
 						<Route
 							path="settings"
-							element={<UserSettings timestamp={new Date().getTime()} />}
+							element={<UserSettings key={new Date().getTime()} />}
 						/>
 						<Route
 							path="verification"
-							element={<VerifyIdentity timestamp={new Date().getTime()} />}
+							element={<VerifyIdentity key={new Date().getTime()} />}
 						/>
 						<Route
 							path="workspaces"
-							element={<WorkspacesPage timestamp={new Date().getTime()} />}
+							element={<WorkspacesPage key={new Date().getTime()} />}
 						/>
 						<Route
 							path="workspaces/new"
-							element={<NewWorkspace timestamp={new Date().getTime()} />}
+							element={<NewWorkspace key={new Date().getTime()} />}
 						/>
 						<Route
 							path="workspaces/:workspace_id"
-							element={<WorkspacePage timestamp={new Date().getTime()} />}
+							element={<WorkspacePage key={new Date().getTime()} />}
 						/>
 						<Route
 							path="workflows/new"
-							element={<NewWorkflow timestamp={new Date().getTime()} />}
+							element={<NewWorkflow key={new Date().getTime()} />}
 						/>
 						<Route
 							path="workflows/:workflow_id"
-							element={<Workflow timestamp={new Date().getTime()} />}
+							element={<Workflow key={new Date().getTime()} />}
 						/>
 						<Route
 							path="resources/new"
-							element={<NewResource timestamp={new Date().getTime()} />}
+							element={<NewResource key={new Date().getTime()} />}
 						/>
 						<Route
 							path="resources/:resource_id"
-							element={<Resource timestamp={new Date().getTime()} />}
+							element={<Resource key={new Date().getTime()} />}
 						/>
 
-						<Route
-							path="notes/new"
-							element={<NewNote timestamp={new Date().getTime()} />}
-						/>
+						<Route path="notes/new" element={<NewNote key={new Date().getTime()} />} />
 						<Route
 							path="notes/:note_id"
-							element={<Note timestamp={new Date().getTime()} />}
+							element={<Note key={new Date().getTime()} />}
 						/>
-						<Route
-							path="tasks/new"
-							element={<NewTask timestamp={new Date().getTime()} />}
-						/>
+						<Route path="tasks/new" element={<NewTask key={new Date().getTime()} />} />
 						<Route
 							path="tasks/:task_id"
-							element={<Task timestamp={new Date().getTime()} />}
+							element={<Task key={new Date().getTime()} />}
 						/>
-						<Route
-							path="events"
-							element={<Events timestamp={new Date().getTime()} />}
-						/>
+						<Route path="events" element={<Events key={new Date().getTime()} />} />
 						<Route
 							path="events/new"
-							element={<NewEvent timestamp={new Date().getTime()} />}
+							element={<NewEvent key={new Date().getTime()} />}
 						/>
 
 						<Route
 							path="events/:event_id"
-							element={<Event timestamp={new Date().getTime()} />}
+							element={<Event key={new Date().getTime()} />}
 						/>
 
 						<Route path="calendar">
 							<Route
 								path="month"
-								element={<MonthCalendar timestamp={new Date().getTime()} />}
+								element={<MonthCalendar key={new Date().getTime()} />}
 							/>
 
 							{/* todo : test all calendar sub routes */}
 							<Route
 								path="day"
-								element={<DayCalendar timestamp={new Date().getTime()} />}
+								element={<DayCalendar key={new Date().getTime()} />}
 							/>
 						</Route>
 					</Routes>
@@ -180,23 +168,14 @@ function App() {
 	var loc = useLocation();
 	return (
 		<Routes>
-			<Route path="/" element={<Root timestamp={new Date().getTime()} />} />
-			<Route path="/login" element={<Login timestamp={new Date().getTime()} />} />
-			<Route path="/register" element={<RegisterPage timestamp={new Date().getTime()} />} />
-			<Route path="/terms" element={<Terms timestamp={new Date().getTime()} />} />
-			<Route
-				path="/subscribtion"
-				element={<SubscribtionPage timestamp={new Date().getTime()} />}
-			/>
+			<Route path="/" element={<Root key={new Date().getTime()} />} />
+			<Route path="/login" element={<Login key={new Date().getTime()} />} />
+			<Route path="/register" element={<RegisterPage key={new Date().getTime()} />} />
+			<Route path="/terms" element={<Terms key={new Date().getTime()} />} />
+			<Route path="/subscribtion" element={<SubscribtionPage key={new Date().getTime()} />} />
 
-			<Route
-				path="/users/:user_id"
-				element={<UserProfile timestamp={new Date().getTime()} />}
-			/>
-			<Route
-				path="/dashboard/*"
-				element={<Wrapper timestamp={new Date().getTime()} />}
-			></Route>
+			<Route path="/users/:user_id" element={<UserProfile key={new Date().getTime()} />} />
+			<Route path="/dashboard/*" element={<Wrapper key={new Date().getTime()} />}></Route>
 		</Routes>
 	);
 }
