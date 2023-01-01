@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -7,12 +7,14 @@ import {
 	leave_here,
 	update_document,
 } from "../../api/client.js";
+import { UserContext } from "../UserContext.js";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox.jsx";
 import CommentsBox from "./CommentsBox.jsx";
 import ObjectBox from "./ObjectBox.jsx";
 import { Section } from "./section.jsx";
 export const WorkspacePage = () => {
 	var nav = useNavigate();
+	var use_context_result = useContext(UserContext);
 	var { workspace_id } = useParams();
 	var user_id = localStorage.getItem("user_id");
 	var [workflows, set_workflows] = useState(null);

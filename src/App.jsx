@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 import "./output.css";
 import { Routes, Route, useLocation, Link, useParams } from "react-router-dom";
@@ -36,6 +36,9 @@ import { NewEvent } from "./components/NewEvent";
 import { Events } from "./components/Events";
 import { Event } from "./components/Event";
 import { Resource } from "./components/Resource";
+import { useEffect } from "react";
+import { UserContext } from "./UserContext";
+import { custom_get_collection, get_collection } from "../api/client";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -165,18 +168,52 @@ function Wrapper() {
 function App() {
 	window.ml = ml;
 	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite
-	var loc = useLocation();
+	var [global_data, set_global_data] = useState(null);
+	async function get_global_data() {
+		var user_id = localStorage.getItem("user_id");
+		var new_user_context_state = { user: {}, all: {} };
+		var tmp = ["workspaces", "workflows", "notes", "resources", "tasks"];
+		for (var i = 0; i < tmp.length; i++) {
+			new_user_context_state.all[tmp[i]] = await get_collection({ collection_name: tmp[i] });
+			new_user_context_state.user[tmp[i]] =
+				user_id !== null ? await custom_get_collection({ context: tmp[i], user_id }) : null;
+		}
+		var tmp = ["events", "calendar_categories", "comments"];
+		for (var i = 0; i < tmp.length; i++) {
+			new_user_context_state.user[tmp[i]] = await get_collection({
+				collection_name: tmp[i],
+				filters: { user_id },
+			});
+			new_user_context_state.all[tmp[i]] = await get_collection({
+				collection_name: tmp[i],
+				filters: {},
+			});
+		}
+		set_global_data(tmp);
+	}
+	useEffect(() => {
+		get_global_data();
+	}, []);
+	if (global_data === null) return <h1>loading data ...</h1>;
 	return (
-		<Routes>
-			<Route path="/" element={<Root key={new Date().getTime()} />} />
-			<Route path="/login" element={<Login key={new Date().getTime()} />} />
-			<Route path="/register" element={<RegisterPage key={new Date().getTime()} />} />
-			<Route path="/terms" element={<Terms key={new Date().getTime()} />} />
-			<Route path="/subscribtion" element={<SubscribtionPage key={new Date().getTime()} />} />
+		<UserContext.Provider value={{ global_data, get_global_data }}>
+			<Routes>
+				<Route path="/" element={<Root key={new Date().getTime()} />} />
+				<Route path="/login" element={<Login key={new Date().getTime()} />} />
+				<Route path="/register" element={<RegisterPage key={new Date().getTime()} />} />
+				<Route path="/terms" element={<Terms key={new Date().getTime()} />} />
+				<Route
+					path="/subscribtion"
+					element={<SubscribtionPage key={new Date().getTime()} />}
+				/>
 
-			<Route path="/users/:user_id" element={<UserProfile key={new Date().getTime()} />} />
-			<Route path="/dashboard/*" element={<Wrapper key={new Date().getTime()} />}></Route>
-		</Routes>
+				<Route
+					path="/users/:user_id"
+					element={<UserProfile key={new Date().getTime()} />}
+				/>
+				<Route path="/dashboard/*" element={<Wrapper key={new Date().getTime()} />}></Route>
+			</Routes>
+		</UserContext.Provider>
 	);
 }
 
