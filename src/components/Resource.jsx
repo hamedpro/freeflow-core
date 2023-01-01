@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { download_resource, get_resources } from "../../api/client";
+import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import ObjectBox from "./ObjectBox";
 
 export const Resource = () => {
@@ -18,6 +19,7 @@ export const Resource = () => {
 	return (
 		<>
 			<h1>resource</h1>
+			<CollaboratorsManagementBox context={"resources"} id={resource_id} /> 
 			<ObjectBox object={resource_row} />
 			<button onClick={() => download_resource({ resource_id: resource_row._id })}>
 				download this resource

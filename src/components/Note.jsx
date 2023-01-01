@@ -10,6 +10,7 @@ import { useParams } from "react-router-dom";
 import { custom_get_collection, update_note } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import CommentsBox from "./CommentsBox";
+import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 export const Note = () => {
   var { note_id } = useParams();
   var user_id = localStorage.getItem("user_id");
@@ -91,6 +92,8 @@ export const Note = () => {
 					<ObjectBox object={note} />
 				</>
 			)}
+			
+			<CollaboratorsManagementBox context='notes' id={ note_id} />
 			<div id="editor-js-div"></div>
 			<button onClick={saveHandler}>save</button>
 			<CommentsBox user_id={user_id} />

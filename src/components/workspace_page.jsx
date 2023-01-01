@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { get_workspace_workflows } from "../../api/client.js";
+import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox.jsx";
 import CommentsBox from "./CommentsBox.jsx";
 import ObjectBox from "./ObjectBox.jsx";
 export const WorkspacePage = () => {
@@ -22,7 +23,8 @@ export const WorkspacePage = () => {
   }, []);
   return (
 		<div>
-			<h2>WorkspacePage</h2>
+		  <h2>WorkspacePage</h2>
+		  <CollaboratorsManagementBox context='workspaces' id={ workspace_id} />
 			<p>workflows of this workspace :</p>
 			{workflows !== null ? (
 				workflows.map((workflow, index) => (

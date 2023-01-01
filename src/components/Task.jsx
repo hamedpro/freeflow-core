@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { get_tasks } from "../../api/client";
+import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import CommentsBox from "./CommentsBox";
 import ObjectBox from "./ObjectBox";
 export const Task = () => {
@@ -22,7 +23,8 @@ export const Task = () => {
   }, []);
   return (
 		<div>
-			<h1>Task</h1>
+		  <h1>Task</h1>
+		  <CollaboratorsManagementBox context={'tasks'} id={task_id } /> 
 			{task !== null && <ObjectBox object={task} />}
 			<CommentsBox user_id={user_id} />
 		</div>

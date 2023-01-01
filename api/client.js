@@ -373,3 +373,29 @@ export var edit_comment = ({ new_text, comment_id }) =>
 			edited: true,
 		},
 	});
+export var modify_collaborator_access_level = async ({ context, id, user_id, new_access_level }) => { 
+		//how to work with it :
+		// when params are = context : "workspaces" , id : "foo" , user_id : 'bar' , new_access_level : 2 =>
+		//it search between collaborators of a workspace which it's id is foo and sets access level of that user who it's user_id is bar to 2
+		
+	var tmp = (await get_collection({ collection_name: context, filters: { _id: id } }))[0][
+		"collaborators"
+	];
+
+	var new_collaborators = tmp.map((i) => {
+		if (i.user_id === user_id) {
+			return { ...i, access_level: new_access_level};
+		} else {
+			return { ...i };
+		}
+	});
+	await update_document({
+		collection: context,
+		update_filter: {
+			_id : id
+		},
+		update_set: {
+			collaborators : new_collaborators 
+		}
+	})
+}

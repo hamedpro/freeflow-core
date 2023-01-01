@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { custom_get_collection, get_tasks } from "../../api/client";
+import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import CommentsBox from "./CommentsBox";
 import ObjectBox from "./ObjectBox";
 const Workflow = () => {
@@ -26,6 +27,8 @@ const Workflow = () => {
 	return (
 		<div>
 			<h1>Workflow page</h1>
+
+			<CollaboratorsManagementBox context='workflows' id={ workflow_id} />
 			{notes !== null && (
 				<>
 					<h1>notes : </h1>
