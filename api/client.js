@@ -399,3 +399,19 @@ export var modify_collaborator_access_level = async ({ context, id, user_id, new
 		}
 	})
 }
+export var leave_here = async ({ context_id, context, user_id }) => {
+	//how to use it : if a user with id = 'foo' wants to leave a
+	//workspace with id = 'bar' => context : "workspaces", context_id : 'bar' , user_id = 'foo'
+	var tmp = (await get_collection({ collection_name: context, filters: { _id: context_id } }))[0][
+		"collaborators"
+	];
+	await update_document({
+		collection: context,
+		update_filter: {
+			_id: context_id,
+		},
+		update_set: {
+			collaborators: tmp.filter((i) => i.user_id !== user_id),
+		},
+	});
+};

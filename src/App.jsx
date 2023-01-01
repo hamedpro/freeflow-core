@@ -85,7 +85,7 @@ function Wrapper() {
 				</div>
 				<div className="w-4/5 bg-blue-400 h-full overflow-y-auto h-9/10">
 					<Routes>
-						<Route path="" element={<UserDashboard key={new Date().getTime()} />} />
+						<Route path="" element={<WorkspacesPage key={new Date().getTime()} />} />
 						<Route
 							path="settings"
 							element={<UserSettings key={new Date().getTime()} />}
