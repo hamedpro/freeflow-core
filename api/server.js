@@ -159,30 +159,30 @@ async function main() {
 			}
 		} else if (task === "get_user_data_hierarchy") {
 			var user_id = req.body.user_id;
-			var user_workspaces = await db
+			var user_workspaces = (await db
 				.collection("workspaces")
 				.find()
-				.toArray()
+				.toArray())
 				.filter((i) => check_being_collaborator(i, user_id));
-			var user_workflows = await db
+			var user_workflows = (await db
 				.collection("workflows")
 				.find()
-				.toArray()
+				.toArray())
 				.filter((i) => check_being_collaborator(i, user_id));
-			var user_notes = await db
+			var user_notes = (await db
 				.collection("notes")
 				.find()
-				.toArray()
+				.toArray())
 				.filter((i) => check_being_collaborator(i, user_id));
-			var user_tasks = await db
+			var user_tasks = (await db
 				.collection("tasks")
 				.find()
-				.toArray()
+				.toArray())
 				.filter((i) => check_being_collaborator(i, user_id));
-			var resources = await db
+			var resources = (await db
 				.collection("resources")
 				.find()
-				.toArray()
+				.toArray())
 				.filter((i) => check_being_collaborator(i, user_id));
 			var user_hierarchy = {
 				workspaces: user_workspaces.map((ws) => {

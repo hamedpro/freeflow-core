@@ -290,4 +290,4 @@ export function sum_array(array){
 	return total
 }
 export var check_being_collaborator = (item, user_id) =>
-	item.collaborators.map((collaborator) => collaborator.user_id).includes(req.body.user_id);
+	item.collaborators.map((collaborator) => collaborator.user_id).includes(user_id);

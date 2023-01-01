@@ -7,11 +7,11 @@ const NewWorkflow = () => {
 	var [search_params, set_search_params] = useSearchParams();
 	var workspace_id = search_params.get("workspace_id");
 	var user_id = localStorage.getItem("user_id");
-	var collaborators = selected_collaborators.map((i) => {
-		return { access_level: 1, user_id: i.value };
-	});
-	collaborators.push({ access_level: 3, user_id });
 	async function submit_new_workflow() {
+		var collaborators = selected_collaborators.map((i) => {
+			return { access_level: 1, user_id: i.value };
+		});
+		collaborators.push({ access_level: 3,  user_id });
 		try {
 			var id_of_new_workflow = await new_workflow({
 				workspace_id,
