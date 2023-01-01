@@ -53,7 +53,7 @@ const NewWorkspace = () => {
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
 				options={[
-					...all_users.map((user) => {
+					...all_users.filter(user => user._id !== user_id).map((user) => {
 						return {
 							value: user._id,
 							label: `@${user.username}`,
