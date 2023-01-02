@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useMatch, useParams } from "react-router-dom";
 import {
@@ -11,41 +11,30 @@ import {
 	get_tasks,
 	custom_get_collection,
 } from "../../api/client";
+import { GlobalDataContext } from "../GlobalDataContext";
 import Comment from "./Comment";
 const CommentSBox = ({ user_id }) => {
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var urlParams = useParams();
 	var current_field = Object.keys(urlParams).find((i) => {
 		return ["workspace_id", "workflow_id", "task_id", "resource_id", "note_id"].includes(i);
 	});
 	const [editId, setEditId] = useState("");
 	const [inputComment, setInputComment] = useState("");
-	const [comments, setComments] = useState([]);
-	const [isLoading, setIsLoading] = useState(true);
+	var comments = global_data.all.comments.filter(
+		(comment) =>
+			comment.user_id === user_id && comment[current_field] === urlParams[current_field]
+	);
 	const inputCommentHandler = (e) => {
 		setInputComment(e.target.value);
 	};
-	const getCommentsHandler = async () => {
-		const filters = {
-			user_id,
-		};
-		filters[current_field] = urlParams[current_field];
-		try {
-			const loadedCommnets = await get_comments({
-				filters,
-			});
-			setComments(loadedCommnets);
-		} catch (error) {
-			console.log(error);
-		}
-	};
-
 	const submitHandler = async (e) => {
 		e.preventDefault();
 		try {
 			if (editId) {
 				await edit_comment({ new_text: inputComment, comment_id: editId });
 				setEditId("");
-				getCommentsHandler();
+				get_global_data();
 			} else {
 				var tmp = {
 					date: new Date().getTime(),
@@ -64,9 +53,9 @@ const CommentSBox = ({ user_id }) => {
 						tmp["workspace_id"] = workflow.workspace_id;
 						break;
 					case "note_id":
-						var note = (await custom_get_collection({context : "notes",user_id})).find(
-							(i) => i._id === urlParams.note_id
-						);
+						var note = (
+							await custom_get_collection({ context: "notes", user_id })
+						).find((i) => i._id === urlParams.note_id);
 						tmp.workspace_id = note.workspace_id;
 						tmp.workflow_id = note.workflow_id;
 						tmp.note_id = note._id;
@@ -87,7 +76,7 @@ const CommentSBox = ({ user_id }) => {
 						break;
 				}
 				await new_comment(tmp);
-				getCommentsHandler();
+				get_global_data();
 			}
 			setInputComment("");
 		} catch (error) {
@@ -102,23 +91,12 @@ const CommentSBox = ({ user_id }) => {
 				_id: commentId,
 			},
 		});
-		getCommentsHandler();
+		get_global_data();
 	};
-
-	useEffect(() => {
-		const func = async () => {
-			await getCommentsHandler();
-			setIsLoading(false);
-		};
-		func();
-	}, []);
 	//TODO: what happens if client failed to fetch the comments.
 	return (
 		<div className="comments-box-container">
-			{isLoading ? (
-				<span>loading...(check network)</span>
-			) : (
-				comments &&
+			{comments &&
 				comments.map(({ _id, text }) => (
 					<Comment
 						key={_id}
@@ -127,8 +105,7 @@ const CommentSBox = ({ user_id }) => {
 						setEditId={setEditId}
 						deleteHandler={deleteHandler}
 					/>
-				))
-			)}
+				))}
 			<form onSubmit={submitHandler}>
 				<input
 					placeholder="enter a comment"

@@ -1,5 +1,5 @@
 import { PersonRounded } from "@mui/icons-material";
-import React from "react";
+import React, { useContext } from "react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -10,18 +10,13 @@ import {
 } from "../../api/client";
 import { Section } from "./section.jsx";
 import Select from "react-select";
-function OptionsSection({ collaborators, id, context, get_data_function }) {
-	var [all_users, set_all_users] = useState(null);
+import { GlobalDataContext } from "../GlobalDataContext";
+function OptionsSection({ collaborators, id, context }) {
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
+	var all_users = global_data.all.users;
 	var [selected_collaborators, set_selected_collaborators] = useState(null);
-	async function get_data() {
-		set_all_users(await get_collection({ collection_name: "users", filters: {} }));
-		get_data_function();
-	}
-	useEffect(() => {
-		get_data();
-	}, []);
-	async function add_new_collaborators() {
-		await update_document({
+	function add_new_collaborators() {
+		update_document({
 			collection: context,
 			update_filter: {
 				_id: id,
@@ -36,12 +31,16 @@ function OptionsSection({ collaborators, id, context, get_data_function }) {
 					}),
 				],
 			},
-		});
-		alert("all done!");
-		get_data();
+		})
+			.then(
+				(i) => alert("all done!"),
+				(error) => {
+					console.log(error);
+					alert("something went wrong ! details in console.");
+				}
+			)
+			.finally(get_global_data);
 	}
-
-	if (all_users === null) return <h1>loading all_users...</h1>;
 	return (
 		<>
 			<Section title="options">
@@ -80,20 +79,17 @@ function OptionsSection({ collaborators, id, context, get_data_function }) {
 }
 export const CollaboratorsManagementBox = ({ context, id }) => {
 	//for example if you want to show collaborators of a workspace with id "blah" : context : "workspaces" , id : "blah"
-	var [collaborators, set_collaborators] = useState(null);
-	async function get_data() {
-		var all_users = await get_collection({ collection_name: "users", filters: {} });
-		set_collaborators(
-			(await get_collection({ collection_name: context, filters: { _id: id } }))[0][
-				"collaborators"
-			].map((collaborator) => {
-				return {
-					...collaborator,
-					user_document: all_users.find((user) => user._id === collaborator.user_id),
-				};
-			})
-		);
-	}
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
+	var collaborators = global_data.all[context]
+		.find((i) => i._id === id)
+		["collaborators"].map((collaborator) => {
+			return {
+				...collaborator,
+				user_document: global_data.all.users.find(
+					(user) => user._id === collaborator.user_id
+				),
+			};
+		});
 	async function remove_collaborator_handler(collaborator_id) {
 		if (!window.confirm("are you sure?")) return;
 		await update_document({
@@ -108,7 +104,7 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 			},
 		});
 		alert("done!");
-		get_data();
+		get_global_data();
 	}
 	async function change_user_access_level(collaborator, mode) {
 		//mode === 1 : upgrade access level of that collaborator by 1
@@ -143,12 +139,8 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 			alert("something went wrong! details in console");
 			console.log(error);
 		}
-		get_data();
+		get_global_data();
 	}
-	useEffect(() => {
-		get_data();
-	}, []);
-	if (collaborators === null) return <h1>loading collaborators...</h1>;
 	return (
 		<Section title="Collaborators Management Box">
 			<Section title="current collaborators">
@@ -220,12 +212,7 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 					);
 				})}
 			</Section>
-			<OptionsSection
-				collaborators={collaborators}
-				context={context}
-				id={id}
-				get_data_function={get_data}
-			/>
+			<OptionsSection collaborators={collaborators} context={context} id={id} />
 		</Section>
 	);
 };

@@ -29,23 +29,23 @@ export async function custom_axios({
 
 	return response.data;
 }
-export var get_collection = async ({ collection_name, filters }) =>
-	await custom_axios({
+export var get_collection = ({ collection_name, filters }) =>
+	custom_axios({
 		task: "get_collection",
 		body: {
 			collection_name,
 			filters,
 		},
 	});
-export var custom_get_collection = async ({ context, user_id }) =>
-	await custom_axios({
+export var custom_get_collection = ({ context, user_id }) =>
+	custom_axios({
 		task: "custom_get_collection",
 		body: {
 			context,
 			user_id,
 		},
 	});
-export var delete_document = async ({ collection_name, filters }) =>
+export var delete_document = ({ collection_name, filters }) =>
 	custom_axios({
 		task: "delete_document",
 		body: {
@@ -53,16 +53,16 @@ export var delete_document = async ({ collection_name, filters }) =>
 			collection_name,
 		},
 	});
-export var new_document = async ({ collection_name, document }) =>
-	await custom_axios({
+export var new_document = ({ collection_name, document }) =>
+	custom_axios({
 		task: "new_document",
 		body: {
 			collection_name,
 			document,
 		},
 	});
-export var update_document = async ({ collection, update_filter, update_set }) =>
-	await custom_axios({
+export var update_document = ({ collection, update_filter, update_set }) =>
+	custom_axios({
 		task: "update_document",
 		body: {
 			collection,

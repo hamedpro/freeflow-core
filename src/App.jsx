@@ -37,8 +37,8 @@ import { Events } from "./components/Events";
 import { Event } from "./components/Event";
 import { Resource } from "./components/Resource";
 import { useEffect } from "react";
-import { UserContext } from "./UserContext";
 import { custom_get_collection, get_collection } from "../api/client";
+import { GlobalDataContext } from "./GlobalDataContext";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -174,29 +174,40 @@ function App() {
 		var new_user_context_state = { user: {}, all: {} };
 		var tmp = ["workspaces", "workflows", "notes", "resources", "tasks"];
 		for (var i = 0; i < tmp.length; i++) {
-			new_user_context_state.all[tmp[i]] = await get_collection({ collection_name: tmp[i] });
+			new_user_context_state.all[tmp[i]] = await get_collection({
+				collection_name: tmp[i],
+				filters: {},
+			});
 			new_user_context_state.user[tmp[i]] =
 				user_id !== null ? await custom_get_collection({ context: tmp[i], user_id }) : null;
 		}
+
 		var tmp = ["events", "calendar_categories", "comments"];
 		for (var i = 0; i < tmp.length; i++) {
-			new_user_context_state.user[tmp[i]] = await get_collection({
-				collection_name: tmp[i],
-				filters: { user_id },
-			});
+			new_user_context_state.user[tmp[i]] =
+				user_id !== null
+					? await get_collection({
+							collection_name: tmp[i],
+							filters: { user_id },
+					  })
+					: null;
 			new_user_context_state.all[tmp[i]] = await get_collection({
 				collection_name: tmp[i],
 				filters: {},
 			});
 		}
-		set_global_data(tmp);
+		new_user_context_state.all.users = await get_collection({
+			collection_name: "users",
+			filters: {},
+		});
+		set_global_data(new_user_context_state);
 	}
 	useEffect(() => {
 		get_global_data();
 	}, []);
 	if (global_data === null) return <h1>loading data ...</h1>;
 	return (
-		<UserContext.Provider value={{ global_data, get_global_data }}>
+		<GlobalDataContext.Provider value={{ global_data, get_global_data }}>
 			<Routes>
 				<Route path="/" element={<Root key={new Date().getTime()} />} />
 				<Route path="/login" element={<Login key={new Date().getTime()} />} />
@@ -213,7 +224,7 @@ function App() {
 				/>
 				<Route path="/dashboard/*" element={<Wrapper key={new Date().getTime()} />}></Route>
 			</Routes>
-		</UserContext.Provider>
+		</GlobalDataContext.Provider>
 	);
 }
 

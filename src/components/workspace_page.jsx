@@ -7,33 +7,25 @@ import {
 	leave_here,
 	update_document,
 } from "../../api/client.js";
-import { UserContext } from "../UserContext.js";
+import { GlobalDataContext } from "../GlobalDataContext.js";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox.jsx";
 import CommentsBox from "./CommentsBox.jsx";
 import ObjectBox from "./ObjectBox.jsx";
 import { Section } from "./section.jsx";
 export const WorkspacePage = () => {
 	var nav = useNavigate();
-	var use_context_result = useContext(UserContext);
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var { workspace_id } = useParams();
 	var user_id = localStorage.getItem("user_id");
-	var [workflows, set_workflows] = useState(null);
-	var [workspace, set_workspace] = useState(null);
-	async function get_data() {
-		try {
-			set_workflows(await get_workspace_workflows({ workspace_id }));
-			set_workspace(
-				(
-					await get_collection({
-						collection_name: "workspaces",
-						filters: { _id: workspace_id },
-					})
-				)[0]
-			);
-		} catch (error) {
-			console.log(error);
-			alert("something went wrong. details in console");
-		}
+	var workflows = global_data.all.workflows.filter((i) => i.workspace_id === workspace_id);
+	var workspace = global_data.all.workspaces.find((i) => i._id === workspace_id);
+	if (!workspace.collaborators.map((i) => i.user_id).includes(user_id)) {
+		return (
+			<>
+				<h1>you have not access to this workspace</h1>
+				<p>(you are not a collaborator of it )</p>
+			</>
+		);
 	}
 	async function change_workspace_handler(type) {
 		var tmp = window.prompt(`enter new workspace ${type}`);
@@ -57,7 +49,7 @@ export const WorkspacePage = () => {
 					alert("something went wrong. error in console ");
 				}
 			)
-			.finally(get_data);
+			.finally(get_global_data);
 	}
 	function leave_here_handler() {
 		if (workspace.collaborators.find((i) => i.user_id === user_id).access_level === 3) {
@@ -74,12 +66,8 @@ export const WorkspacePage = () => {
 					alert("something went wrong. error in console ");
 				}
 			)
-			.finally(get_data);
+			.finally(get_global_data);
 	}
-	useEffect(() => {
-		get_data();
-	}, []);
-	if (workspace === null || workflows === null) return <h1>loading data ... </h1>;
 	return (
 		<div>
 			<h2>WorkspacePage</h2>
@@ -93,22 +81,15 @@ export const WorkspacePage = () => {
 					change description of this workspace
 				</button>
 				<br />
-				<button onClick={() => leave_here_handler()}>leave here</button>
+				<button onClick={leave_here_handler}>leave here</button>
 			</Section>
 			<CollaboratorsManagementBox context="workspaces" id={workspace_id} />
 			<p>workflows of this workspace :</p>
-			{workflows !== null ? (
-				workflows.map((workflow, index) => (
-					<React.Fragment key={index}>
-						<ObjectBox
-							object={workflow}
-							link={`/dashboard/workflows/${workflow._id}`}
-						/>
-					</React.Fragment>
-				))
-			) : (
-				<p>loading data ...</p>
-			)}
+			{workflows.map((workflow, index) => (
+				<React.Fragment key={index}>
+					<ObjectBox object={workflow} link={`/dashboard/workflows/${workflow._id}`} />
+				</React.Fragment>
+			))}
 			<CommentsBox user_id={user_id} />
 		</div>
 	);
