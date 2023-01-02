@@ -415,3 +415,12 @@ export var leave_here = async ({ context_id, context, user_id }) => {
 		},
 	});
 };
+
+export var custom_delete = async ({ context, id }) =>
+	await custom_axios({
+		body: {
+			context,
+			id,
+		},
+		task: "custom_delete",
+	});

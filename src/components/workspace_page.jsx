@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+	custom_delete,
 	get_collection,
 	get_workspace_workflows,
 	leave_here,
@@ -17,8 +18,9 @@ export const WorkspacePage = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var { workspace_id } = useParams();
 	var user_id = localStorage.getItem("user_id");
-	var workflows = global_data.all.workflows.filter((i) => i.workspace_id === workspace_id);
 	var workspace = global_data.all.workspaces.find((i) => i._id === workspace_id);
+	if (workspace === undefined) return <h1>workspace you are looking for didn't exist</h1>;
+	var workflows = global_data.all.workflows.filter((i) => i.workspace_id === workspace_id);
 	if (!workspace.collaborators.map((i) => i.user_id).includes(user_id)) {
 		return (
 			<>
@@ -68,6 +70,26 @@ export const WorkspacePage = () => {
 			)
 			.finally(get_global_data);
 	}
+	function delete_here_handler() {
+		alert("this feature is completed but not available right now."); // todo think access levels in system of collaboration and write an specification for it
+		return;
+		if (!window.confirm("are you sure ?")) return;
+		custom_delete({
+			context: "workspaces",
+			id: workspace_id,
+		})
+			.then(
+				(i) => {
+					alert("all done");
+					nav(`/dashboard`);
+				},
+				(error) => {
+					console.log(error);
+					alert("something went wrong! details in console");
+				}
+			)
+			.finally(get_global_data);
+	}
 	return (
 		<div>
 			<h2>WorkspacePage</h2>
@@ -82,6 +104,8 @@ export const WorkspacePage = () => {
 				</button>
 				<br />
 				<button onClick={leave_here_handler}>leave here</button>
+				<br />
+				<button onClick={delete_here_handler}>delete this workspace</button>
 			</Section>
 			<CollaboratorsManagementBox context="workspaces" id={workspace_id} />
 			<p>workflows of this workspace :</p>

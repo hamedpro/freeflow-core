@@ -166,6 +166,7 @@ function Wrapper() {
 	);
 }
 function App() {
+	var loc = useLocation();
 	window.ml = ml;
 	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite
 	var [global_data, set_global_data] = useState(null);
@@ -204,7 +205,7 @@ function App() {
 	}
 	useEffect(() => {
 		get_global_data();
-	}, []);
+	}, [loc]);
 	if (global_data === null) return <h1>loading data ...</h1>;
 	return (
 		<GlobalDataContext.Provider value={{ global_data, get_global_data }}>
