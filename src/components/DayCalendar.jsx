@@ -7,7 +7,12 @@ import {
 	get_user_events,
 } from "../../api/client";
 import ObjectBox from "./ObjectBox";
-import { month_names, sum_array, timestamp_filled_range } from "../../common_helpers.js";
+import {
+	month_names,
+	sum_array,
+	timestamp_filled_range,
+	unique_items_of_array,
+} from "../../common_helpers.js";
 import { Section } from "./Section";
 import { is_there_any_conflict } from "../../common_helpers.js";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -35,13 +40,17 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 		color: "white",
 	});
 	var day_events_percenatages = calendar_categories.map((cal_cat) => {
+		//it also includes done_tasks inside itself
 		return {
 			name: cal_cat.name,
 			percent:
 				(sum_array(
-					day_events
-						.filter((i) => i.category_id === cal_cat._id)
-						.map((i) => i.end_date - i.start_date)
+					[
+						...day_events.filter((i) => i.category_id === cal_cat._id),
+						...day_tasks.filter(
+							(i) => i.category_id === cal_cat._id && i.is_done === true
+						),
+					].map((i) => i.end_date - i.start_date)
 				) /
 					(3600 * 1000 * 24)) *
 				100,
@@ -114,10 +123,15 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 					<div className="w-1/2">
 						<p>
 							you have defined {calendar_categories.length} calendar categories at
-							all. you had {day_events.length} events in this day and they are from{" "}
+							all. you had {day_events.length} events and $
+							{day_tasks.filter((i) => i.is_done === true).length} done tasks in this
+							day and they are from{" "}
 							{
-								day_events_percenatages.filter(
-									(i) => i.percent !== 0 && i.name !== "empty"
+								unique_items_of_array(
+									[
+										...day_events,
+										...day_tasks.filter((i) => i.is_done === true),
+									].map((i) => i.category_id)
 								).length
 							}{" "}
 							different catrgories as explained below :
