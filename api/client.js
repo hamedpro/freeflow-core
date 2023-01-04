@@ -29,22 +29,47 @@ export async function custom_axios({
 
 	return response.data;
 }
-export var get_collection = ({ collection_name, filters }) =>
-	custom_axios({
-		task: "get_collection",
-		body: {
-			collection_name,
-			filters,
-		},
-	});
-export var custom_get_collection = ({ context, user_id }) =>
-	custom_axios({
-		task: "custom_get_collection",
-		body: {
-			context,
-			user_id,
-		},
-	});
+var mongo_db_filter_function = ({ item, filters }) => {
+	//it works like how find method of mongo db works.
+	//for example when filters = {_id :"foo",user_id : "bar"} it returns true only if (item._id == "foo" && user_id == "bar")
+	//note : item._id must be an string (.toArray() of mongo db also does this conversion)
+	for (filter in filters) {
+		if (item[filter] !== filters[filter]) {
+			return false;
+		}
+	}
+	return true;
+};
+export var get_collection = ({ collection_name, filters, global_data }) => {
+	if (global_data !== undefined) {
+		return global_data.all[collection_name].filter((item) =>
+			mongo_db_filter_function({ item, filters })
+		);
+	} else {
+		return custom_axios({
+			task: "get_collection",
+			body: {
+				collection_name,
+				filters,
+			},
+		});
+	}
+};
+export var custom_get_collection = ({ context, user_id, global_data }) => {
+	if (global_data !== undefined) {
+		return global_data.all[context].filter((i) =>
+			i.collaborators.map((j) => j.user_id).includes(user_id)
+		);
+	} else {
+		return custom_axios({
+			task: "custom_get_collection",
+			body: {
+				context,
+				user_id,
+			},
+		});
+	}
+};
 export var delete_document = ({ collection_name, filters }) =>
 	custom_axios({
 		task: "delete_document",
@@ -73,7 +98,8 @@ export var update_document = ({ collection, update_filter, update_set }) =>
 
 export var new_user = ({ body }) => new_document({ collection_name: "users", document: body });
 
-export var get_users = ({ filters = {} }) => get_collection({ collection_name: "users", filters });
+export var get_users = ({ filters = {}, global_data }) =>
+	get_collection({ collection_name: "users", filters, global_data });
 
 export var delete_user = ({ user_id }) =>
 	delete_document({
@@ -164,20 +190,22 @@ export var new_calendar_category = ({ user_id, color, name }) =>
 			name,
 		},
 	});
-export var get_calendar_categories = ({ user_id }) =>
+export var get_calendar_categories = ({ user_id, global_data }) =>
 	get_collection({
 		collection_name: "calendar_categories",
 		filters: {
 			user_id,
 		},
+		global_data,
 	});
 
-export var get_user_events = ({ user_id }) =>
+export var get_user_events = ({ user_id, global_data }) =>
 	get_collection({
 		collection_name: "events",
 		filters: {
-			user_id
+			user_id,
 		},
+		global_data,
 	});
 export var delete_task = ({ task_id }) =>
 	delete_document({
@@ -224,17 +252,19 @@ export var update_note = ({ note_id, update_set }) =>
 		update_set,
 	});
 //todo test from here to the bottom (in current commit)
-export var get_tasks = ({ filters = {} }) =>
+export var get_tasks = ({ filters = {}, global_data }) =>
 	get_collection({
 		collection_name: "tasks",
 		filters,
+		global_data,
 	});
-export var get_workspace_workflows = ({ workspace_id }) =>
+export var get_workspace_workflows = ({ workspace_id, global_data }) =>
 	get_collection({
 		collection_name: "workflows",
 		filters: {
 			workspace_id,
 		},
+		global_data,
 	});
 export var new_workflow = ({ workspace_id, title, description, collaborators }) =>
 	new_document({
@@ -253,7 +283,7 @@ export var update_user = ({ kind, new_value, user_id }) => {
 	return update_document({
 		collection: "users",
 		update_filter: {
-			_id : user_id,
+			_id: user_id,
 		},
 		update_set,
 	});
@@ -269,10 +299,11 @@ export var flexible_user_finder = async ({ value }) =>
 		},
 	});
 
-export var get_workflows = ({ filters = {} }) =>
+export var get_workflows = ({ filters = {}, global_data }) =>
 	get_collection({
 		collection_name: "workflows",
 		filters,
+		global_data,
 	});
 export var get_user_data_hierarchy = async ({ user_id }) =>
 	await custom_axios({
@@ -311,10 +342,11 @@ export var upload_new_resources = ({ data, input_element_id }) =>
 		input_element_id,
 	});
 
-export var get_resources = ({ filters = {} }) =>
+export var get_resources = ({ filters = {}, global_data }) =>
 	get_collection({
 		collection_name: "resources",
 		filters,
+		global_data,
 	});
 export var custom_axios_download = async ({ url, file_name }) => {
 	var response = await axios({
@@ -352,10 +384,11 @@ export var new_comment = ({ date, text, user_id, workspace_id, workflow_id, note
 		document: { date, text, user_id, workspace_id, workflow_id, note_id, task_id },
 	});
 
-export var get_comments = ({ filters }) =>
+export var get_comments = ({ filters, global_data }) =>
 	get_collection({
 		collection_name: "comments",
 		filters,
+		global_data,
 	});
 
 export var delete_comment = ({ filters }) =>
@@ -375,18 +408,24 @@ export var edit_comment = ({ new_text, comment_id }) =>
 			edited: true,
 		},
 	});
-export var modify_collaborator_access_level = async ({ context, id, user_id, new_access_level }) => { 
-		//how to work with it :
-		// when params are = context : "workspaces" , id : "foo" , user_id : 'bar' , new_access_level : 2 =>
-		//it search between collaborators of a workspace which it's id is foo and sets access level of that user who it's user_id is bar to 2
-		
-	var tmp = (await get_collection({ collection_name: context, filters: { _id: id } }))[0][
-		"collaborators"
-	];
+export var modify_collaborator_access_level = async ({
+	context,
+	id,
+	user_id,
+	new_access_level,
+	global_data,
+}) => {
+	//how to work with it :
+	// when params are = context : "workspaces" , id : "foo" , user_id : 'bar' , new_access_level : 2 =>
+	//it search between collaborators of a workspace which it's id is foo and sets access level of that user who it's user_id is bar to 2
+
+	var tmp = (
+		await get_collection({ global_data, collection_name: context, filters: { _id: id } })
+	)[0]["collaborators"];
 
 	var new_collaborators = tmp.map((i) => {
 		if (i.user_id === user_id) {
-			return { ...i, access_level: new_access_level};
+			return { ...i, access_level: new_access_level };
 		} else {
 			return { ...i };
 		}
@@ -394,19 +433,23 @@ export var modify_collaborator_access_level = async ({ context, id, user_id, new
 	await update_document({
 		collection: context,
 		update_filter: {
-			_id : id
+			_id: id,
 		},
 		update_set: {
-			collaborators : new_collaborators 
-		}
-	})
-}
-export var leave_here = async ({ context_id, context, user_id }) => {
+			collaborators: new_collaborators,
+		},
+	});
+};
+export var leave_here = async ({ context_id, context, user_id, global_data }) => {
 	//how to use it : if a user with id = 'foo' wants to leave a
 	//workspace with id = 'bar' => context : "workspaces", context_id : 'bar' , user_id = 'foo'
-	var tmp = (await get_collection({ collection_name: context, filters: { _id: context_id } }))[0][
-		"collaborators"
-	];
+	var tmp = (
+		await get_collection({
+			global_data,
+			collection_name: context,
+			filters: { _id: context_id },
+		})
+	)[0]["collaborators"];
 	await update_document({
 		collection: context,
 		update_filter: {
