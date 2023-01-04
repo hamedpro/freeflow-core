@@ -33,7 +33,7 @@ var mongo_db_filter_function = ({ item, filters }) => {
 	//it works like how find method of mongo db works.
 	//for example when filters = {_id :"foo",user_id : "bar"} it returns true only if (item._id == "foo" && user_id == "bar")
 	//note : item._id must be an string (.toArray() of mongo db also does this conversion)
-	for (filter in filters) {
+	for (var filter in filters) {
 		if (item[filter] !== filters[filter]) {
 			return false;
 		}

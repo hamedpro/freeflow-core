@@ -78,7 +78,7 @@ function TopBar() {
 		</div>
 	);
 }
-function Wrapper() {
+function Wrapper({ last_location_change_timestamp }) {
 	return (
 		<div className="h-full w-full border-black-900 flex-col">
 			<TopBar />
@@ -88,79 +88,91 @@ function Wrapper() {
 				</div>
 				<div className="w-4/5 bg-blue-400 h-full overflow-y-auto h-9/10">
 					<Routes>
-						<Route path="" element={<WorkspacesPage key={new Date().getTime()} />} />
+						<Route
+							path=""
+							element={<WorkspacesPage key={last_location_change_timestamp} />}
+						/>
 						<Route
 							path="settings"
-							element={<UserSettings key={new Date().getTime()} />}
+							element={<UserSettings key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="verification"
-							element={<VerifyIdentity key={new Date().getTime()} />}
+							element={<VerifyIdentity key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="workspaces"
-							element={<WorkspacesPage key={new Date().getTime()} />}
+							element={<WorkspacesPage key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="workspaces/new"
-							element={<NewWorkspace key={new Date().getTime()} />}
+							element={<NewWorkspace key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="workspaces/:workspace_id"
-							element={<WorkspacePage key={new Date().getTime()} />}
+							element={<WorkspacePage key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="workflows/new"
-							element={<NewWorkflow key={new Date().getTime()} />}
+							element={<NewWorkflow key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="workflows/:workflow_id"
-							element={<Workflow key={new Date().getTime()} />}
+							element={<Workflow key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="resources/new"
-							element={<NewResource key={new Date().getTime()} />}
+							element={<NewResource key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="resources/:resource_id"
-							element={<Resource key={new Date().getTime()} />}
+							element={<Resource key={last_location_change_timestamp} />}
 						/>
 
-						<Route path="notes/new" element={<NewNote key={new Date().getTime()} />} />
+						<Route
+							path="notes/new"
+							element={<NewNote key={last_location_change_timestamp} />}
+						/>
 						<Route
 							path="notes/:note_id"
-							element={<Note key={new Date().getTime()} />}
+							element={<Note key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="notes/:note_id/commits"
-							element={<NoteCommits key={new Date().getTime()} />}
+							element={<NoteCommits key={last_location_change_timestamp} />}
 						/>
-						<Route path="tasks/new" element={<NewTask key={new Date().getTime()} />} />
+						<Route
+							path="tasks/new"
+							element={<NewTask key={last_location_change_timestamp} />}
+						/>
 						<Route
 							path="tasks/:task_id"
-							element={<Task key={new Date().getTime()} />}
+							element={<Task key={last_location_change_timestamp} />}
 						/>
-						<Route path="events" element={<Events key={new Date().getTime()} />} />
+						<Route
+							path="events"
+							element={<Events key={last_location_change_timestamp} />}
+						/>
 						<Route
 							path="events/new"
-							element={<NewEvent key={new Date().getTime()} />}
+							element={<NewEvent key={last_location_change_timestamp} />}
 						/>
 
 						<Route
 							path="events/:event_id"
-							element={<Event key={new Date().getTime()} />}
+							element={<Event key={last_location_change_timestamp} />}
 						/>
 
 						<Route path="calendar">
 							<Route
 								path="month"
-								element={<MonthCalendar key={new Date().getTime()} />}
+								element={<MonthCalendar key={last_location_change_timestamp} />}
 							/>
 
 							{/* todo : test all calendar sub routes */}
 							<Route
 								path="day"
-								element={<DayCalendar key={new Date().getTime()} />}
+								element={<DayCalendar key={last_location_change_timestamp} />}
 							/>
 						</Route>
 					</Routes>
@@ -174,6 +186,9 @@ function App() {
 	window.ml = ml;
 	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite
 	var [global_data, set_global_data] = useState(null);
+	var [last_location_change_timestamp, set_last_location_change_timestamp] = useState(
+		new Date().getTime()
+	);
 	async function get_global_data() {
 		var user_id = localStorage.getItem("user_id");
 		var new_user_context_state = { user: {}, all: {} };
@@ -208,26 +223,38 @@ function App() {
 		set_global_data(new_user_context_state);
 	}
 	useEffect(() => {
+		set_last_location_change_timestamp(new Date().getTime());
 		get_global_data();
 	}, [loc]);
 	if (global_data === null) return <h1>loading data ...</h1>;
 	return (
 		<GlobalDataContext.Provider value={{ global_data, get_global_data }}>
 			<Routes>
-				<Route path="/" element={<Root key={new Date().getTime()} />} />
-				<Route path="/login" element={<Login key={new Date().getTime()} />} />
-				<Route path="/register" element={<RegisterPage key={new Date().getTime()} />} />
-				<Route path="/terms" element={<Terms key={new Date().getTime()} />} />
+				<Route path="/" element={<Root key={last_location_change_timestamp} />} />
+				<Route path="/login" element={<Login key={last_location_change_timestamp} />} />
+				<Route
+					path="/register"
+					element={<RegisterPage key={last_location_change_timestamp} />}
+				/>
+				<Route path="/terms" element={<Terms key={last_location_change_timestamp} />} />
 				<Route
 					path="/subscribtion"
-					element={<SubscribtionPage key={new Date().getTime()} />}
+					element={<SubscribtionPage key={last_location_change_timestamp} />}
 				/>
 
 				<Route
 					path="/users/:user_id"
-					element={<UserProfile key={new Date().getTime()} />}
+					element={<UserProfile key={last_location_change_timestamp} />}
 				/>
-				<Route path="/dashboard/*" element={<Wrapper key={new Date().getTime()} />}></Route>
+				<Route
+					path="/dashboard/*"
+					element={
+						<Wrapper
+							key={last_location_change_timestamp}
+							last_location_change_timestamp={last_location_change_timestamp}
+						/>
+					}
+				></Route>
 			</Routes>
 		</GlobalDataContext.Provider>
 	);
