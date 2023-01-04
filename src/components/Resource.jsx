@@ -10,6 +10,7 @@ import { Section } from "./section";
 
 export const Resource = () => {
 	var { resource_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var resource_row = global_data.all.resources.find((i) => i._id === resource_id);
 	if (resource_row === undefined) {

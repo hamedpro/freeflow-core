@@ -64,8 +64,11 @@ export const NewResource = () => {
 
 			<p>select files you want to upload : </p>
 			<input type="file" multiple id="files_input" />
-			<input id="description_input" type={"text"} />
+			<h1>enter a title:</h1>
 			<input id="title_input" type={"text"} />
+			<h1>enter a description:</h1>
+			<input id="description_input" type={"text"} />
+
 			<h1>choose collaborators of this new workspace :</h1>
 			<Select
 				onChange={set_selected_collaborators}

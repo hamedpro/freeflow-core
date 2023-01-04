@@ -62,8 +62,8 @@ export const Note = () => {
 			autofocus: true,
 			placeholder: "start typing you note here...",
 		};
-		if (tmp.data) {
-			editor_js_configs["data"] = tmp.data;
+		if (note.data) {
+			editor_js_configs["data"] = note.data;
 		}
 		set_editor_js_instance(new EditorJS(editor_js_configs));
 	}
