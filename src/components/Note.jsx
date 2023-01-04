@@ -6,7 +6,7 @@ import Table from "@editorjs/table";
 import ImageTool from "@editorjs/image";
 import Checklist from "@editorjs/checklist";
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { custom_get_collection, new_document, update_note } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import CommentsBox from "./CommentsBox";
@@ -14,6 +14,8 @@ import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { Section } from "./section";
 export const Note = () => {
+	var nav = useNavigate();
+	var [search_params, set_search_params] = useSearchParams();
 	var { note_id } = useParams();
 	var user_id = localStorage.getItem("user_id");
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
@@ -65,9 +67,16 @@ export const Note = () => {
 			autofocus: true,
 			placeholder: "start typing you note here...",
 		};
-		if (last_note_commit !== undefined) {
-			editor_js_configs["data"] = last_note_commit.data;
+		if (search_params.get("note_commit_id")) {
+			editor_js_configs["data"] = global_data.all.note_commits.find(
+				(i) => i._id === search_params.get("note_commit_id")
+			).data;
+		} else {
+			if (last_note_commit !== undefined) {
+				editor_js_configs["data"] = last_note_commit.data;
+			}
 		}
+
 		set_editor_js_instance(new EditorJS(editor_js_configs));
 	}, []);
 	const saveHandler = async () => {
@@ -162,6 +171,9 @@ export const Note = () => {
 	return (
 		<>
 			<h1>Note</h1>
+			<button onClick={() => nav(`/dashboard/notes/${note_id}/commits`)}>
+				open commits history of this note
+			</button>
 			<Section title="options">
 				<button onClick={() => change_note_handler("title")}>
 					change title of this note

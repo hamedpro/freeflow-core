@@ -39,6 +39,7 @@ import { Resource } from "./components/Resource";
 import { useEffect } from "react";
 import { custom_get_collection, get_collection } from "../api/client";
 import { GlobalDataContext } from "./GlobalDataContext";
+import { NoteCommits } from "./components/NoteCommits";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -130,6 +131,10 @@ function Wrapper() {
 						<Route
 							path="notes/:note_id"
 							element={<Note key={new Date().getTime()} />}
+						/>
+						<Route
+							path="notes/:note_id/commits"
+							element={<NoteCommits key={new Date().getTime()} />}
 						/>
 						<Route path="tasks/new" element={<NewTask key={new Date().getTime()} />} />
 						<Route

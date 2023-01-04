@@ -1,11 +1,12 @@
 import React, { useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import CommentsBox from "./CommentsBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 export const Task = () => {
+	var nav = useNavigate();
 	var { task_id } = useParams();
 	var user_id = localStorage.getItem("user_id");
 	var { global_data, get_global_data } = useContext(GlobalDataContext);

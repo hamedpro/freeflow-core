@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { download_resource, get_resources } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
@@ -9,6 +9,7 @@ import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 
 export const Resource = () => {
+	var nav = useNavigate();
 	var { resource_id } = useParams();
 	var user_id = localStorage.getItem("user_id");
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
