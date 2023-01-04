@@ -18,6 +18,8 @@ export const NewResource = () => {
 		var collaborators = selected_collaborators.map((i) => {
 			return { access_level: 1, user_id: i.value };
 		});
+		var description = document.getElementById("description_input").value;
+		var title = document.getElementById("title_input").value;
 		collaborators.push({ access_level: 3, user_id });
 		try {
 			var result = await upload_new_resources({
@@ -26,6 +28,8 @@ export const NewResource = () => {
 					workspace_id,
 					workflow_id,
 					collaborators,
+					description,
+					title,
 				},
 			});
 			alert(
@@ -57,8 +61,11 @@ export const NewResource = () => {
 	return (
 		<>
 			<div>NewResource</div>
-			<p>upload files to : </p>
+
+			<p>select files you want to upload : </p>
 			<input type="file" multiple id="files_input" />
+			<input id="description_input" type={"text"} />
+			<input id="title_input" type={"text"} />
 			<h1>choose collaborators of this new workspace :</h1>
 			<Select
 				onChange={set_selected_collaborators}

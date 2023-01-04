@@ -24,6 +24,7 @@ export const NewTask = () => {
 	const [notes, setNotes] = useState(null);
 	const [selectedNotes, selectNotes] = useState([]);
 	const [title_input, set_title_input] = useState();
+	const [description_input, set_description_input] = useState();
 	const [calendar_categories, set_calendar_categories] = useState(null);
 	//TODO: check _locale for possible option to output the _d(date) object in jalaali's format
 	const [selected_dates, set_selected_dates] = useState({
@@ -54,6 +55,7 @@ export const NewTask = () => {
 				linked_notes: selectedNotes.map((i) => i.value),
 				workspace_id,
 				title: title_input,
+				description: description_input,
 				category_id: selected_calendar_category.value._id,
 				collaborators,
 			});
@@ -80,6 +82,9 @@ export const NewTask = () => {
 			<h1>workflow_id : {workflow_id} </h1>
 			<h2>enter a title for this task : </h2>
 			<input onChange={(ev) => set_title_input(ev.target.value)} />
+			<h2>enter a description for this task : </h2>
+			<input onChange={(ev) => set_description_input(ev.target.value)} />
+
 			<h2>select an existing calendar category or create a new one</h2>
 			<Select
 				onChange={select_calendar_category}
@@ -156,12 +161,14 @@ export const NewTask = () => {
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
 				options={[
-					...all_users.filter(user => user._id !== user_id).map((user) => {
-						return {
-							value: user._id,
-							label: `@${user.username}`,
-						};
-					}),
+					...all_users
+						.filter((user) => user._id !== user_id)
+						.map((user) => {
+							return {
+								value: user._id,
+								label: `@${user.username}`,
+							};
+						}),
 				]}
 				isMulti
 				isSearchable

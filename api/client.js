@@ -138,6 +138,7 @@ export var new_task = ({
 	start_date,
 	title,
 	category_id,
+	description,
 }) =>
 	new_document({
 		collection_name: "tasks",
@@ -151,6 +152,7 @@ export var new_task = ({
 			start_date,
 			title,
 			category_id,
+			description,
 		},
 	});
 export var new_calendar_category = ({ user_id, color, name }) =>
