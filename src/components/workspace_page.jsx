@@ -71,8 +71,10 @@ export const WorkspacePage = () => {
 			.finally(get_global_data);
 	}
 	function delete_here_handler() {
-		alert("this feature is completed but not available right now."); // todo think access levels in system of collaboration and write an specification for it
-		return;
+		if (workspace.collaborators.find((i) => i.user_id === user_id).access_level !== 3) {
+			alert("access denied! only owner of this workspace can do this.");
+			return;
+		}
 		if (!window.confirm("are you sure ?")) return;
 		custom_delete({
 			context: "workspaces",
