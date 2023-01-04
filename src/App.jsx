@@ -70,7 +70,7 @@ function TopBar() {
 				</div>
 				<div className="flex items-center space-x-3 h-5/6 my-2 ">
 					<Notifications style={{ color: "white", width: "40px", height: "40px" }} />
-					<div className="px-2 rounded h-full flex justify-center items-center text-white bg-green-500 text-blue-900">
+					<div className="px-2 rounded h-full flex justify-center items-center text-white bg-green-500">
 						subscribe
 					</div>
 				</div>
@@ -183,7 +183,7 @@ function App() {
 				user_id !== null ? await custom_get_collection({ context: tmp[i], user_id }) : null;
 		}
 
-		var tmp = ["events", "calendar_categories", "comments"];
+		var tmp = ["events", "calendar_categories", "comments", "note_commits"];
 		for (var i = 0; i < tmp.length; i++) {
 			new_user_context_state.user[tmp[i]] =
 				user_id !== null
