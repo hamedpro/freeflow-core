@@ -5,23 +5,26 @@ import Attach from "@editorjs/attaches";
 import Table from "@editorjs/table";
 import ImageTool from "@editorjs/image";
 import Checklist from "@editorjs/checklist";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { custom_get_collection, update_note } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import CommentsBox from "./CommentsBox";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
+import { GlobalDataContext } from "../GlobalDataContext";
 export const Note = () => {
-  var { note_id } = useParams();
-  var user_id = localStorage.getItem("user_id");
-  var [note, setNote] = useState(null);
-  var [editor_js_instanse, set_editor_js_instance] = useState(null);
+	var { note_id } = useParams();
+	var user_id = localStorage.getItem("user_id");
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
+	var note = global_data.all.notes.find((note) => note._id === note_id);
+	if (note === undefined) {
+		return <h1>note you are looking for doesn't even exist!</h1>;
+	} else if (!note.collaborators.map((i) => i.user_id).includes(user_id)) {
+		return <h1>access denied! you are not a collaborator of this note</h1>;
+	}
+	var [editor_js_instanse, set_editor_js_instance] = useState(null);
 
-  async function init_component() {
-		var tmp = (await custom_get_collection({context : "notes",user_id})).find(
-			(note) => note._id == note_id
-		);
-		setNote(tmp);
+	async function init_component() {
 		var editor_js_configs = {
 			holder: "editor-js-div",
 			tools: {
@@ -51,22 +54,22 @@ export const Note = () => {
 				},
 			},
 			onReady: () => {
-				console.log("editor js initializing is done.");
+				//console.log("editor js initializing is done.");
 				//todo show this console.log like a notification or ... to user
 			},
 			defaultBlock: "header",
 			autofocus: true,
-			placeholder: "Type your text here",
+			placeholder: "start typing you note here...",
 		};
 		if (tmp.data) {
 			editor_js_configs["data"] = tmp.data;
 		}
 		set_editor_js_instance(new EditorJS(editor_js_configs));
-  }
-  useEffect(() => {
+	}
+	useEffect(() => {
 		init_component();
-  }, []);
-  const saveHandler = async () => {
+	}, []);
+	const saveHandler = async () => {
 		editor_js_instanse.save().then((output_data) => {
 			try {
 				update_note({ note_id, update_set: { data: output_data } });
@@ -82,21 +85,16 @@ export const Note = () => {
       TODO: auto save : pass onChange prop to editor_js_configs before initializing and save changes in that onChange
       and also show an indicator which whenever the data changes it shows loading until the data changes is uploaded succeessfuly
     */
-  };
-  return (
+	};
+	return (
 		<>
 			<h1>Note</h1>
-			{note !== null && (
-				<>
-					<h1>note_data : </h1>
-					<ObjectBox object={note} />
-				</>
-			)}
-			
-			<CollaboratorsManagementBox context='notes' id={ note_id} />
+			<h1>note_data : </h1>
+			<ObjectBox object={note} />
+			<CollaboratorsManagementBox context="notes" id={note_id} />
 			<div id="editor-js-div"></div>
 			<button onClick={saveHandler}>save</button>
 			<CommentsBox user_id={user_id} />
 		</>
-  );
+	);
 };
