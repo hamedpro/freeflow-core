@@ -26,16 +26,6 @@ const Workflow = () => {
 	var tasks_of_this_workflow = global_data.all.tasks.filter(
 		(task) => task.workflow_id === workflow_id
 	);
-	async function get_data() {
-		try {
-			var response = await custom_get_collection({ context: "notes", user_id });
-			set_notes(response.filter((note) => note.workflow_id === workflow_id));
-			set_tasks(await get_tasks({ filters: { workflow_id } }));
-		} catch (error) {
-			console.log(error);
-			alert("something went wrong. details in console");
-		}
-	}
 	async function change_workflow_handler(type) {
 		if (workflow.collaborators.find((i) => i.user_id === user_id).access_level === 1) {
 			alert(
@@ -100,9 +90,6 @@ const Workflow = () => {
 			)
 			.finally(get_global_data);
 	}
-	useEffect(() => {
-		get_data();
-	}, []);
 	return (
 		<div>
 			<h1>Workflow page</h1>
@@ -117,10 +104,10 @@ const Workflow = () => {
 				<button onClick={delete_this_workflow}>delete this workflow</button>
 			</Section>
 			<CollaboratorsManagementBox context="workflows" id={workflow_id} />
-			{notes !== null && (
+			{notes_of_this_workflow !== null && (
 				<>
 					<h1>notes : </h1>
-					{notes.map((note, index) => {
+					{notes_of_this_workflow.map((note, index) => {
 						return (
 							<React.Fragment key={index}>
 								<ObjectBox object={note} link={`/dashboard/notes/${note._id}`} />
@@ -129,10 +116,10 @@ const Workflow = () => {
 					})}
 				</>
 			)}
-			{tasks !== null && (
+			{tasks_of_this_workflow !== null && (
 				<>
 					<h1>tasks : </h1>
-					{tasks.map((task, index) => {
+					{tasks_of_this_workflow.map((task, index) => {
 						return (
 							<React.Fragment key={index}>
 								<ObjectBox object={task} link={`/dashboard/tasks/${task._id}`} />
