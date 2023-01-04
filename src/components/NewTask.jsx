@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { TextField } from "@mui/material";
 //import AdapterMoment from "@date-io/jalaali";
@@ -13,8 +13,10 @@ import {
 	new_task,
 } from "../../api/client";
 import Select from "react-select";
+import { GlobalDataContext } from "../GlobalDataContext";
 //TODO: component re-renders
 export const NewTask = () => {
+	var {global_data,get_global_data} = useContext(GlobalDataContext)
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
 	var workspace_id = search_params.get("workspace_id");
@@ -34,9 +36,9 @@ export const NewTask = () => {
 	var [all_users, set_all_users] = useState(null);
 
 	async function get_data() {
-		setNotes(await custom_get_collection({context : "notes",user_id}));
-		set_calendar_categories(await get_calendar_categories({ user_id }));
-		set_all_users(await get_users({ filters: {} }));
+		setNotes(await custom_get_collection({context : "notes",user_id ,global_data}));
+		set_calendar_categories(await get_calendar_categories({ user_id,global_data }));
+		set_all_users(await get_users({ filters: {},global_data }));
 	}
 	var [selected_collaborators, set_selected_collaborators] = useState([]);
 	useEffect(() => {

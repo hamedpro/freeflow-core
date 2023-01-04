@@ -1,17 +1,19 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useContext, useState } from "react";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { get_collection } from "../../api/client";
+import { GlobalDataContext } from "../GlobalDataContext";
 import ObjectBox from "./ObjectBox";
 
 export const Events = () => {
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var user_id = localStorage.getItem("user_id");
 	var [events, set_events] = useState(null);
 	async function get_data() {
 		var events = await get_collection({
 			collection_name: "events",
-			filters: {user_id,
-			},
+			filters: { user_id },
+			global_data,
 		});
 		set_events(events);
 	}

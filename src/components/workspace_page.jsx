@@ -1,13 +1,6 @@
-import React, { useContext, useState } from "react";
-import { useEffect } from "react";
+import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-	custom_delete,
-	get_collection,
-	get_workspace_workflows,
-	leave_here,
-	update_document,
-} from "../../api/client.js";
+import { custom_delete, leave_here, update_document } from "../../api/client.js";
 import { GlobalDataContext } from "../GlobalDataContext.js";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox.jsx";
 import CommentsBox from "./CommentsBox.jsx";

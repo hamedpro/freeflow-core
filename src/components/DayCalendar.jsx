@@ -1,11 +1,6 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useContext, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import {
-	custom_get_collection,
-	get_calendar_categories,
-	get_tasks,
-	get_user_events,
-} from "../../api/client";
+import { custom_get_collection, get_calendar_categories, get_user_events } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import {
 	month_names,
@@ -17,6 +12,7 @@ import { Section } from "./Section";
 import { is_there_any_conflict } from "../../common_helpers.js";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
+import { GlobalDataContext } from "../GlobalDataContext";
 ChartJS.register(ArcElement, Tooltip, Legend);
 function Analytics({ calendar_categories, day_tasks, day_events }) {
 	var day_tasks_percenatages = calendar_categories.map((cal_cat) => {
@@ -201,6 +197,7 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 	);
 }
 export const DayCalendar = () => {
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
 	var user_id = localStorage.getItem("user_id");
 	var [day_tasks, set_day_tasks] = useState(null);
@@ -222,8 +219,8 @@ export const DayCalendar = () => {
 	var start_timestamp = new Date(year, month - 1, day).getTime();
 	var end_timestamp = start_timestamp + 3600 * 1000 * 24;
 	async function get_data() {
-		var tasks = await custom_get_collection({ context: "tasks", user_id });
-		var events = await get_user_events({ user_id });
+		var tasks = await custom_get_collection({ global_data,context: "tasks", user_id });
+		var events = await get_user_events({ user_id ,global_data });
 		set_day_tasks(
 			timestamp_filled_range({ start: start_timestamp, end: end_timestamp, items: tasks })
 				.filter((i) => i.value !== null)
@@ -247,7 +244,7 @@ export const DayCalendar = () => {
 					};
 				})
 		);
-		set_calendar_categories(await get_calendar_categories({ user_id }));
+		set_calendar_categories(await get_calendar_categories({ user_id , global_data }));
 	}
 	function open_item_page(item) {
 		if (item.value === null) {

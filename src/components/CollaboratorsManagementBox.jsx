@@ -99,7 +99,11 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 			},
 			update_set: {
 				collaborators: (
-					await get_collection({ collection_name: context, filters: { _id: id } })
+					await get_collection({
+						collection_name: context,
+						filters: { _id: id },
+						global_data,
+					})
 				)[0]["collaborators"].filter((i) => i.user_id !== collaborator_id),
 			},
 		});
@@ -123,6 +127,7 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 					id,
 					user_id: localStorage.getItem("user_id"),
 					new_access_level: 2,
+					global_data,
 				});
 				alert('your access level was changed to 2 ("admin").');
 			}
@@ -133,6 +138,7 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 				id,
 				user_id: collaborator.user_id,
 				new_access_level: collaborator.access_level + mode,
+				global_data,
 			});
 			alert("all done!");
 		} catch (error) {

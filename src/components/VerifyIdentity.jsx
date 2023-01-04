@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import {
 	auth,
 	get_users,
 	update_user as api_update_user,
 	send_verification_code as api_send_verification_code,
 } from "../../api/client";
+import { GlobalDataContext } from "../GlobalDataContext";
 import { Section } from "./section";
 export const VerifyIdentity = () => {
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
 	var user_id = localStorage.getItem("user_id");
 	var [user, set_user] = useState(null);
@@ -31,6 +34,7 @@ export const VerifyIdentity = () => {
 			filters: {
 				_id: user_id,
 			},
+			global_data,
 		});
 		set_user(users[0]);
 	}

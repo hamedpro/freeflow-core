@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { custom_get_collection, get_users } from "../../api/client";
+import { GlobalDataContext } from "../GlobalDataContext";
 import ObjectBox from "./ObjectBox";
 
 const UserProfile = () => {
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var { user_id } = useParams();
 	var [user, set_user] = useState(null);
 	var [workspaces, set_workspaces] = useState(null);
@@ -15,9 +17,10 @@ const UserProfile = () => {
 				filters: {
 					_id: user_id,
 				},
+				global_data,
 			});
 			set_user(filtered_users[0]);
-			set_workspaces(await custom_get_collection({context : "workspaces",user_id}));
+			set_workspaces(await custom_get_collection({ context: "workspaces", user_id }));
 		} catch (error) {
 			console.log(error);
 		}

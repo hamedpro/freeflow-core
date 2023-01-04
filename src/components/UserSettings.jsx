@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
 import { get_users, update_document, upload_files } from "../../api/client";
 import { Section } from "./section";
 import Select from "react-select";
+import { GlobalDataContext } from "../GlobalDataContext";
 export const UserSettings = () => {
+	var {global_data,get_global_data} = useContext(GlobalDataContext)
 	var [inputs_statuses, set_inputs_statuses] = useState({
 		email_address: false,
 		mobile: false,
@@ -13,7 +14,7 @@ export const UserSettings = () => {
 	var user_id = localStorage.getItem("user_id");
 	var [user, set_user] = useState(null);
 	async function get_data() {
-		set_user((await get_users({ filters: { _id: user_id } }))[0]);
+		set_user((await get_users({ filters: { _id: user_id } ,global_data}))[0]);
 	}
 	async function simple_update(key, new_value) {
 		var update_set = {};

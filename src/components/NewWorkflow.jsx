@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { get_users, new_workflow } from "../../api/client";
 import Select from "react-select";
+import { GlobalDataContext } from "../GlobalDataContext";
 const NewWorkflow = () => {
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
 	var workspace_id = search_params.get("workspace_id");
@@ -11,7 +13,7 @@ const NewWorkflow = () => {
 		var collaborators = selected_collaborators.map((i) => {
 			return { access_level: 1, user_id: i.value };
 		});
-		collaborators.push({ access_level: 3,  user_id });
+		collaborators.push({ access_level: 3, user_id });
 		try {
 			var id_of_new_workflow = await new_workflow({
 				workspace_id,
@@ -28,7 +30,7 @@ const NewWorkflow = () => {
 	}
 	var [all_users, set_all_users] = useState(null);
 	async function get_data() {
-		set_all_users(await get_users({ filters: {} }));
+		set_all_users(await get_users({ filters: {}, global_data }));
 	}
 	useEffect(() => {
 		get_data();
@@ -47,12 +49,14 @@ const NewWorkflow = () => {
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
 				options={[
-					...all_users.filter(user => user._id !== user_id).map((user) => {
-						return {
-							value: user._id,
-							label: `@${user.username}`,
-						};
-					}),
+					...all_users
+						.filter((user) => user._id !== user_id)
+						.map((user) => {
+							return {
+								value: user._id,
+								label: `@${user.username}`,
+							};
+						}),
 				]}
 				isMulti
 				isSearchable

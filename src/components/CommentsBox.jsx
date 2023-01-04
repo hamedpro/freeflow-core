@@ -2,7 +2,6 @@ import { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useMatch, useParams } from "react-router-dom";
 import {
-	get_comments,
 	new_comment,
 	edit_comment,
 	delete_comment,
@@ -47,14 +46,17 @@ const CommentSBox = ({ user_id }) => {
 						break;
 					case "workflow_id":
 						var workflow = (
-							await get_workflows({ filters: { _id: urlParams["workflow_id"] } })
+							await get_workflows({
+								global_data,
+								filters: { _id: urlParams["workflow_id"] },
+							})
 						)[0];
 						tmp["workflow_id"] = workflow._id;
 						tmp["workspace_id"] = workflow.workspace_id;
 						break;
 					case "note_id":
 						var note = (
-							await custom_get_collection({ context: "notes", user_id })
+							await custom_get_collection({ context: "notes", user_id, global_data })
 						).find((i) => i._id === urlParams.note_id);
 						tmp.workspace_id = note.workspace_id;
 						tmp.workflow_id = note.workflow_id;
@@ -62,14 +64,19 @@ const CommentSBox = ({ user_id }) => {
 						break;
 					case "resource_id":
 						var resource = (
-							await get_resources({ filters: { _id: urlParams["resource_id"] } })
+							await get_resources({
+								global_data,
+								filters: { _id: urlParams["resource_id"] },
+							})
 						)[0];
 						tmp.workspace_id = resource.workspace_id;
 						tmp.workflow_id = resource.workflow_id;
 						tmp.resource_id = resource._id;
 						break;
 					case "task_id":
-						var task = (await get_tasks({ filters: { _id: urlParams["task_id"] } }))[0];
+						var task = (
+							await get_tasks({ global_data, filters: { _id: urlParams["task_id"] } })
+						)[0];
 						tmp.workspace_id = task.workspace_id;
 						tmp.workflow_id = task.workflow_id;
 						tmp.task_id = task._id;

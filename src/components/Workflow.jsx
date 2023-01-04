@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useContext } from "react";
-import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { custom_get_collection, get_tasks, update_document } from "../../api/client";
+import { update_document } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import CommentsBox from "./CommentsBox";

@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { custom_get_collection, get_tasks } from "../../api/client";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { custom_get_collection } from "../../api/client";
 import { custom_range } from "../../common_helpers.js";
 import "./MonthCalendarStyles.css";
 import { month_names, day_names ,get_months_days_count} from "../../common_helpers.js";
+import { GlobalDataContext } from "../GlobalDataContext";
 export const MonthCalendar = ({ }) => {
+	var {global_data,get_global_data} = useContext(GlobalDataContext)
 	var nav = useNavigate()
 	var [query_params,set_query_params] = useSearchParams()
 	var user_id = localStorage.getItem("user_id");
@@ -14,6 +16,7 @@ export const MonthCalendar = ({ }) => {
 			await custom_get_collection({
 				context: "tasks",
 				user_id,
+				global_data
 			})
 		);
 	}

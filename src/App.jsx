@@ -8,7 +8,6 @@ import { RegisterPage } from "./components/register_page";
 import { WorkspacePage } from "./components/workspace_page";
 import { WorkspacesPage } from "./components/workspaces_page";
 import { SubscribtionPage } from "./components/subscribtionPage";
-import { UserDashboard } from "./components/UserDashboard";
 import NewWorkspace from "./components/NewWorkspace";
 import NewWorkflow from "./components/NewWorkflow";
 import { Note } from "./components/Note";

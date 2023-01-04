@@ -4,6 +4,7 @@ import { custom_get_collection } from "../../api/client.js";
 import { get_start_and_end } from "../../common_helpers.js";
 
 export const WeekCalendar = () => {
+	return <h1>this component needs development</h1>;
 	var user_id = localStorage.getItem("user_id");
 	var [searchParams, setSearchParams] = useSearchParams();
 	var timestamp = searchParams.has("timestamp")

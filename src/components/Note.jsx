@@ -7,7 +7,7 @@ import ImageTool from "@editorjs/image";
 import Checklist from "@editorjs/checklist";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { custom_get_collection, new_document, update_note } from "../../api/client";
+import { new_document } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import CommentsBox from "./CommentsBox";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";

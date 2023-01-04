@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { get_users, new_note } from "../../api/client";
 import Select from "react-select";
+import { GlobalDataContext } from "../GlobalDataContext";
 export const NewNote = () => {
+	var {global_data,get_global_data} = useContext(GlobalDataContext)
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
 
@@ -31,7 +33,7 @@ export const NewNote = () => {
 	}
 	var [all_users, set_all_users] = useState(null);
 	async function get_data() {
-		set_all_users(await get_users({ filters: {} }));
+		set_all_users(await get_users({ filters: {},global_data }));
 	}
 	useEffect(() => {
 		get_data();
