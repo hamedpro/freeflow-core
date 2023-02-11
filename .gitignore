@@ -25,7 +25,6 @@ dist-ssr
 *.sln
 *.sw?
 common-codes/.git
-src/output.css
 pg.js
 pg.cjs
 ./.env
@@ -37,3 +36,4 @@ pink_task_server.cjs
 .VSCodeCounter
 notesData.js
 api/task.ts
+api/pg.js

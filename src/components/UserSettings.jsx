@@ -26,7 +26,7 @@ export const UserSettings = () => {
 			},
 			update_set,
 		});
-		get_data();
+		await get_global_data();
 	}
 	async function set_profile_picture() {
 		var files = document.getElementById("new_profile_image_input").files;
@@ -39,12 +39,18 @@ export const UserSettings = () => {
 			input_element_id: "new_profile_image_input",
 			task: "set_new_profile_picture",
 		});
-		get_data();
+		get_global_data();
 	}
 	useEffect(() => {
 		get_data();
 	}, []);
-	if (user === null) return <h1>user data is being loaded...</h1>;
+	useEffect(() => {
+		var tmp = async () => {
+			set_user((await get_users({ filters: { _id: user_id }, global_data }))[0]);
+		};
+		tmp();
+	}, [global_data]);
+	if (user === null) return <h1>loading user ... </h1>;
 	return (
 		<>
 			<h1>UserSettings</h1>

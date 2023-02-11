@@ -42,6 +42,7 @@ async function main() {
 	app.all("/", async (req, res) => {
 		var task = req.headers.task;
 		var body = req.body;
+
 		if (task === undefined) {
 			res.json(`there is not any task in request's body`);
 		} else if (task === "auth") {
@@ -117,16 +118,6 @@ async function main() {
 			}
 		} else if (task === "move_task_or_event") {
 			//todo
-		} else if (task === "update_document") {
-			//body must be like : {collection : string,update_filter : object, update_set : object}
-			var update_filter = req.body.update_filter;
-			if (update_filter._id !== undefined) {
-				update_filter._id = ObjectId(update_filter._id);
-			}
-			var update_statement = await db
-				.collection(req.body.collection)
-				.updateOne(update_filter, { $set: req.body.update_set });
-			res.json(update_statement);
 		} else if (task === "flexible_user_finder") {
 			var users = await db.collection("users").find().toArray();
 			var all_values = [];
@@ -264,6 +255,23 @@ async function main() {
 				.collection(req.body.collection_name)
 				.insertOne(req.body.document);
 			res.json(inserted_row.insertedId);
+		} else if (task === "update_document") {
+			//body must be like : {collection : string,update_filter : object, update_set : object}
+			var update_filter = req.body.update_filter;
+			if (update_filter._id !== undefined) {
+				update_filter._id = ObjectId(update_filter._id);
+			}
+			var update_statement = await db
+				.collection(req.body.collection)
+				.updateOne(update_filter, { $set: req.body.update_set });
+			res.json(update_statement);
+		} else if (task === "delete_document") {
+			//body should look like this : {filter_object : object , collection_name : string}
+			var filters = req.body.filters;
+			if (Object.keys(filters).includes("_id")) {
+				filters["_id"] = ObjectId(filters["_id"]);
+			}
+			res.json(await db.collection(req.body.collection_name).deleteOne(filters));
 		} else if (task === "mark_task_as_done") {
 			//body should be like this : {task_id : string}
 			//first check if we do this there will be any conflict or not
@@ -289,13 +297,6 @@ async function main() {
 				.collection("tasks")
 				.updateOne({ _id: ObjectId(req.body.task_id) }, { is_done: true });
 			res.json({});
-		} else if (task === "delete_document") {
-			//body should look like this : {filter_object : object , collection_name : string}
-			var filters = req.body.filters;
-			if (Object.keys(filters).includes("_id")) {
-				filters["_id"] = ObjectId(filters["_id"]);
-			}
-			res.json(await db.collection(req.body.collection_name).deleteOne(filters));
 		} else if (task === "custom_delete") {
 			//how to use it : to delete a workspace with id=foo : context : "workspaces" id=foo
 			//possible options for context : "workspaces" , "workflows" , "notes" , "resources" , "tasks"
@@ -348,7 +349,7 @@ async function main() {
 					await db.collection("tasks").deleteOne({ _id: ObjectId(id) });
 					break;
 			}
-			res.json({})
+			res.json({});
 		} else if (task === "custom_get_collection") {
 			//lets explain what it does by an example :
 			//if context is "workspaces" and user_id is 'something' :
