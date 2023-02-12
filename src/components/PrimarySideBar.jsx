@@ -25,37 +25,102 @@ export const PrimarySideBar = () => {
 	var user_id = localStorage.getItem("user_id");
 	var [options, set_options] = useState();
 	var loc = useLocation();
+	function create_downside_tree(context, id) {
+		//possible values for context : packs , tasks , resources , notes
+		//it returns an array of options (with correct order and ready to be rendered )
+
+		if (["tasks", "notes", "resources"].includes(context)) {
+			return [
+				{
+					text: `${context
+						.split("")
+						.slice(0, context.length - 1)
+						.join("")} : ${id}`,
+					url: `/${context}/${id}`,
+				},
+			];
+		} else if (context === "packs") {
+			var tmp = [
+				{
+					text: `pack ${id}`,
+					url: `/packs/${id}`,
+				},
+			];
+			tmp.concat(
+				global_data.all.tasks
+					.filter((task) => task.pack_id === id)
+					.map((task) => {
+						return {
+							text: `task ${task._id}`,
+							url: `/tasks/${task._id}`,
+						};
+					})
+			);
+			tmp.concat(
+				global_data.all.resources
+					.filter((resource) => resource.pack_id === id)
+					.map((resource) => {
+						return {
+							text: `resource ${resource._id}`,
+							url: `/resources/${resource._id}`,
+						};
+					})
+			);
+			tmp.concat(
+				global_data.all.notes
+					.filter((note) => note.pack_id === id)
+					.map((note) => {
+						return {
+							text: `note ${note._id}`,
+							url: `/notes/${note._id}`,
+						};
+					})
+			);
+			global_data.all.packs
+				.filter((pack) => pack.pack_id === id)
+				.forEach((pack) => {
+					tmp.concat(create_downside_tree("packs", pack._id));
+				});
+			return tmp;
+		}
+	}
+	function create_full_tree(context, id) {
+		//possible values for context : packs , tasks , resources , notes
+		if (global_data.all[context].find((i) => i._id === id).pack_id) {
+			var latest_found_parent = global_data.all[context].find((i) => i._id === id).pack_id;
+			while (global_data.all.packs.find((pack) => pack._id === latest_found_parent).pack_id) {
+				latest_found_parent = global_data.all.packs.find(
+					(pack) => pack._id === latest_found_parent
+				).pack_id;
+			}
+			return create_downside_tree("packs", latest_found_parent);
+		} else {
+			return create_downside_tree(context, id);
+		}
+	}
+	function find_unique_trees(array_of_trees) {
+		//returns an array of those trees without any duplicate
+		return [];
+	}
 	async function get_data() {
-		set_options([
-			...global_data.user.tasks.map((task) => {
-				return {
-					text: `task : ${task.title}`,
-					indent_count: 0,
-					url: `/dashboard/tasks/${task._id}`,
-				};
-			}),
-			...global_data.user.resources.map((resource) => {
-				return {
-					text: `resource : ${resource.title}`,
-					indent_count: 0,
-					url: `/dashboard/resources/${resource._id}`,
-				};
-			}),
-			...global_data.user.notes.map((note) => {
-				return {
-					text: `note : ${note.title}`,
-					indent_count: 0,
-					url: `/dashboard/notes/${note._id}`,
-				};
-			}),
-			...global_data.user.packs.map((pack) => {
-				return {
-					text: `pack : ${pack.title}`,
-					indent_count: 0,
-					url: `/dashboard/packs/${pack._id}`,
-				};
-			}),
-		]); // each option should contain all required props of Option component
+		var trees = [];
+		global_data.user.tasks.forEach((task) => {
+			trees.push(create_full_tree("tasks", task._id));
+		});
+
+		global_data.user.notes.forEach((note) => {
+			trees.push(create_full_tree("notes", note._id));
+		});
+
+		global_data.user.resources.forEach((resource) => {
+			trees.push(create_full_tree("resources", resource._id));
+		});
+
+		global_data.user.packs.forEach((pack) => {
+			trees.push(create_full_tree("packs", pack._id));
+		});
+
+		set_options(find_unique_trees(trees).flat());
 	}
 	useEffect(() => {
 		get_data();
