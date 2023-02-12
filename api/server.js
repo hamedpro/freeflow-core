@@ -8,11 +8,11 @@ import formidable from "formidable";
 import path from "path";
 import { MongoClient, ObjectId } from "mongodb";
 import { is_there_any_conflict } from "../common_helpers.js";
-const url = "mongodb://127.0.0.1:27017";
-const client = new MongoClient(url);
-var { frontend_port, api_port, api_endpoint, db_name } = JSON.parse(
+var { frontend_port, api_port, api_endpoint, db_name, mongodb_url } = JSON.parse(
 	fs.readFileSync("./env.json", "utf-8")
 );
+const client = new MongoClient(mongodb_url);
+
 var db = client.db(db_name);
 async function init() {
 	["./uploaded", "./uploaded/resources", "./uploaded/profile_images"].forEach((path) => {
