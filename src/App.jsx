@@ -87,15 +87,15 @@ function Wrapper({ last_location_change_timestamp }) {
 				<div className="w-4/5 bg-blue-400 h-full overflow-y-auto h-9/10">
 					<Routes>
 						<Route
-							path="/packs"
+							path="packs"
 							element={<Packs key={last_location_change_timestamp} />}
 						/>
 						<Route
-							path="/packs/:pack_id"
+							path="packs/:pack_id"
 							element={<Pack key={last_location_change_timestamp} />}
 						/>
 						<Route
-							path="/packs/new"
+							path="packs/new"
 							element={<NewPack key={last_location_change_timestamp} />}
 						/>
 						<Route

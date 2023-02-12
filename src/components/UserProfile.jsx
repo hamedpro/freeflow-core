@@ -33,7 +33,7 @@ const UserProfile = () => {
 			<br />
 			<ObjectBox object={user} />
 			<p>
-				click <Link to={`/dashboard/packs`}>here</Link> to open workspaces of this packs
+				click <Link to={`/dashboard/packs`}>here</Link> to open packs of this profile
 			</p>
 		</div>
 	);

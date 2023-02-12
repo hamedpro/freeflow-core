@@ -43,7 +43,7 @@ export const PrimarySideBar = () => {
 			var tmp = [
 				{
 					text: `pack ${id}`,
-					url: `/packs/${id}`,
+					url: `/dashboard/packs/${id}`,
 				},
 			];
 			tmp.concat(
@@ -52,7 +52,7 @@ export const PrimarySideBar = () => {
 					.map((task) => {
 						return {
 							text: `task ${task._id}`,
-							url: `/tasks/${task._id}`,
+							url: `dashboard/tasks/${task._id}`,
 						};
 					})
 			);
@@ -62,7 +62,7 @@ export const PrimarySideBar = () => {
 					.map((resource) => {
 						return {
 							text: `resource ${resource._id}`,
-							url: `/resources/${resource._id}`,
+							url: `dashboard/resources/${resource._id}`,
 						};
 					})
 			);
@@ -72,7 +72,7 @@ export const PrimarySideBar = () => {
 					.map((note) => {
 						return {
 							text: `note ${note._id}`,
-							url: `/notes/${note._id}`,
+							url: `dashboard/notes/${note._id}`,
 						};
 					})
 			);
