@@ -1,127 +1,116 @@
 import { useContext, useEffect } from "react";
-import { useState } from "react";
-import { useMatch, useParams } from "react-router-dom";
-import {
-	new_comment,
-	edit_comment,
-	delete_comment,
-	get_workflows,
-	get_resources,
-	get_tasks,
-	custom_get_collection,
-} from "../../api/client";
+import { useParams } from "react-router-dom";
+import { new_comment as api_new_comment, edit_comment, delete_comment } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
-import Comment from "./Comment";
 const CommentSBox = ({ user_id }) => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var urlParams = useParams();
-	var current_field = Object.keys(urlParams).find((i) => {
-		return ["workspace_id", "workflow_id", "task_id", "resource_id", "note_id"].includes(i);
-	});
-	const [editId, setEditId] = useState("");
-	const [inputComment, setInputComment] = useState("");
-	var comments = global_data.all.comments.filter(
-		(comment) =>
-			comment.user_id === user_id && comment[current_field] === urlParams[current_field]
-	);
-	const inputCommentHandler = (e) => {
-		setInputComment(e.target.value);
-	};
-	const submitHandler = async (e) => {
-		e.preventDefault();
-		try {
-			if (editId) {
-				await edit_comment({ new_text: inputComment, comment_id: editId });
-				setEditId("");
-				get_global_data();
-			} else {
-				var tmp = {
-					date: new Date().getTime(),
-					text: inputComment,
-					user_id,
-				};
-				switch (current_field) {
-					case "workspace_id":
-						tmp.workspace_id = urlParams.workspace_id;
-						break;
-					case "workflow_id":
-						var workflow = (
-							await get_workflows({
-								global_data,
-								filters: { _id: urlParams["workflow_id"] },
-							})
-						)[0];
-						tmp["workflow_id"] = workflow._id;
-						tmp["workspace_id"] = workflow.workspace_id;
-						break;
-					case "note_id":
-						var note = (
-							await custom_get_collection({ context: "notes", user_id, global_data })
-						).find((i) => i._id === urlParams.note_id);
-						tmp.workspace_id = note.workspace_id;
-						tmp.workflow_id = note.workflow_id;
-						tmp.note_id = note._id;
-						break;
-					case "resource_id":
-						var resource = (
-							await get_resources({
-								global_data,
-								filters: { _id: urlParams["resource_id"] },
-							})
-						)[0];
-						tmp.workspace_id = resource.workspace_id;
-						tmp.workflow_id = resource.workflow_id;
-						tmp.resource_id = resource._id;
-						break;
-					case "task_id":
-						var task = (
-							await get_tasks({ global_data, filters: { _id: urlParams["task_id"] } })
-						)[0];
-						tmp.workspace_id = task.workspace_id;
-						tmp.workflow_id = task.workflow_id;
-						tmp.task_id = task._id;
-						break;
-				}
-				await new_comment(tmp);
-				get_global_data();
-			}
-			setInputComment("");
-		} catch (error) {
-			console.log(error);
-		}
-	};
+	var current_field = Object.keys(urlParams)[0];
+	if (current_field === "task_id") {
+		var current_context = "tasks";
+	} else if (current_field === "note_id") {
+		var current_context = "notes";
+	} else if (current_field === "resource_id") {
+		var current_context = "resources";
+	} else if (current_field === "pack_id") {
+		current_context = "packs";
+	}
 
-	const deleteHandler = (commentId) => {
-		delete_comment({
+	var comments = [];
+	function get_comments_of_pack(pack_id) {
+		//it doesnt just return direct comments of this pack
+		//it also returns comments of its children recursively
+		var tmp = [];
+
+		tmp = [
+			...tmp,
+			...global_data.all.comments.filter((comment) => comment.pack_id === pack_id),
+		];
+
+		//adding comments of tasks and resources and notes which are direct children of this pack
+		tmp = [
+			...tmp,
+			...global_data.all.comments.filter((comment) => {
+				if (comment.task_id) {
+					return (
+						global_data.all.tasks.find((task) => task._id === comment.task_id)
+							.pack_id === pack_id
+					);
+				} else if (comment.resource_id) {
+					return (
+						global_data.all.resources.find(
+							(resource) => resource._id === comment.resource_id
+						).pack_id === pack_id
+					);
+				} else if (comment.note_id) {
+					return (
+						global_data.all.notes.find((note) => note._id === comment.note_id)
+							.pack_id === pack_id
+					);
+				}
+			}),
+		];
+
+		tmp = [
+			...tmp,
+			...global_data.all.packs
+				.filter((pack) => pack.pack_id === pack_id)
+				.map((pack) => get_comments_of_pack(pack._id))
+				.flat(),
+		];
+		return tmp;
+	}
+	function get_comments() {
+		//returns all comments of this context recursively
+		var context = current_context;
+		if (context === "tasks" || context === "notes" || context === "resources") {
+			//for example if content === "tasks" it returns comments of that task
+			return global_data.all.comments.filter(
+				(comment) => comment[current_field] === urlParams[current_field]
+			);
+		} else if (context === "packs") {
+			return get_comments_of_pack(urlParams["pack_id"]);
+		}
+	}
+	useEffect(() => get_comments(), []);
+	const edit_comment_handler = async (comment_id) => {
+		await edit_comment({
+			new_text: window.prompt("enter new text for this comment :"),
+			comment_id,
+		});
+		get_global_data();
+	};
+	async function new_comment() {
+		var tmp = {
+			date: new Date().getTime(),
+			text: document.getElementById("new_comment_text_input").value,
+			user_id,
+		};
+		tmp[current_field] = urlParams[current_field];
+		await new_comment(tmp);
+		get_global_data();
+	}
+	const deleteHandler = async (comment_id) => {
+		await delete_comment({
 			filters: {
-				user_id,
-				_id: commentId,
+				_id: comment_id,
 			},
 		});
 		get_global_data();
 	};
-	//TODO: what happens if client failed to fetch the comments.
+	if (comments === null) return <h1>loading ... </h1>;
 	return (
 		<div className="comments-box-container">
-			{comments &&
-				comments.map(({ _id, text }) => (
-					<Comment
-						key={_id}
-						commentId={_id}
-						text={text}
-						setEditId={setEditId}
-						deleteHandler={deleteHandler}
-					/>
-				))}
-			<form onSubmit={submitHandler}>
-				<input
-					placeholder="enter a comment"
-					value={inputComment}
-					onChange={inputCommentHandler}
-					required
-				/>
-				<button>{editId ? "edit message" : "send message"}</button>
-			</form>
+			{comments.map((comment) => (
+				<div className="" key={comment._id}>
+					<span>{comment.text}</span>
+					<button onClick={() => deleteHandler(comment._id)}>delete</button>
+					<button onClick={() => edit_comment_handler(comment._id)}>edit</button>
+				</div>
+			))}
+
+			<input placeholder="enter a comment" id="new_comment_text_input" />
+			<button onClick={new_comment}></button>
 		</div>
 	);
 };

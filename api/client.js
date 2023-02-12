@@ -134,20 +134,19 @@ export var send_verification_code = async ({ kind, user_id }) =>
 			user_id,
 		},
 	});
-export var new_note = ({ collaborators, title, workflow_id, workspace_id }) =>
+export var new_note = ({ collaborators, title, pack_id }) =>
 	new_document({
 		collection_name: "notes",
 		document: {
 			collaborators,
 			title,
 			init_date: new Date().getTime(),
-			workflow_id,
-			workspace_id,
+			pack_id,
 		},
 	});
-export var new_workspace = async ({ title, description, collaborators }) =>
+export var new_pack = async ({ title, description, collaborators }) =>
 	new_document({
-		collection_name: "workspaces",
+		collection_name: "packs",
 		document: {
 			init_date: new Date().getTime(),
 			title,
@@ -158,9 +157,8 @@ export var new_workspace = async ({ title, description, collaborators }) =>
 export var new_task = ({
 	linked_notes,
 	end_date,
-	workflow_id,
+	pack_id,
 	collaborators,
-	workspace_id,
 	start_date,
 	title,
 	category_id,
@@ -172,9 +170,9 @@ export var new_task = ({
 			init_date: new Date().getTime(),
 			linked_notes,
 			end_date,
-			workflow_id,
+			pack_id,
 			collaborators,
-			workspace_id,
+
 			start_date,
 			title,
 			category_id,
@@ -221,23 +219,14 @@ export var delete_event = ({ event_id }) =>
 		},
 		collection_name: "events",
 	});
-export var new_event = ({
-	end_date,
-	workflow_id,
-	user_id,
-	workspace_id,
-	start_date,
-	title,
-	category_id,
-}) =>
+export var new_event = ({ end_date, user_id, start_date, title, category_id }) =>
 	new_document({
 		collection_name: "events",
 		document: {
 			init_date: new Date().getTime(),
 			end_date,
-			workflow_id,
 			user_id,
-			workspace_id,
+
 			start_date,
 			title,
 			category_id,
@@ -257,25 +246,6 @@ export var get_tasks = ({ filters = {}, global_data }) =>
 		collection_name: "tasks",
 		filters,
 		global_data,
-	});
-export var get_workspace_workflows = ({ workspace_id, global_data }) =>
-	get_collection({
-		collection_name: "workflows",
-		filters: {
-			workspace_id,
-		},
-		global_data,
-	});
-export var new_workflow = ({ workspace_id, title, description, collaborators }) =>
-	new_document({
-		collection_name: "workflows",
-		document: {
-			title,
-			description,
-			collaborators,
-			init_date: new Date().getTime(),
-			workspace_id,
-		},
 	});
 export var update_user = ({ kind, new_value, user_id }) => {
 	var update_set = {};
@@ -299,12 +269,6 @@ export var flexible_user_finder = async ({ value }) =>
 		},
 	});
 
-export var get_workflows = ({ filters = {}, global_data }) =>
-	get_collection({
-		collection_name: "workflows",
-		filters,
-		global_data,
-	});
 export var get_user_data_hierarchy = async ({ user_id }) =>
 	await custom_axios({
 		task: "get_user_data_hierarchy",
@@ -378,10 +342,10 @@ export var download_resource = async ({ resource_id }) => {
 	});
 };
 
-export var new_comment = ({ date, text, user_id, workspace_id, workflow_id, note_id, task_id }) =>
+export var new_comment = ({ date, text, user_id, pack_id, note_id, task_id }) =>
 	new_document({
 		collection_name: "comments",
-		document: { date, text, user_id, workspace_id, workflow_id, note_id, task_id },
+		document: { date, text, user_id, pack_id, note_id, task_id },
 	});
 
 export var get_comments = ({ filters, global_data }) =>
@@ -416,8 +380,8 @@ export var modify_collaborator_access_level = async ({
 	global_data,
 }) => {
 	//how to work with it :
-	// when params are = context : "workspaces" , id : "foo" , user_id : 'bar' , new_access_level : 2 =>
-	//it search between collaborators of a workspace which it's id is foo and sets access level of that user who it's user_id is bar to 2
+	// when params are = context : "packs" , id : "foo" , user_id : 'bar' , new_access_level : 2 =>
+	//it search between collaborators of a pack which it's id is foo and sets access level of that user who it's user_id is bar to 2
 
 	var tmp = (
 		await get_collection({ global_data, collection_name: context, filters: { _id: id } })
@@ -442,7 +406,7 @@ export var modify_collaborator_access_level = async ({
 };
 export var leave_here = async ({ context_id, context, user_id, global_data }) => {
 	//how to use it : if a user with id = 'foo' wants to leave a
-	//workspace with id = 'bar' => context : "workspaces", context_id : 'bar' , user_id = 'foo'
+	//pack with id = 'bar' => context : "packs", context_id : 'bar' , user_id = 'foo'
 	var tmp = (
 		await get_collection({
 			global_data,

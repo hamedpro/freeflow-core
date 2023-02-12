@@ -8,8 +8,7 @@ export const NewResource = () => {
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
 
-	var workspace_id = search_params.get("workspace_id");
-	var workflow_id = search_params.get("workflow_id");
+	var pack_id = search_params.get("pack_id");
 
 	var user_id = localStorage.getItem("user_id");
 	async function upload_files_handler() {
@@ -27,8 +26,7 @@ export const NewResource = () => {
 			var result = await upload_new_resources({
 				input_element_id: "files_input",
 				data: {
-					workspace_id,
-					workflow_id,
+					pack_id,
 					collaborators,
 					description,
 					title,
@@ -38,13 +36,13 @@ export const NewResource = () => {
 				`all done! ${
 					result.length === 1
 						? "navigating to this new uploaded resource ..."
-						: "you have uploaded multiple files so you will be navigated to workflow of these new uploaded files..."
+						: "you have uploaded multiple files so you will be navigated to parent level of those new resources "
 				}`
 			);
 			if (result.length === 1) {
 				nav(`/dashboard/resources/${result[0]}`);
 			} else {
-				nav(`/dashboard/workflows/${workflow_id}`);
+				nav(pack_id !== undefined ? `/dashboard/packs/${pack_id}` : `/dashboard/`);
 			}
 		} catch (error) {
 			console.log(error);
@@ -53,7 +51,7 @@ export const NewResource = () => {
 	}
 	var [all_users, set_all_users] = useState(null);
 	async function get_data() {
-		set_all_users(await get_users({ filters: {} ,global_data}));
+		set_all_users(await get_users({ filters: {}, global_data }));
 	}
 	useEffect(() => {
 		get_data();
@@ -71,7 +69,7 @@ export const NewResource = () => {
 			<h1>enter a description:</h1>
 			<input id="description_input" type={"text"} />
 
-			<h1>choose collaborators of this new workspace :</h1>
+			<h1>choose collaborators of this new resource :</h1>
 			<Select
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}

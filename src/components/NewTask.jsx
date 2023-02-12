@@ -19,8 +19,7 @@ export const NewTask = () => {
 	var {global_data,get_global_data} = useContext(GlobalDataContext)
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
-	var workspace_id = search_params.get("workspace_id");
-	var workflow_id = search_params.get("workflow_id");
+	var pack_id = search_params.get("pack_id");
 
 	var user_id = localStorage.getItem("user_id");
 	const [notes, setNotes] = useState(null);
@@ -36,9 +35,9 @@ export const NewTask = () => {
 	var [all_users, set_all_users] = useState(null);
 
 	async function get_data() {
-		setNotes(await custom_get_collection({context : "notes",user_id ,global_data}));
-		set_calendar_categories(await get_calendar_categories({ user_id,global_data }));
-		set_all_users(await get_users({ filters: {},global_data }));
+		setNotes(await custom_get_collection({ context: "notes", user_id, global_data }));
+		set_calendar_categories(await get_calendar_categories({ user_id, global_data }));
+		set_all_users(await get_users({ filters: {}, global_data }));
 	}
 	var [selected_collaborators, set_selected_collaborators] = useState([]);
 	useEffect(() => {
@@ -51,11 +50,11 @@ export const NewTask = () => {
 		collaborators.push({ access_level: 3, user_id });
 		try {
 			var result = await new_task({
-				workflow_id,
+				pack_id,
 				end_date: selected_dates.end,
 				start_date: selected_dates.start,
 				linked_notes: selectedNotes.map((i) => i.value),
-				workspace_id,
+
 				title: title_input,
 				description: description_input,
 				category_id: selected_calendar_category.value._id,
@@ -80,8 +79,7 @@ export const NewTask = () => {
 		<div className="p-2">
 			<h1>NewTask</h1>
 			<h1>creator's user_id : {user_id} </h1>
-			<h1>workspace_id : {workspace_id} </h1>
-			<h1>workflow_id : {workflow_id} </h1>
+			<h1>pack_id : {pack_id} </h1>
 			<h2>enter a title for this task : </h2>
 			<input onChange={(ev) => set_title_input(ev.target.value)} />
 			<h2>enter a description for this task : </h2>
@@ -158,7 +156,7 @@ export const NewTask = () => {
 					</div>
 				);
 			})}
-			<h1>choose collaborators of this new workspace :</h1>
+			<h1>choose collaborators of this new task :</h1>
 			<Select
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}

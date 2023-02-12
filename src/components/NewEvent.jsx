@@ -22,8 +22,6 @@ export const NewEvent = () => {
 		var result = await new_event({
 			end_date: selected_dates.end,
 			start_date: selected_dates.start,
-			workflow_id,
-			workspace_id,
 			category_id: selected_calendar_category.value._id,
 			...input_values,
 			user_id,

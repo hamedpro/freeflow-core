@@ -8,8 +8,7 @@ export const NewNote = () => {
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
 
-	var workspace_id = search_params.get("workspace_id");
-	var workflow_id = search_params.get("workflow_id");
+	var pack_id = search_params.get("pack_id");
 
 	var user_id = localStorage.getItem("user_id");
 	async function submit_new_note() {
@@ -19,9 +18,8 @@ export const NewNote = () => {
 		collaborators.push({ access_level: 3, user_id });
 		try {
 			var id_of_new_note = await new_note({
-				workflow_id,
 				title: document.getElementById("title").value,
-				workspace_id,
+				pack_id,
 				collaborators,
 			});
 			alert("all done. navigating to newly created note's page");
@@ -45,21 +43,23 @@ export const NewNote = () => {
 		<div>
 			<h1>NewNote</h1>
 			<h1>user_id of the creator : {user_id}</h1>
-			<h1>workspace_id : {workspace_id}</h1>
-			<h1>workflow_id : {workflow_id}</h1>
+			<h1>pack_id : {pack_id}</h1>
+
 			<h1>enter a title : </h1>
 			<input id="title" className="border border-blue-400" />
-			<h1>choose collaborators of this new workspace :</h1>
+			<h1>choose collaborators of this new note :</h1>
 			<Select
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
 				options={[
-					...all_users.filter(user => user._id !== user_id).map((user) => {
-						return {
-							value: user._id,
-							label: `@${user.username}`,
-						};
-					}),
+					...all_users
+						.filter((user) => user._id !== user_id)
+						.map((user) => {
+							return {
+								value: user._id,
+								label: `@${user.username}`,
+							};
+						}),
 				]}
 				isMulti
 				isSearchable

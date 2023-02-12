@@ -1,6 +1,5 @@
 import React, { Fragment, useContext, useState } from "react";
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { get_collection } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import ObjectBox from "./ObjectBox";

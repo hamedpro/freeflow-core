@@ -9,7 +9,6 @@ const UserProfile = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var { user_id } = useParams();
 	var [user, set_user] = useState(null);
-	var [workspaces, set_workspaces] = useState(null);
 
 	async function fetch_data() {
 		try {
@@ -20,7 +19,6 @@ const UserProfile = () => {
 				global_data,
 			});
 			set_user(filtered_users[0]);
-			set_workspaces(await custom_get_collection({ context: "workspaces", user_id }));
 		} catch (error) {
 			console.log(error);
 		}
@@ -34,21 +32,8 @@ const UserProfile = () => {
 			user data fetched by api :
 			<br />
 			<ObjectBox object={user} />
-			{/* <h1>workspaces of this user</h1>
-			{workspaces !== null &&
-				workspaces.map((workspace, index) => {
-					return (
-						<React.Fragment key={index}>
-							<ObjectBox
-								object={workspace}
-								link={`/users/${user_id}/workspaces/${workspace._id}`}
-							/>
-						</React.Fragment>
-					);
-				})
-			} */}
 			<p>
-				click <Link to={`/dashboard/workspaces`}>here</Link> to open workspaces of this user
+				click <Link to={`/dashboard/packs`}>here</Link> to open workspaces of this packs
 			</p>
 		</div>
 	);

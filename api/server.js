@@ -150,10 +150,7 @@ async function main() {
 			}
 		} else if (task === "get_user_data_hierarchy") {
 			var user_id = req.body.user_id;
-			var user_workspaces = (await db.collection("workspaces").find().toArray()).filter((i) =>
-				check_being_collaborator(i, user_id)
-			);
-			var user_workflows = (await db.collection("workflows").find().toArray()).filter((i) =>
+			var user_packs = (await db.collection("packs").find().toArray()).filter((i) =>
 				check_being_collaborator(i, user_id)
 			);
 			var user_notes = (await db.collection("notes").find().toArray()).filter((i) =>
@@ -298,36 +295,25 @@ async function main() {
 				.updateOne({ _id: ObjectId(req.body.task_id) }, { is_done: true });
 			res.json({});
 		} else if (task === "custom_delete") {
-			//how to use it : to delete a workspace with id=foo : context : "workspaces" id=foo
-			//possible options for context : "workspaces" , "workflows" , "notes" , "resources" , "tasks"
+			//how to use it -> to delete a pack with id=foo -> context = "packs", id = "foo"
+			//possible options for context : "packs" , "notes" , "resources" , "tasks"
 			var { context, id } = req.body;
+			async function delete_pack(pack_id) {
+				await db.collection("packs").deleteOne({ _id: ObjectId(pack_id) });
+				await db.collection("notes").deleteMany({ pack_id });
+				await db.collection("tasks").deleteMany({ pack_id });
+				var resources = await db.collection("resources").find({ pack_id }).toArray();
+				for (var resource in resources) {
+					fs.rmSync(`./uploaded/resources/${resource._id}`);
+					await db.collection("resources").deleteOne({ _id: ObjectId(resource._id) });
+				}
+				for (var pack of await db.collection("packs").find({ pack_id }).toArray()) {
+					await delete_pack(pack._id);
+				}
+			}
 			switch (context) {
-				case "workspaces":
-					await db.collection("workspaces").deleteOne({ _id: ObjectId(id) });
-					await db.collection("workflows").deleteMany({ workspace_id: id });
-					await db.collection("notes").deleteMany({ workspace_id: id });
-					var resources = await db
-						.collection("resources")
-						.find({ workspace_id: id })
-						.toArray();
-					for (var resource in resources) {
-						fs.rmSync(`./uploaded/resources/${resource._id}`);
-						await db.collection("resources").deleteOne({ _id: ObjectId(resource._id) });
-					}
-					await db.collection("tasks").deleteMany({ workspace_id: id });
-					break;
-				case "workflows":
-					await db.collection("workflows").deleteOne({ _id: id });
-					await db.collection("notes").deleteMany({ workflow_id: id });
-					var resources = await db
-						.collection("resources")
-						.find({ workflow_id: id })
-						.toArray();
-					for (var resource in resources) {
-						fs.rmSync(`./uploaded/resources/${resource._id}`);
-						await db.collection("resources").deleteOne({ _id: ObjectId(resource._id) });
-					}
-					await db.collection("tasks").deleteMany({ workflow_id: id });
+				case "packs":
+					await delete_pack(id);
 					break;
 				case "notes":
 					await db.collection("notes").deleteOne({ _id: ObjectId(id) });
@@ -352,9 +338,9 @@ async function main() {
 			res.json({});
 		} else if (task === "custom_get_collection") {
 			//lets explain what it does by an example :
-			//if context is "workspaces" and user_id is 'something' :
-			//it returns all workspaces which this user is a collaborator of
-			//and also this is true about workflows , tasks , resources , notes
+			//if context is "packs" and user_id is 'something' :
+			//it returns all packs which this user is a collaborator of them
+			//and also this is true about tasks , resources , notes
 			var result = (await db.collection(req.body.context).find().toArray()).filter((item) =>
 				check_being_collaborator(item, req.body.user_id)
 			);

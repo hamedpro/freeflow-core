@@ -1,18 +1,13 @@
 import React, { useState } from "react";
 import "./App.css";
 import "./output.css";
-import { Routes, Route, useLocation, Link, useParams } from "react-router-dom";
+import { Routes, Route, useLocation, Link } from "react-router-dom";
 import { month_names, multi_lang_helper as ml } from "../common_helpers.js";
 import { Login } from "./components/Login";
 import { RegisterPage } from "./components/register_page";
-import { WorkspacePage } from "./components/workspace_page";
-import { WorkspacesPage } from "./components/workspaces_page";
 import { SubscribtionPage } from "./components/subscribtionPage";
-import NewWorkspace from "./components/NewWorkspace";
-import NewWorkflow from "./components/NewWorkflow";
 import { Note } from "./components/Note";
 import { Task } from "./components/Task";
-import Workflow from "./components/Workflow";
 import { NewNote } from "./components/NewNote";
 import { NewTask } from "./components/NewTask";
 import { Terms } from "./components/Terms";
@@ -39,6 +34,9 @@ import { useEffect } from "react";
 import { custom_get_collection, get_collection } from "../api/client";
 import { GlobalDataContext } from "./GlobalDataContext";
 import { NoteCommits } from "./components/NoteCommits";
+import { Packs } from "./components/Packs";
+import { Pack } from "./components/Pack";
+import { NewPack } from "./components/NewPack";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -89,8 +87,16 @@ function Wrapper({ last_location_change_timestamp }) {
 				<div className="w-4/5 bg-blue-400 h-full overflow-y-auto h-9/10">
 					<Routes>
 						<Route
-							path=""
-							element={<WorkspacesPage key={last_location_change_timestamp} />}
+							path="/packs"
+							element={<Packs key={last_location_change_timestamp} />}
+						/>
+						<Route
+							path="/packs/:pack_id"
+							element={<Pack key={last_location_change_timestamp} />}
+						/>
+						<Route
+							path="/packs/new"
+							element={<NewPack key={last_location_change_timestamp} />}
 						/>
 						<Route
 							path="settings"
@@ -100,26 +106,7 @@ function Wrapper({ last_location_change_timestamp }) {
 							path="verification"
 							element={<VerifyIdentity key={last_location_change_timestamp} />}
 						/>
-						<Route
-							path="workspaces"
-							element={<WorkspacesPage key={last_location_change_timestamp} />}
-						/>
-						<Route
-							path="workspaces/new"
-							element={<NewWorkspace key={last_location_change_timestamp} />}
-						/>
-						<Route
-							path="workspaces/:workspace_id"
-							element={<WorkspacePage key={last_location_change_timestamp} />}
-						/>
-						<Route
-							path="workflows/new"
-							element={<NewWorkflow key={last_location_change_timestamp} />}
-						/>
-						<Route
-							path="workflows/:workflow_id"
-							element={<Workflow key={last_location_change_timestamp} />}
-						/>
+
 						<Route
 							path="resources/new"
 							element={<NewResource key={last_location_change_timestamp} />}
@@ -184,7 +171,7 @@ function Wrapper({ last_location_change_timestamp }) {
 function App() {
 	var loc = useLocation();
 	window.ml = ml;
-	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite
+	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite during build process
 	var [global_data, set_global_data] = useState(null);
 	var [last_location_change_timestamp, set_last_location_change_timestamp] = useState(
 		new Date().getTime()
@@ -192,7 +179,7 @@ function App() {
 	async function get_global_data() {
 		var user_id = localStorage.getItem("user_id");
 		var new_user_context_state = { user: {}, all: {} };
-		var tmp = ["workspaces", "workflows", "notes", "resources", "tasks"];
+		var tmp = ["packs", "notes", "resources", "tasks"];
 		for (var i = 0; i < tmp.length; i++) {
 			new_user_context_state.all[tmp[i]] = await get_collection({
 				collection_name: tmp[i],

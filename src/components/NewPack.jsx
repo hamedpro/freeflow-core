@@ -1,28 +1,28 @@
-import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { get_users, new_workflow } from "../../api/client";
+import React, { useContext, useEffect } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { get_users, new_pack } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
-const NewWorkflow = () => {
+export const NewPack = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
-	var nav = useNavigate();
-	var [search_params, set_search_params] = useSearchParams();
-	var workspace_id = search_params.get("workspace_id");
 	var user_id = localStorage.getItem("user_id");
-	async function submit_new_workflow() {
+	var nav = useNavigate();
+	async function submit_new_pack() {
+		var title = document.getElementById("title").value;
+		var description = document.getElementById("description").value;
 		var collaborators = selected_collaborators.map((i) => {
 			return { access_level: 1, user_id: i.value };
 		});
 		collaborators.push({ access_level: 3, user_id });
 		try {
-			var id_of_new_workflow = await new_workflow({
-				workspace_id,
-				title: document.getElementById("title").value,
-				description: document.getElementById("description").value,
+			var id_of_new_pack = await new_pack({
+				title,
+				description,
 				collaborators,
 			});
-			alert(`all done!. navigating to newly created workflow's page...`);
-			nav(`/dashboard/workflows/${id_of_new_workflow}`);
+			alert("all done!. navigating to newly created pack's page ...");
+			nav(`/dashboard/packs/${id_of_new_pack}/`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -39,12 +39,18 @@ const NewWorkflow = () => {
 	if (all_users === null) return <h1>loading users list... </h1>;
 	return (
 		<div className="p-2">
-			<h2>NewWorkflow</h2>
-			<h1>creator's user_id : {user_id}</h1>
-			<h1>workspace_id : {workspace_id}</h1>
-			<h1>enter title : </h1> <input id="title" />
-			<h1>enter description :</h1> <input id="description" />
-			<h1>choose collaborators of this new workspace :</h1>
+			<h1>New Pack</h1>
+			<h1>user_id of the creator : {user_id}</h1>
+			{["title", "description"].map((i, index) => {
+				return (
+					<React.Fragment key={index}>
+						<h1>enter {i} :</h1>
+						<input className="border border-blue-400 rounded px-1" id={i} />
+					</React.Fragment>
+				);
+			})}
+
+			<h1>choose collaborators of this new pack :</h1>
 			<Select
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
@@ -61,9 +67,7 @@ const NewWorkflow = () => {
 				isMulti
 				isSearchable
 			/>
-			<button onClick={submit_new_workflow}> submit new workflow</button>
+			<button onClick={submit_new_pack}>submit</button>
 		</div>
 	);
 };
-
-export default NewWorkflow;
