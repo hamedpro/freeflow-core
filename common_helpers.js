@@ -223,7 +223,7 @@ export var day_names = [
 export function get_months_days_count(year) {
 	return [31, year % 4 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 }
-export function timestamp_filled_range({ start, end, items}) {
+export function timestamp_filled_range({ start, end, items }) {
 	let result = [
 		...items.map((i) => {
 			return { ...i };
@@ -233,7 +233,9 @@ export function timestamp_filled_range({ start, end, items}) {
 		.sort((i1, i2) => i1.start_date - i2.start_date)
 		.filter((i) => is_there_any_conflict({ items: [i], start, end }));
 	if (result.length === 0) {
-		result = [{ value: null, start_date: start, end_date: end ,start_percent : 0,end_percent : 100}]
+		result = [
+			{ value: null, start_date: start, end_date: end, start_percent: 0, end_percent: 100 },
+		];
 		return result;
 	}
 	if (result[0].start_date !== start) {
@@ -282,12 +284,12 @@ export function timestamp_filled_range({ start, end, items}) {
 	});
 	return result;
 }
-export function sum_array(array){
+export function sum_array(array) {
 	var total = 0;
-	array.forEach(number => {
-		total += number
-	})
-	return total
+	array.forEach((number) => {
+		total += number;
+	});
+	return total;
 }
 export var check_being_collaborator = (item, user_id) =>
 	item.collaborators.map((collaborator) => collaborator.user_id).includes(user_id);
@@ -295,3 +297,28 @@ export var check_being_collaborator = (item, user_id) =>
 export var unique_items_of_array = (
 	array // it may not work for array containing anything other than numbers or string
 ) => array.filter((i, index) => array.indexOf(i) === index);
+
+export var custom_find_unique = (array, custom_compare_function) => {
+	//custom_compare_function is a function which accepts 2 items and returns true if they are the same (otherwise returns false)
+	var cloned_array = [...array];
+	function find_duplicate_pairs() {
+		var all_pairs = [];
+		for (var i = 0; i < cloned_array.length; i++) {
+			for (var j = 0; j < cloned_array.length; j++) {
+				if (j !== i) {
+					all_pairs.push([i, j]);
+				}
+			}
+		}
+		return all_pairs.filter(
+			(pair) => custom_compare_function(cloned_array[pair[0]], cloned_array[pair[1]]) === true
+		);
+		//returns an array like this : [[1,2] , [5,3]] ->
+		//it means in index 1 and index 2 of cloned array are the same according to custom_compare_function
+		//and the same is true about cloned_array[5] and cloned_array[3]
+	}
+	while (find_duplicate_pairs().length !== 0) {
+		cloned_array.splice(find_duplicate_pairs()[0][1], 1);
+	}
+	return cloned_array;
+};

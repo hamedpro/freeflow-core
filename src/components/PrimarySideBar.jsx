@@ -2,6 +2,7 @@ import React, { Fragment, useContext, useEffect } from "react";
 import { useState } from "react";
 import { useLocation, useMatch, useNavigate, useParams } from "react-router-dom";
 import { get_user_data_hierarchy } from "../../api/client";
+import { custom_find_unique } from "../../common_helpers";
 import { GlobalDataContext } from "../GlobalDataContext";
 function Option({ text, indent_count, url }) {
 	var nav = useNavigate();
@@ -98,10 +99,21 @@ export const PrimarySideBar = () => {
 			return create_downside_tree(context, id);
 		}
 	}
-	function find_unique_trees(array_of_trees) {
-		//returns an array of those trees without any duplicate
-		return [];
+	function compare_custom_trees(tree1, tree2) {
+		if (tree1.length !== tree2.length) {
+			return false;
+		}
+		for (var i = 0; i < tree1.length; i++) {
+			for (var prop of ["text", "url"]) {
+				//todo add indent_level in props list
+				if (tree1[i][prop] !== tree2[i][prop]) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
+
 	async function get_data() {
 		var trees = [];
 		global_data.user.tasks.forEach((task) => {
@@ -120,7 +132,7 @@ export const PrimarySideBar = () => {
 			trees.push(create_full_tree("packs", pack._id));
 		});
 
-		set_options(find_unique_trees(trees).flat());
+		set_options(custom_find_unique(trees, compare_custom_trees).flat());
 	}
 	useEffect(() => {
 		get_data();
