@@ -47,40 +47,41 @@ export const PrimarySideBar = () => {
 					url: `/dashboard/packs/${id}`,
 				},
 			];
-			tmp.concat(
+			tmp = tmp.concat(
 				global_data.all.tasks
 					.filter((task) => task.pack_id === id)
 					.map((task) => {
 						return {
 							text: `task ${task._id}`,
-							url: `dashboard/tasks/${task._id}`,
+							url: `/dashboard/tasks/${task._id}`,
 						};
 					})
 			);
-			tmp.concat(
+			tmp = tmp.concat(
 				global_data.all.resources
 					.filter((resource) => resource.pack_id === id)
 					.map((resource) => {
 						return {
 							text: `resource ${resource._id}`,
-							url: `dashboard/resources/${resource._id}`,
+							url: `/dashboard/resources/${resource._id}`,
 						};
 					})
 			);
-			tmp.concat(
+			tmp = tmp.concat(
 				global_data.all.notes
 					.filter((note) => note.pack_id === id)
 					.map((note) => {
 						return {
 							text: `note ${note._id}`,
-							url: `dashboard/notes/${note._id}`,
+							url: `/dashboard/notes/${note._id}`,
 						};
 					})
 			);
 			global_data.all.packs
 				.filter((pack) => pack.pack_id === id)
 				.forEach((pack) => {
-					tmp.concat(create_downside_tree("packs", pack._id));
+					var tmp1 = create_downside_tree("packs", pack._id);
+					tmp = tmp.concat(tmp1);
 				});
 			return tmp;
 		}
@@ -131,7 +132,10 @@ export const PrimarySideBar = () => {
 		global_data.user.packs.forEach((pack) => {
 			trees.push(create_full_tree("packs", pack._id));
 		});
-
+		/* console.log(
+			"result of custom find unique is ",
+			custom_find_unique(trees, compare_custom_trees).flat()
+		); */
 		set_options(custom_find_unique(trees, compare_custom_trees).flat());
 	}
 	useEffect(() => {

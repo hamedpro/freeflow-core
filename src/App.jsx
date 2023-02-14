@@ -207,6 +207,7 @@ function App() {
 			collection_name: "users",
 			filters: {},
 		});
+		//console.log(new_user_context_state);
 		set_global_data(new_user_context_state);
 	}
 	useEffect(() => {

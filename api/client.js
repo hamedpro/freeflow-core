@@ -144,7 +144,12 @@ export var new_note = ({ collaborators, title, pack_id }) =>
 			pack_id,
 		},
 	});
-export var new_pack = async ({ title, description, collaborators }) =>
+export var new_pack = async ({
+	title,
+	description,
+	collaborators,
+	pack_id /* either null or string */,
+}) =>
 	new_document({
 		collection_name: "packs",
 		document: {
@@ -152,6 +157,7 @@ export var new_pack = async ({ title, description, collaborators }) =>
 			title,
 			description,
 			collaborators,
+			pack_id,
 		},
 	});
 export var new_task = ({
