@@ -22,6 +22,7 @@ function Option({ text, indent_level, url }) {
 }
 function AddNewOptionRow() {
 	var nav = useNavigate();
+	var { global_data } = useContext(GlobalDataContext);
 	function onclick_handler(type) {
 		/* 
 		possible values for type : "packs" , "resources" , "notes" , "tasks"
@@ -32,7 +33,26 @@ function AddNewOptionRow() {
 		if (pathname.startsWith("/dashboard/packs") && pathname !== "/dashboard/packs/new") {
 			nav(`/dashboard/${type}/new?pack_id=${pathname.split("/")[3]}`);
 		} else {
-			nav(`/dashboard/${type}/new`);
+			//current active items is not a pack to create new note or ... inside it but
+			//we check if this item has a parent we create this new note or ... inside that
+
+			//todo this method of checking whether path matches pattern or not is not complete
+			if (
+				["notes", "tasks", "resources"].some((item) =>
+					pathname.startsWith(`/dashboard/${item}`)
+				) &&
+				pathname.split("/")[3] !== "new"
+			) {
+				let active_item = global_data.all[pathname.split("/")[2]].find(
+					(item) => item._id == pathname.split("/")[3]
+				);
+				console.log(active_item);
+				if (active_item.pack_id) {
+					nav(`/dashboard/${type}/new?pack_id=${active_item.pack_id}`);
+				} else {
+					nav(`/dashboard/${type}/new`);
+				}
+			}
 		}
 	}
 	return (
