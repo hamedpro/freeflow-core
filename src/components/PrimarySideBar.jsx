@@ -1,10 +1,9 @@
-import React, { Fragment, useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { useState } from "react";
-import { useLocation, useMatch, useNavigate, useParams } from "react-router-dom";
-import { get_user_data_hierarchy } from "../../api/client";
+import { useLocation, useMatch, useNavigate } from "react-router-dom";
 import { custom_find_unique } from "../../common_helpers";
 import { GlobalDataContext } from "../GlobalDataContext";
-function Option({ text, indent_count, url }) {
+function Option({ text, indent_level, url }) {
 	var nav = useNavigate();
 	var is_selected = useMatch(url);
 	return (
@@ -13,7 +12,7 @@ function Option({ text, indent_count, url }) {
 				"border-t border-b border-black flex  items-center w-full",
 				is_selected ? "bg-blue-600 text-white" : "",
 			].join(" ")}
-			style={{ paddingLeft: indent_count * 20 + "px" }}
+			style={{ paddingLeft: indent_level * 20 + "px" }}
 			onClick={() => nav(url)}
 		>
 			{text}
@@ -26,7 +25,7 @@ export const PrimarySideBar = () => {
 	var user_id = localStorage.getItem("user_id");
 	var [options, set_options] = useState();
 	var loc = useLocation();
-	function create_downside_tree(context, id) {
+	function create_downside_tree({ context, id, pack_id, indent_level }) {
 		//possible values for context : packs , tasks , resources , notes
 		//it returns an array of options (with correct order and ready to be rendered )
 
@@ -38,6 +37,10 @@ export const PrimarySideBar = () => {
 						.slice(0, context.length - 1)
 						.join("")} : ${id}`,
 					url: `/${context}/${id}`,
+					context,
+					id,
+					pack_id,
+					indent_level,
 				},
 			];
 		} else if (context === "packs") {
@@ -45,6 +48,10 @@ export const PrimarySideBar = () => {
 				{
 					text: `pack ${id}`,
 					url: `/dashboard/packs/${id}`,
+					context,
+					id,
+					pack_id,
+					indent_level,
 				},
 			];
 			tmp = tmp.concat(
@@ -54,6 +61,10 @@ export const PrimarySideBar = () => {
 						return {
 							text: `task ${task._id}`,
 							url: `/dashboard/tasks/${task._id}`,
+							context,
+							id,
+							pack_id,
+							indent_level: indent_level + 1,
 						};
 					})
 			);
@@ -64,6 +75,10 @@ export const PrimarySideBar = () => {
 						return {
 							text: `resource ${resource._id}`,
 							url: `/dashboard/resources/${resource._id}`,
+							context,
+							id,
+							pack_id,
+							indent_level: indent_level + 1,
 						};
 					})
 			);
@@ -74,13 +89,22 @@ export const PrimarySideBar = () => {
 						return {
 							text: `note ${note._id}`,
 							url: `/dashboard/notes/${note._id}`,
+							context,
+							id,
+							pack_id,
+							indent_level: indent_level + 1,
 						};
 					})
 			);
 			global_data.all.packs
 				.filter((pack) => pack.pack_id === id)
 				.forEach((pack) => {
-					var tmp1 = create_downside_tree("packs", pack._id);
+					var tmp1 = create_downside_tree({
+						context: "packs",
+						id: pack._id,
+						pack_id: pack.pack_id,
+						indent_level: indent_level + 1,
+					});
 					tmp = tmp.concat(tmp1);
 				});
 			return tmp;
@@ -95,9 +119,20 @@ export const PrimarySideBar = () => {
 					(pack) => pack._id === latest_found_parent
 				).pack_id;
 			}
-			return create_downside_tree("packs", latest_found_parent);
+			return create_downside_tree({
+				context: "packs",
+				id: latest_found_parent,
+				pack_id: global_data.all.packs.find((pack) => pack._id === latest_found_parent)
+					.pack_id,
+				indent_level: 0,
+			});
 		} else {
-			return create_downside_tree(context, id);
+			return create_downside_tree({
+				context,
+				id,
+				pack_id: global_data.all.packs.find((pack) => pack._id === id).pack_id,
+				indent_level: 0,
+			});
 		}
 	}
 	function compare_custom_trees(tree1, tree2) {
@@ -114,7 +149,6 @@ export const PrimarySideBar = () => {
 		}
 		return true;
 	}
-
 	async function get_data() {
 		var trees = [];
 		global_data.user.tasks.forEach((task) => {
@@ -132,10 +166,12 @@ export const PrimarySideBar = () => {
 		global_data.user.packs.forEach((pack) => {
 			trees.push(create_full_tree("packs", pack._id));
 		});
+
 		/* console.log(
 			"result of custom find unique is ",
 			custom_find_unique(trees, compare_custom_trees).flat()
 		); */
+
 		set_options(custom_find_unique(trees, compare_custom_trees).flat());
 	}
 	useEffect(() => {
@@ -144,15 +180,5 @@ export const PrimarySideBar = () => {
 	if (options == null) {
 		return "loading options ...";
 	}
-	return (
-		<>
-			{options.map((option, index) => {
-				return (
-					<Fragment key={index}>
-						<Option {...option} />
-					</Fragment>
-				);
-			})}
-		</>
-	);
+	return options.map((option, index) => <Option key={index} {...option} />);
 };

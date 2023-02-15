@@ -274,15 +274,7 @@ export var flexible_user_finder = async ({ value }) =>
 			value,
 		},
 	});
-
-export var get_user_data_hierarchy = async ({ user_id }) =>
-	await custom_axios({
-		task: "get_user_data_hierarchy",
-		body: {
-			user_id,
-		},
-	});
-
+	
 export var upload_files = async ({ task, data = {}, input_element_id }) => {
 	var form = new FormData();
 	var files = document.getElementById(input_element_id).files;
