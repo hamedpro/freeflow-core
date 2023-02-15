@@ -1,3 +1,4 @@
+import { AddTask, Backpack, CloudUpload, NoteAdd } from "@mui/icons-material";
 import React, { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
@@ -16,6 +17,38 @@ function Option({ text, indent_level, url }) {
 			onClick={() => nav(url)}
 		>
 			{text}
+		</div>
+	);
+}
+function AddNewOptionRow() {
+	var nav = useNavigate();
+	function onclick_handler(type) {
+		/* 
+		possible values for type : "packs" , "resources" , "notes" , "tasks"
+		if type === "packs" it means create a new pack and the same for others
+		*/
+
+		var { pathname } = window.location;
+		if (pathname.startsWith("/dashboard/packs") && pathname !== "/dashboard/packs/new") {
+			nav(`/dashboard/${type}/new?pack_id=${pathname.split("/")[3]}`);
+		} else {
+			nav(`/dashboard/${type}/new`);
+		}
+	}
+	return (
+		<div className="flex justify-around bg-white p-1">
+			<button onClick={() => onclick_handler("packs")}>
+				<Backpack sx={{ color: "blue" }} />
+			</button>
+			<button onClick={() => onclick_handler("tasks")}>
+				<AddTask sx={{ color: "blue" }} />
+			</button>
+			<button onClick={() => onclick_handler("resources")}>
+				<CloudUpload sx={{ color: "blue" }} />
+			</button>
+			<button onClick={() => onclick_handler("notes")}>
+				<NoteAdd sx={{ color: "blue" }} />
+			</button>
 		</div>
 	);
 }
@@ -202,5 +235,12 @@ export const PrimarySideBar = () => {
 	if (options == null) {
 		return "loading options ...";
 	}
-	return options.map((option, index) => <Option key={index} {...option} />);
+	return (
+		<>
+			<AddNewOptionRow />
+			{options.map((option, index) => (
+				<Option key={index} {...option} />
+			))}
+		</>
+	);
 };

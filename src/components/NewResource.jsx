@@ -4,11 +4,27 @@ import { get_users, upload_new_resources } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
 export const NewResource = () => {
-	var {global_data,get_global_data} = useContext(GlobalDataContext)
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
 
 	var pack_id = search_params.get("pack_id");
+
+	/* if pack_id is present in url query we set default option of parent pack select to that  */
+	var pack_id = search_params.get("pack_id");
+	if (pack_id) {
+		let pack = global_data.all.packs.find((pack) => pack._id === pack_id);
+		var default_selected_parent_pack = {
+			value: pack._id,
+			label: pack.title,
+		};
+	} else {
+		var default_selected_parent_pack = { value: null, label: "without a parent pack" };
+	}
+
+	/* selected_parent_pack must always be either one of them :
+	{value : string , label : pack.title} or {value : null , label : "without a parent pack"} */
+	var [selected_parent_pack, set_selected_parent_pack] = useState(default_selected_parent_pack);
 
 	var user_id = localStorage.getItem("user_id");
 	async function upload_files_handler() {
@@ -23,15 +39,16 @@ export const NewResource = () => {
 		var title = document.getElementById("title_input").value;
 		collaborators.push({ access_level: 3, user_id });
 		try {
-			var result = await upload_new_resources({
+			var tmp = {
 				input_element_id: "files_input",
 				data: {
-					pack_id,
+					pack_id: selected_parent_pack.value,
 					collaborators,
 					description,
 					title,
 				},
-			});
+			};
+			var result = await upload_new_resources(tmp);
 			alert(
 				`all done! ${
 					result.length === 1
@@ -42,7 +59,7 @@ export const NewResource = () => {
 			if (result.length === 1) {
 				nav(`/dashboard/resources/${result[0]}`);
 			} else {
-				nav(pack_id !== undefined ? `/dashboard/packs/${pack_id}` : `/dashboard/`);
+				nav(pack_id !== null ? `/dashboard/packs/${pack_id}` : `/dashboard/`);
 			}
 		} catch (error) {
 			console.log(error);
@@ -84,6 +101,21 @@ export const NewResource = () => {
 						}),
 				]}
 				isMulti
+				isSearchable
+			/>
+			<h1>select a parent pack if you want : </h1>
+			<Select
+				onChange={set_selected_parent_pack}
+				value={selected_parent_pack}
+				options={[
+					{ value: null, label: "without a parent " },
+					...global_data.user.packs.map((pack) => {
+						return {
+							value: pack._id,
+							label: pack.title,
+						};
+					}),
+				]}
 				isSearchable
 			/>
 			<button onClick={upload_files_handler}>submit these</button>

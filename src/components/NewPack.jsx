@@ -1,17 +1,27 @@
 import React, { useContext, useEffect } from "react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { get_users, new_pack } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
 export const NewPack = () => {
 	var [all_users, set_all_users] = useState(null);
 	var [selected_collaborators, set_selected_collaborators] = useState([]);
-	var [selected_parent_pack, set_selected_parent_pack] = useState({
-		label: "without a parent",
-		value: null,
-	});
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
+	var [search_params, set_search_params] = useSearchParams();
+	/* if pack_id is present in url query we set default option of parent pack select to that  */
+	var pack_id = search_params.get("pack_id");
+	if (pack_id) {
+		let pack = global_data.all.packs.find((pack) => pack._id === pack_id);
+		var default_selected_parent_pack = {
+			value: pack._id,
+			label: pack.title,
+		};
+	} else {
+		var default_selected_parent_pack = { value: null, label: "without a parent pack" };
+	}
+	var [selected_parent_pack, set_selected_parent_pack] = useState(default_selected_parent_pack);
+
 	var user_id = localStorage.getItem("user_id");
 	var nav = useNavigate();
 	async function submit_new_pack() {
@@ -22,12 +32,13 @@ export const NewPack = () => {
 		});
 		collaborators.push({ access_level: 3, user_id });
 		try {
-			var id_of_new_pack = await new_pack({
+			var tmp = {
 				title,
 				description,
 				collaborators,
 				pack_id: selected_parent_pack.value,
-			});
+			};
+			var id_of_new_pack = await new_pack(tmp);
 			alert("all done!. navigating to newly created pack's page ...");
 			nav(`/dashboard/packs/${id_of_new_pack}/`);
 		} catch (error) {

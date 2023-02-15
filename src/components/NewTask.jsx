@@ -16,10 +16,25 @@ import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
 //TODO: component re-renders
 export const NewTask = () => {
-	var {global_data,get_global_data} = useContext(GlobalDataContext)
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
+
+	/* if pack_id is present in url query we set default option of parent pack select to that  */
 	var pack_id = search_params.get("pack_id");
+	if (pack_id) {
+		let pack = global_data.all.packs.find((pack) => pack._id === pack_id);
+		var default_selected_parent_pack = {
+			value: pack._id,
+			label: pack.title,
+		};
+	} else {
+		var default_selected_parent_pack = { value: null, label: "without a parent pack" };
+	}
+
+	/* selected_parent_pack must always be either one of them :
+	{value : string , label : pack.title} or {value : null , label : "without a parent pack"} */
+	var [selected_parent_pack, set_selected_parent_pack] = useState(default_selected_parent_pack);
 
 	var user_id = localStorage.getItem("user_id");
 	const [notes, setNotes] = useState(null);
@@ -49,8 +64,8 @@ export const NewTask = () => {
 		});
 		collaborators.push({ access_level: 3, user_id });
 		try {
-			var result = await new_task({
-				pack_id,
+			var tmp = {
+				pack_id: selected_parent_pack.value,
 				end_date: selected_dates.end,
 				start_date: selected_dates.start,
 				linked_notes: selectedNotes.map((i) => i.value),
@@ -59,7 +74,8 @@ export const NewTask = () => {
 				description: description_input,
 				category_id: selected_calendar_category.value._id,
 				collaborators,
-			});
+			};
+			var result = await new_task(tmp);
 			if (result.has_error) {
 				alert("Error! : " + result.error);
 			} else {
@@ -79,7 +95,6 @@ export const NewTask = () => {
 		<div className="p-2">
 			<h1>NewTask</h1>
 			<h1>creator's user_id : {user_id} </h1>
-			<h1>pack_id : {pack_id} </h1>
 			<h2>enter a title for this task : </h2>
 			<input onChange={(ev) => set_title_input(ev.target.value)} />
 			<h2>enter a description for this task : </h2>
@@ -171,6 +186,21 @@ export const NewTask = () => {
 						}),
 				]}
 				isMulti
+				isSearchable
+			/>
+			<h1>select a parent pack for this note if you want :</h1>
+			<Select
+				onChange={set_selected_parent_pack}
+				value={selected_parent_pack}
+				options={[
+					{ value: null, label: "without a parent pack " },
+					...global_data.user.packs.map((pack) => {
+						return {
+							value: pack._id,
+							label: pack.title,
+						};
+					}),
+				]}
 				isSearchable
 			/>
 			<button onClick={submit_new_task}>submit</button>
