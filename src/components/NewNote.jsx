@@ -17,7 +17,6 @@ export const NewNote = () => {
 		try {
 			var tmp = {
 				title: document.getElementById("title").value,
-				pack_id,
 				collaborators,
 				pack_id: selected_parent_pack.value,
 			};

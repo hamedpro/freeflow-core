@@ -91,11 +91,10 @@ export const PrimarySideBar = () => {
 		if (["tasks", "notes", "resources"].includes(context)) {
 			return [
 				{
-					text: `${context
-						.split("")
-						.slice(0, context.length - 1)
-						.join("")} : ${id}`,
-					url: `/${context}/${id}`,
+					text: `${context.slice(0, context.length - 1)} : ${
+						global_data.all[context].find((item) => item._id === id).title
+					}`,
+					url: `/dashboard/${context}/${id}`,
 					context,
 					id,
 					pack_id,
@@ -105,7 +104,7 @@ export const PrimarySideBar = () => {
 		} else if (context === "packs") {
 			var tmp = [
 				{
-					text: `pack ${id}`,
+					text: `pack : ${global_data.all.packs.find((pack) => pack._id === id).title}`,
 					url: `/dashboard/packs/${id}`,
 					context: "packs",
 					id,
@@ -118,7 +117,9 @@ export const PrimarySideBar = () => {
 					.filter((task) => task.pack_id === id)
 					.map((task) => {
 						return {
-							text: `task ${task._id}`,
+							text: `task :  ${global_data.all.tasks.find(
+								(task) => task._id === task._id
+							)}`,
 							url: `/dashboard/tasks/${task._id}`,
 							context: "tasks",
 							id: task._id,
@@ -132,7 +133,10 @@ export const PrimarySideBar = () => {
 					.filter((resource) => resource.pack_id === id)
 					.map((resource) => {
 						return {
-							text: `resource ${resource._id}`,
+							text: `resource : ${
+								global_data.all.resources.find((item) => item._id === resource._id)
+									.title
+							}`,
 							url: `/dashboard/resources/${resource._id}`,
 							context: "resources",
 							id: resource._id,
@@ -146,7 +150,9 @@ export const PrimarySideBar = () => {
 					.filter((note) => note.pack_id === id)
 					.map((note) => {
 						return {
-							text: `note ${note._id}`,
+							text: `note : ${
+								global_data.all.notes.find((item) => item._id === note._id).title
+							}`,
 							url: `/dashboard/notes/${note._id}`,
 							context: "notes",
 							id: note._id,
@@ -190,7 +196,7 @@ export const PrimarySideBar = () => {
 			return create_downside_tree({
 				context,
 				id,
-				pack_id: global_data.all.packs.find((pack) => pack._id === id).pack_id,
+				pack_id: global_data.all[context].find((item) => item._id === id).pack_id,
 				indent_level: 0,
 			});
 		}

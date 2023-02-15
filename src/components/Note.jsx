@@ -20,15 +20,12 @@ export const Note = () => {
 	var user_id = localStorage.getItem("user_id");
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var note = global_data.all.notes.find((note) => note._id === note_id);
+
 	var last_note_commit = global_data.all.note_commits
 		.filter((i) => i.note_id === note_id)
 		.sort((i1, i2) => i1.time - i2.time)
 		.at(-1);
-	if (note === undefined) {
-		return <h1>note you are looking for doesn't even exist!</h1>;
-	} else if (!note.collaborators.map((i) => i.user_id).includes(user_id)) {
-		return <h1>access denied! you are not a collaborator of this note</h1>;
-	}
+
 	var [editor_js_instanse, set_editor_js_instance] = useState(null);
 	useEffect(() => {
 		var editor_js_configs = {
