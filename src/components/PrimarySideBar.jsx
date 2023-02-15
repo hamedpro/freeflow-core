@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
-import { custom_find_unique } from "../../common_helpers";
+import { check_being_collaborator, custom_find_unique } from "../../common_helpers";
 import { GlobalDataContext } from "../GlobalDataContext";
 function Option({ text, indent_level, url }) {
 	var nav = useNavigate();
@@ -25,9 +25,35 @@ export const PrimarySideBar = () => {
 	var user_id = localStorage.getItem("user_id");
 	var [options, set_options] = useState();
 	var loc = useLocation();
+	function censor_tree(tree) {
+		//it checks each option and censors it if this user is not a collaborator of
+		//censor means that option is disabled and nothing about that option is visible
+
+		return JSON.parse(JSON.stringify(tree)).map((option) => {
+			if (
+				check_being_collaborator(
+					global_data.all[option.context].find((row) => row._id === option.id),
+					window.localStorage.getItem("user_id")
+				)
+			) {
+				return option;
+			} else {
+				/* console.log(
+					"row is",
+					global_data.all[option.context].find((row) => row._id === option.id),
+					`${window.localStorage.getItem("user_id")}`,
+					"is not a collaborator of"
+				); */
+				return {
+					...option,
+					text: `hidden ${option.context.slice(0, option.context.length - 1)}`,
+				};
+			}
+		});
+	}
 	function create_downside_tree({ context, id, pack_id, indent_level }) {
 		//possible values for context : packs , tasks , resources , notes
-		//it returns an array of options (with correct order and ready to be rendered )
+		//it returns an array of options (with correct order and indentation and ready to be rendered )
 
 		if (["tasks", "notes", "resources"].includes(context)) {
 			return [
@@ -48,7 +74,7 @@ export const PrimarySideBar = () => {
 				{
 					text: `pack ${id}`,
 					url: `/dashboard/packs/${id}`,
-					context,
+					context: "packs",
 					id,
 					pack_id,
 					indent_level,
@@ -61,8 +87,8 @@ export const PrimarySideBar = () => {
 						return {
 							text: `task ${task._id}`,
 							url: `/dashboard/tasks/${task._id}`,
-							context,
-							id,
+							context: "tasks",
+							id: task._id,
 							pack_id,
 							indent_level: indent_level + 1,
 						};
@@ -75,8 +101,8 @@ export const PrimarySideBar = () => {
 						return {
 							text: `resource ${resource._id}`,
 							url: `/dashboard/resources/${resource._id}`,
-							context,
-							id,
+							context: "resources",
+							id: resource._id,
 							pack_id,
 							indent_level: indent_level + 1,
 						};
@@ -89,8 +115,8 @@ export const PrimarySideBar = () => {
 						return {
 							text: `note ${note._id}`,
 							url: `/dashboard/notes/${note._id}`,
-							context,
-							id,
+							context: "notes",
+							id: note._id,
 							pack_id,
 							indent_level: indent_level + 1,
 						};
@@ -99,13 +125,14 @@ export const PrimarySideBar = () => {
 			global_data.all.packs
 				.filter((pack) => pack.pack_id === id)
 				.forEach((pack) => {
-					var tmp1 = create_downside_tree({
-						context: "packs",
-						id: pack._id,
-						pack_id: pack.pack_id,
-						indent_level: indent_level + 1,
-					});
-					tmp = tmp.concat(tmp1);
+					tmp = tmp.concat(
+						create_downside_tree({
+							context: "packs",
+							id: pack._id,
+							pack_id: pack.pack_id,
+							indent_level: indent_level + 1,
+						})
+					);
 				});
 			return tmp;
 		}
@@ -167,12 +194,7 @@ export const PrimarySideBar = () => {
 			trees.push(create_full_tree("packs", pack._id));
 		});
 
-		/* console.log(
-			"result of custom find unique is ",
-			custom_find_unique(trees, compare_custom_trees).flat()
-		); */
-
-		set_options(custom_find_unique(trees, compare_custom_trees).flat());
+		set_options(censor_tree(custom_find_unique(trees, compare_custom_trees).flat()));
 	}
 	useEffect(() => {
 		get_data();
