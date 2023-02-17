@@ -1,78 +1,76 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { new_comment as api_new_comment, edit_comment, delete_comment } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
-const CommentSBox = ({ user_id }) => {
+const CommentSBox = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var urlParams = useParams();
-	var current_field = Object.keys(urlParams)[0];
-	if (current_field === "task_id") {
-		var current_context = "tasks";
-	} else if (current_field === "note_id") {
-		var current_context = "notes";
-	} else if (current_field === "resource_id") {
-		var current_context = "resources";
-	} else if (current_field === "pack_id") {
-		current_context = "packs";
+	var user_id = window.localStorage.getItem("user_id");
+	var tmp = { task_id: "tasks", note_id: "notes", resource_id: "resources", pack_id: "packs" };
+	for (var key in tmp) {
+		if (key in urlParams) {
+			//current_context is either "packs" or "resources" or "notes" or "tasks"
+			var current_context = tmp[key];
+		}
 	}
-
-	var comments = [];
+	var current_field = urlParams[Object.keys(tmp).find((key) => tmp[key] === current_context)];
+	var [comments, set_comments] = useState(null);
 	function get_comments_of_pack(pack_id) {
 		//it doesnt just return direct comments of this pack
 		//it also returns comments of its children recursively
-		var tmp = [];
-
-		tmp = [
-			...tmp,
-			...global_data.all.comments.filter((comment) => comment.pack_id === pack_id),
-		];
+		let tmp = global_data.all.comments.filter(
+			(comment) => comment.id === pack_id && comment.context === "packs"
+		);
 
 		//adding comments of tasks and resources and notes which are direct children of this pack
-		tmp = [
-			...tmp,
-			...global_data.all.comments.filter((comment) => {
-				if (comment.task_id) {
+		tmp = tmp.concat(
+			global_data.all.comments.filter((comment) => {
+				if (comment.context === "tasks") {
 					return (
-						global_data.all.tasks.find((task) => task._id === comment.task_id)
+						global_data.all.tasks.find((task) => task._id === comment.id).pack_id ===
+						pack_id
+					);
+				} else if (comment.context === "resources") {
+					return (
+						global_data.all.resources.find((resource) => resource._id === comment.id)
 							.pack_id === pack_id
 					);
-				} else if (comment.resource_id) {
+				} else if (comment.context === "notes") {
 					return (
-						global_data.all.resources.find(
-							(resource) => resource._id === comment.resource_id
-						).pack_id === pack_id
+						global_data.all.notes.find((note) => note._id === comment.id).pack_id ===
+						pack_id
 					);
-				} else if (comment.note_id) {
-					return (
-						global_data.all.notes.find((note) => note._id === comment.note_id)
-							.pack_id === pack_id
-					);
+				} else {
+					return false;
 				}
-			}),
-		];
-
-		tmp = [
-			...tmp,
-			...global_data.all.packs
+			})
+		);
+		tmp = tmp.concat(
+			global_data.all.packs
 				.filter((pack) => pack.pack_id === pack_id)
 				.map((pack) => get_comments_of_pack(pack._id))
-				.flat(),
-		];
+				.flat()
+		);
 		return tmp;
 	}
 	function get_comments() {
 		//returns all comments of this context recursively
-		var context = current_context;
-		if (context === "tasks" || context === "notes" || context === "resources") {
+		if (
+			current_context === "tasks" ||
+			current_context === "notes" ||
+			current_context === "resources"
+		) {
 			//for example if content === "tasks" it returns comments of that task
-			return global_data.all.comments.filter(
-				(comment) => comment[current_field] === urlParams[current_field]
+			set_comments(
+				global_data.all.comments.filter((comment) => comment.id === current_field)
 			);
-		} else if (context === "packs") {
-			return get_comments_of_pack(urlParams["pack_id"]);
+		} else if (current_context === "packs") {
+			set_comments(get_comments_of_pack(current_field));
 		}
 	}
-	useEffect(() => get_comments(), []);
+	useEffect(() => {
+		get_comments();
+	}, [global_data]);
 	const edit_comment_handler = async (comment_id) => {
 		await edit_comment({
 			new_text: window.prompt("enter new text for this comment :"),
@@ -86,8 +84,9 @@ const CommentSBox = ({ user_id }) => {
 			text: document.getElementById("new_comment_text_input").value,
 			user_id,
 		};
-		tmp[current_field] = urlParams[current_field];
-		await new_comment(tmp);
+		tmp["context"] = current_context;
+		tmp["id"] = current_field;
+		await api_new_comment(tmp);
 		get_global_data();
 	}
 	const deleteHandler = async (comment_id) => {
@@ -110,7 +109,7 @@ const CommentSBox = ({ user_id }) => {
 			))}
 
 			<input placeholder="enter a comment" id="new_comment_text_input" />
-			<button onClick={new_comment}></button>
+			<button onClick={new_comment}>send </button>
 		</div>
 	);
 };

@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { GlobalDataContext } from "../GlobalDataContext";
+import CommentSBox from "./CommentsBox";
 import ObjectBox from "./ObjectBox";
 
 export const Pack = () => {
@@ -13,6 +14,7 @@ export const Pack = () => {
 				object={global_data.all.packs.find((pack) => pack._id === pack_id)}
 				link={`/dashboard/packs/${pack_id}`}
 			/>
+			<CommentSBox />
 		</>
 	);
 };

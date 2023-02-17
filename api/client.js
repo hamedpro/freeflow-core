@@ -340,10 +340,10 @@ export var download_resource = async ({ resource_id }) => {
 	});
 };
 
-export var new_comment = ({ date, text, user_id, pack_id, note_id, task_id }) =>
+export var new_comment = ({ date, text, user_id, context, id }) =>
 	new_document({
 		collection_name: "comments",
-		document: { date, text, user_id, pack_id, note_id, task_id },
+		document: { date, text, user_id, context, id },
 	});
 
 export var get_comments = ({ filters, global_data }) =>

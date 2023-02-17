@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { download_resource } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
+import CommentSBox from "./CommentsBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 
@@ -99,6 +100,7 @@ export const Resource = () => {
 			<button onClick={() => download_resource({ resource_id: resource_row._id })}>
 				download this resource
 			</button>
+			<CommentSBox />
 		</>
 	);
 };
