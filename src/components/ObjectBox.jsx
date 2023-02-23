@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 const ObjectBox = ({ object, link = null, onClick = () => {} }) => {
@@ -35,7 +35,7 @@ const ObjectBox = ({ object, link = null, onClick = () => {} }) => {
 				}
 			}}
 			className="px-2 rounded cursor-pointer my-2"
-			style={{height : 300 , width : "100%"}}
+			style={{ height: 300, width: "100%" }}
 		>
 			<DataGrid rows={rows} columns={columns} />
 		</div>

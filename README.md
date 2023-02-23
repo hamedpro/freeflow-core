@@ -17,7 +17,7 @@ then go to this newly created directory and install npm dependencies using this 
 cd pink_rose;
 npm install;
 ```
-then finally modify env.json file if you want to change default configurations for ports api and frontend are using and ...
+then finally modify env.json file and set values whatever you want
 
 then to start the project (both api and frontend) in development mode run this command below 
 

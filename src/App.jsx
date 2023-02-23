@@ -3,15 +3,12 @@ import "./App.css";
 import "./output.css";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import { month_names, multi_lang_helper as ml } from "../common_helpers.js";
-import { Login } from "./components/Login";
-import { RegisterPage } from "./components/register_page";
 import { SubscribtionPage } from "./components/subscribtionPage";
 import { Note } from "./components/Note";
 import { Task } from "./components/Task";
 import { NewNote } from "./components/NewNote";
 import { NewTask } from "./components/NewTask";
 import { Terms } from "./components/Terms";
-import { VerifyIdentity } from "./components/VerifyIdentity";
 import { MonthCalendar } from "./components/MonthCalendar.jsx";
 import { DayCalendar } from "./components/DayCalendar";
 import { Root } from "./components/Root.jsx";
@@ -37,6 +34,13 @@ import { NoteCommits } from "./components/NoteCommits";
 import { Packs } from "./components/Packs";
 import { Pack } from "./components/Pack";
 import { NewPack } from "./components/NewPack";
+import { RegisterStep1 } from "./components/RegisterStep1";
+import { RegisterStep2 } from "./components/RegisterStep2";
+import { LoginFindUser } from "./components/LoginFindUser";
+import { LoginMethodChoosing } from "./components/LoginMethodChoosing";
+import { LoginPasswordBased } from "./components/LoginPasswordBased";
+import { LoginVerificationBased } from "./components/LoginVerificationBased";
+import { RegisterStep3 } from "./components/RegisterStep3";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -101,10 +105,6 @@ function Wrapper({ last_location_change_timestamp }) {
 						<Route
 							path="settings"
 							element={<UserSettings key={last_location_change_timestamp} />}
-						/>
-						<Route
-							path="verification"
-							element={<VerifyIdentity key={last_location_change_timestamp} />}
 						/>
 
 						<Route
@@ -219,11 +219,37 @@ function App() {
 		<GlobalDataContext.Provider value={{ global_data, get_global_data }}>
 			<Routes>
 				<Route path="/" element={<Root key={last_location_change_timestamp} />} />
-				<Route path="/login" element={<Login key={last_location_change_timestamp} />} />
 				<Route
-					path="/register"
-					element={<RegisterPage key={last_location_change_timestamp} />}
+					path="/login/find_user"
+					element={<LoginFindUser key={last_location_change_timestamp} />}
 				/>
+				<Route
+					path="/login/method_choosing"
+					element={<LoginMethodChoosing key={last_location_change_timestamp} />}
+				/>
+				<Route
+					path="/login/verification_based"
+					element={<LoginVerificationBased key={last_location_change_timestamp} />}
+				/>
+
+				<Route
+					path="/login/password_based"
+					element={<LoginPasswordBased key={last_location_change_timestamp} />}
+				/>
+				<Route
+					path="/register/step1"
+					element={<RegisterStep1 key={last_location_change_timestamp} />}
+				/>
+
+				<Route
+					path="/register/step2"
+					element={<RegisterStep2 key={last_location_change_timestamp} />}
+				/>
+				<Route
+					path="/register/step3"
+					element={<RegisterStep3 key={last_location_change_timestamp} />}
+				/>
+
 				<Route path="/terms" element={<Terms key={last_location_change_timestamp} />} />
 				<Route
 					path="/subscribtion"

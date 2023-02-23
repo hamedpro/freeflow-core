@@ -23,3 +23,33 @@ task : get_resource
 {
     "_id" : "6396e064b990e52da9e78459"
 }
+
+###
+POST http://localhost:4000/v2/auth/password_verification 
+Content-Type: application/json
+
+{
+    "user_id" : "63eb49a2664bbc1056f1b770",
+    "password" : "hamedpro2"
+}
+###
+POST http://localhost:4000/v2/auth/verification_code_verification 
+Content-Type : application/json
+
+{
+    "user_id" : "63eb49a2664bbc1056f1b770",
+    "verf_code" : 
+}
+
+###
+POST http://localhost:4000/v2/playground
+Content-type : application/json
+auth : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjNlOGU4OWMxYmQ2NWY4OTUxZTgwOTdmIiwiaWF0IjoxNjc3MTgxMzgyfQ.Bi4YphMEm5QPCT0o-aurHuIjjsrRBknFZMUz_iUWqk8
+
+{}
+
+###
+get http://localhost:4000/v2/users
+Content-type : application/json
+
+{}

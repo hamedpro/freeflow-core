@@ -16,9 +16,9 @@ export const Root = () => {
 		<>
 			<h1>here is root route of the website</h1>
 			<Section title="options">
-				<Link to="/login">i want to login in my account</Link>
+				<Link to="/login/find_user">i want to login in my account</Link>
 				<br />
-				<Link to="/register">i want to create a new account</Link>
+				<Link to="/register/step1">i want to create a new account</Link>
 			</Section>
 		</>
 	);
