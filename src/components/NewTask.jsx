@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { TextField } from "@mui/material";
 //import AdapterMoment from "@date-io/jalaali";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { Section } from "./section";
 import {
 	custom_get_collection,
 	get_calendar_categories,
@@ -14,6 +15,8 @@ import {
 } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { StyledDiv } from "./styled_elements";
+import { NewCalendarCategorySection } from "./NewCalendarCategorySection";
 //TODO: component re-renders
 export const NewTask = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
@@ -37,27 +40,28 @@ export const NewTask = () => {
 	var [selected_parent_pack, set_selected_parent_pack] = useState(default_selected_parent_pack);
 
 	var user_id = localStorage.getItem("user_id");
-	const [notes, setNotes] = useState(null);
+
 	const [selectedNotes, selectNotes] = useState([]);
 	const [title_input, set_title_input] = useState();
 	const [description_input, set_description_input] = useState();
-	const [calendar_categories, set_calendar_categories] = useState(null);
+	var [all_users, set_all_users] = useState(null);
+	var [calendar_categories, set_calendar_categories] = useState(null);
+	var [notes, set_notes] = useState(null);
 	//TODO: check _locale for possible option to output the _d(date) object in jalaali's format
 	const [selected_dates, set_selected_dates] = useState({
 		end: null,
 		start: null,
 	});
-	var [all_users, set_all_users] = useState(null);
-
-	async function get_data() {
-		setNotes(await custom_get_collection({ context: "notes", user_id, global_data }));
-		set_calendar_categories(await get_calendar_categories({ user_id, global_data }));
-		set_all_users(await get_users({ filters: {}, global_data }));
-	}
-	var [selected_collaborators, set_selected_collaborators] = useState([]);
 	useEffect(() => {
-		get_data();
-	}, []);
+		async function tmp() {
+			set_all_users(await get_users({ filters: {}, global_data }));
+			set_calendar_categories(await get_calendar_categories({ user_id, global_data }));
+			set_notes(await custom_get_collection({ context: "notes", user_id, global_data }));
+		}
+		tmp();
+	}, [global_data]);
+
+	var [selected_collaborators, set_selected_collaborators] = useState([]);
 	async function submit_new_task() {
 		var collaborators = selected_collaborators.map((i) => {
 			return { is_owner: false, user_id: i.value };
@@ -95,13 +99,17 @@ export const NewTask = () => {
 	return (
 		<div className="p-2">
 			<h1>NewTask</h1>
-			<h1>creator's user_id : {user_id} </h1>
-			<h2>enter a title for this task : </h2>
-			<input onChange={(ev) => set_title_input(ev.target.value)} />
-			<h2>enter a description for this task : </h2>
-			<input onChange={(ev) => set_description_input(ev.target.value)} />
+			<h2 className="mt-2">enter a title for this task : </h2>
+			<input className="px-1 rounded" onChange={(ev) => set_title_input(ev.target.value)} />
+			<h2 className="mt-2">enter a description for this task : </h2>
+			<textarea
+				className="px-1 rounded"
+				onChange={(ev) => set_description_input(ev.target.value)}
+				rows={5}
+			></textarea>
 
-			<h2>select an existing calendar category or create a new one</h2>
+			<h2 className="mt-2">select an existing calendar category or create a new one</h2>
+			<p>(if what you want was not in existing categories create it now in section below)</p>
 			<Select
 				onChange={select_calendar_category}
 				value={selected_calendar_category}
@@ -115,29 +123,8 @@ export const NewTask = () => {
 				]}
 				isSearchable
 			/>
-			<h3>if what you want was not in existing categories create it first :</h3>
-			<input id="new_calendar_category_name_input" />
-			<p>
-				and enter one of these colors here :
-				"yellow","red","blue","darkblue","green","purple","black"
-			</p>
-			<input id="new_calendar_category_color_input" />
-			<button
-				onClick={async () => {
-					await new_calendar_category({
-						user_id,
-						name: document.getElementById("new_calendar_category_name_input").value,
-						color: document.getElementById("new_calendar_category_color_input").value,
-					});
-					alert(
-						"new calendar category was added to your profile successfuly.above options will be updated. please select it"
-					);
-					get_data();
-				}}
-			>
-				create a new category
-			</button>
-			<h2>select notes you want to link with this task :</h2>
+			<NewCalendarCategorySection />
+			<h2 className="mt-2">select notes you want to link with this task :</h2>
 			<Select
 				onChange={selectNotes}
 				options={notes.map((note) => {
@@ -150,8 +137,8 @@ export const NewTask = () => {
 				isSearchable
 				value={selectedNotes}
 			/>
-			<br />
-			<h2>select 'start' and 'end' dates for this task : </h2>
+
+			<h2 className="mt-2">select 'start' and 'end' dates for this task : </h2>
 			{["start", "end"].map((type, index) => {
 				return (
 					<div key={index} className="mb-3 block">
@@ -172,7 +159,7 @@ export const NewTask = () => {
 					</div>
 				);
 			})}
-			<h1>choose collaborators of this new task :</h1>
+			<h1>add collaborators to this new task :</h1>
 			<Select
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
@@ -204,7 +191,9 @@ export const NewTask = () => {
 				]}
 				isSearchable
 			/>
-			<button onClick={submit_new_task}>submit</button>
+			<StyledDiv className="w-fit mt-2" onClick={submit_new_task}>
+				submit
+			</StyledDiv>
 		</div>
 	);
 };

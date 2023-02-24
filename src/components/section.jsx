@@ -1,8 +1,8 @@
-export const Section = ({ title,children }) => {
+export const Section = ({ title, children, style = {}, className = "" }) => {
 	return (
-		<div className="p-2">
+		<div className={"p-2" + " " + className} style={style}>
 			<h1>{title}</h1>
-			<div className="border border-stone-200 rounded mx-2 p-2">{children}</div>
+			<div className="border border-stone-200 rounded p-2">{children}</div>
 		</div>
 	);
 };

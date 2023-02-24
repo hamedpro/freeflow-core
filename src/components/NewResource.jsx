@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { get_users, upload_new_resources } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { StyledDiv } from "./styled_elements";
 export const NewResource = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
@@ -28,7 +29,7 @@ export const NewResource = () => {
 
 	var user_id = localStorage.getItem("user_id");
 	async function upload_files_handler() {
-		if (document.getElementById("files_input").files.length === 0) {
+		if (document.getElementById("file_input").files.length === 0) {
 			alert("you have not selected any file to upload.");
 			return;
 		}
@@ -40,7 +41,7 @@ export const NewResource = () => {
 		collaborators.push({ is_owner: true, user_id });
 		try {
 			var tmp = {
-				input_element_id: "files_input",
+				input_element_id: "file_input",
 				data: {
 					pack_id: selected_parent_pack.value,
 					collaborators,
@@ -49,18 +50,8 @@ export const NewResource = () => {
 				},
 			};
 			var result = await upload_new_resources(tmp);
-			alert(
-				`all done! ${
-					result.length === 1
-						? "navigating to this new uploaded resource ..."
-						: "you have uploaded multiple files so you will be navigated to parent level of those new resources "
-				}`
-			);
-			if (result.length === 1) {
-				nav(`/dashboard/resources/${result[0]}`);
-			} else {
-				nav(pack_id !== null ? `/dashboard/packs/${pack_id}` : `/dashboard/`);
-			}
+			alert(`all done! navigating to this new uploaded resource ...`);
+			nav(`/dashboard/resources/${result[0]}`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -77,16 +68,15 @@ export const NewResource = () => {
 	var [selected_collaborators, set_selected_collaborators] = useState([]);
 	if (all_users === null) return <h1>loading users list... </h1>;
 	return (
-		<>
+		<div className="p-2">
 			<div>NewResource</div>
 
 			<p>select files you want to upload : </p>
-			<input type="file" multiple id="files_input" />
+			<input className="px-1" type="file" id="file_input" />
 			<h1>enter a title:</h1>
-			<input id="title_input" type={"text"} />
+			<input className="px-1 rounded" id="title_input" />
 			<h1>enter a description:</h1>
-			<input id="description_input" type={"text"} />
-
+			<textarea className="px-1 rounded" id="description_input" rows={5}></textarea>
 			<h1>choose collaborators of this new resource :</h1>
 			<Select
 				onChange={set_selected_collaborators}
@@ -119,7 +109,9 @@ export const NewResource = () => {
 				]}
 				isSearchable
 			/>
-			<button onClick={upload_files_handler}>submit these</button>
-		</>
+			<StyledDiv onClick={upload_files_handler} className="w-fit mt-2">
+				upload this resource
+			</StyledDiv>
+		</div>
 	);
 };

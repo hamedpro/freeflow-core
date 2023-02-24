@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { get_users, new_pack } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { StyledDiv } from "./styled_elements";
 export const NewPack = () => {
 	var [all_users, set_all_users] = useState(null);
 	var [selected_collaborators, set_selected_collaborators] = useState([]);
@@ -58,17 +59,17 @@ export const NewPack = () => {
 	return (
 		<div className="p-2">
 			<h1>New Pack</h1>
-			<h1>user_id of the creator : {user_id}</h1>
-			{["title", "description"].map((i, index) => {
-				return (
-					<React.Fragment key={index}>
-						<h1>enter {i} :</h1>
-						<input className="border border-blue-400 rounded px-1" id={i} />
-					</React.Fragment>
-				);
-			})}
+			<h1 className="mt-2">enter title :</h1>
+			<input className="border border-blue-400 rounded px-1" id={"title"} />
 
-			<h1>choose collaborators of this new pack :</h1>
+			<h1 className="mt-2">enter description :</h1>
+			<textarea
+				className="border border-blue-400 rounded px-1"
+				id={"description"}
+				rows={5}
+			></textarea>
+
+			<h1 className="mt-2">choose collaborators of this new pack :</h1>
 			<Select
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
@@ -85,7 +86,7 @@ export const NewPack = () => {
 				isMulti
 				isSearchable
 			/>
-			<h1>choose a parent pack for this pack if you want:</h1>
+			<h1 className="mt-2">choose a parent pack for this pack if you want:</h1>
 			<Select
 				onChange={set_selected_parent_pack}
 				value={selected_parent_pack}
@@ -99,7 +100,9 @@ export const NewPack = () => {
 					}),
 				]}
 			/>
-			<button onClick={submit_new_pack}>submit</button>
+			<StyledDiv onClick={submit_new_pack} className="w-fit mt-2">
+				create pack{" "}
+			</StyledDiv>
 		</div>
 	);
 };

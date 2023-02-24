@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { new_event } from "../../api/client";
 import { TextField } from "@mui/material";
 //import AdapterMoment from "@date-io/jalaali";
@@ -6,50 +6,52 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useEffect } from "react";
-import {
-	get_calendar_categories,
-	new_calendar_category,
-} from "../../api/client";
+import { get_calendar_categories, new_calendar_category } from "../../api/client";
 import Select from "react-select";
+import { NewCalendarCategorySection } from "./NewCalendarCategorySection";
+import { GlobalDataContext } from "../GlobalDataContext";
+import { StyledDiv } from "./styled_elements";
+
 export const NewEvent = () => {
 	var user_id = localStorage.getItem("user_id");
-	async function get_data() {
-		set_calendar_categories(await get_calendar_categories({ user_id }));
-	}
+	var { global_data } = useContext(GlobalDataContext);
 	var [selected_calendar_category, select_calendar_category] = useState(null);
+	var [calendar_categories, set_calendar_categories] = useState(null);
+	var [selected_dates, set_selected_dates] = useState({ end: null, start: null });
 
 	var submit_new_event = async () => {
-		var result = await new_event({
-			end_date: selected_dates.end,
-			start_date: selected_dates.start,
-			category_id: selected_calendar_category.value._id,
-			...input_values,
-			user_id,
-		});
-		if (result.has_error) {
-			alert("Error! : " + result.error);
-		} else {
+		try {
+			var tmp = {
+				end_date: selected_dates.end,
+				start_date: selected_dates.start,
+				category_id: selected_calendar_category.value._id,
+				title: document.getElementById("title_input").value,
+				user_id,
+			};
+
+			await new_event(tmp);
 			alert("done");
+		} catch (error) {
+			console.log(error);
+			alert("something went wrong. details in dev console.");
 		}
 	};
-	var [input_values, set_input_values] = useState({
-		title: null,
-	});
-	const [calendar_categories, set_calendar_categories] = useState(null);
-	var [selected_dates, set_selected_dates] = useState({ end: null, start: null });
+
+	async function get_data() {
+		set_calendar_categories(await get_calendar_categories({ user_id, global_data }));
+	}
 	useEffect(() => {
 		get_data();
-	}, []);
+	}, [global_data]);
+
 	if (calendar_categories === null) return <h1>still loading data ...</h1>;
+
 	return (
-		<div>
+		<div className="p-2">
 			<h1>NewEvent</h1>
-			<input
-				onChange={(event) => {
-					set_input_values({ title: event.target.value });
-				}}
-			/>
-			<h2>select an existing calendar category or create a new one</h2>
+			<p className="mt-2">enter a title :</p>
+			<input id="title_input" className="rounded px-1" />
+			<h2 className="mt-2">select an existing calendar category or create a new one</h2>
 			<Select
 				onChange={select_calendar_category}
 				value={selected_calendar_category}
@@ -63,32 +65,12 @@ export const NewEvent = () => {
 				]}
 				isSearchable
 			/>
-			<h3>if what you want was not in existing categories create it first :</h3>
-			<input id="new_calendar_category_name_input" />
-			<p>
-				and enter one of these colors here :
-				"yellow","red","blue","darkblue","green","purple","black"
-			</p>
-			<input id="new_calendar_category_color_input" />
-			<button
-				onClick={async () => {
-					await new_calendar_category({
-						user_id,
-						name: document.getElementById("new_calendar_category_name_input").value,
-						color: document.getElementById("new_calendar_category_color_input").value,
-					});
-					alert(
-						"new calendar category was added to your profile successfuly.above options will be updated. please select it"
-					);
-					get_data();
-				}}
-			>
-				create a new category
-			</button>
-			<h2>select 'start' and 'end' dates for this task : </h2>
+			<NewCalendarCategorySection />
+
+			<h2 className="mt-2">select 'start' and 'end' dates for this task : </h2>
 			{["start", "end"].map((type, index) => {
 				return (
-					<div key={index} className="mb-3 block">
+					<div key={index} className="mb-3 mt-2 block">
 						<LocalizationProvider dateAdapter={AdapterDayjs}>
 							<DateTimePicker
 								renderInput={(props) => <TextField {...props} />}
@@ -106,7 +88,9 @@ export const NewEvent = () => {
 					</div>
 				);
 			})}
-			<button onClick={submit_new_event}>submit this event</button>
+			<StyledDiv onClick={submit_new_event} className="w-fit mt-2">
+				submit this event
+			</StyledDiv>
 		</div>
 	);
 };

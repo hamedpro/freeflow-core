@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { get_users, new_note } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { StyledDiv } from "./styled_elements";
 export const NewNote = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
@@ -57,12 +58,12 @@ export const NewNote = () => {
 	if (all_users === null) return <h1>loading users list... </h1>;
 
 	return (
-		<div>
+		<div className="p-2">
 			<h1>NewNote</h1>
 
-			<h1>enter a title : </h1>
-			<input id="title" className="border border-blue-400" />
-			<h1>choose collaborators of this new note :</h1>
+			<h1 className="mt-2">enter a title : </h1>
+			<input id="title" className="border border-blue-400 px-1 rounded" />
+			<h1 className="mt-2">add collaborators to this new note :</h1>
 			<Select
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
@@ -79,7 +80,7 @@ export const NewNote = () => {
 				isMulti
 				isSearchable
 			/>
-			<h1>select a parent pack for this note if you want :</h1>
+			<h1 className="mt-2">select a parent pack for this note if you want :</h1>
 			<Select
 				onChange={set_selected_parent_pack}
 				value={selected_parent_pack}
@@ -94,7 +95,9 @@ export const NewNote = () => {
 				]}
 				isSearchable
 			/>
-			<button onClick={submit_new_note}>submit this note</button>
+			<StyledDiv onClick={submit_new_note} className="w-fit mt-2">
+				submit this note
+			</StyledDiv>
 		</div>
 	);
 };
