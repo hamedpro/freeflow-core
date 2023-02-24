@@ -18,7 +18,7 @@ export const Task = () => {
 		return <h1>access denied! you are not a collaborator of this task </h1>;
 	}
 	async function change_task_handler(type) {
-		if (task.collaborators.find((i) => i.user_id === user_id).access_level === 1) {
+		if (task.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
 			alert(
 				"access denied! to do this you must either be the owner of this task or an admin of that"
 			);
@@ -43,7 +43,7 @@ export const Task = () => {
 		get_global_data();
 	}
 	async function leave_this_task() {
-		if (task.collaborators.find((i) => i.user_id === user_id).access_level === 3) {
+		if (task.collaborators.find((i) => i.user_id === user_id).is_owner === true) {
 			alert(
 				"you are the owner of here. if you want to leave here you must upgrade another collaborator to owner (instead of yourself) first"
 			);
@@ -60,7 +60,7 @@ export const Task = () => {
 			.finally(get_global_data);
 	}
 	async function delete_this_task() {
-		if (task.collaborators.find((i) => i.user_id === user_id).access_level !== 3) {
+		if (task.collaborators.find((i) => i.user_id === user_id).is_owner !== true) {
 			alert("access denied! only owner of this task can do this.");
 			return;
 		}

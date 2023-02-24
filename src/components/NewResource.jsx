@@ -33,11 +33,11 @@ export const NewResource = () => {
 			return;
 		}
 		var collaborators = selected_collaborators.map((i) => {
-			return { access_level: 1, user_id: i.value };
+			return { is_owner: false, user_id: i.value };
 		});
 		var description = document.getElementById("description_input").value;
 		var title = document.getElementById("title_input").value;
-		collaborators.push({ access_level: 3, user_id });
+		collaborators.push({ is_owner: true, user_id });
 		try {
 			var tmp = {
 				input_element_id: "files_input",

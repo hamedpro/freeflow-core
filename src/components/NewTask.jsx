@@ -60,9 +60,9 @@ export const NewTask = () => {
 	}, []);
 	async function submit_new_task() {
 		var collaborators = selected_collaborators.map((i) => {
-			return { access_level: 1, user_id: i.value };
+			return { is_owner: false, user_id: i.value };
 		});
-		collaborators.push({ access_level: 3, user_id });
+		collaborators.push({ is_owner: true, user_id });
 		try {
 			var tmp = {
 				pack_id: selected_parent_pack.value,

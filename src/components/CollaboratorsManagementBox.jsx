@@ -1,13 +1,8 @@
 import { PersonRounded } from "@mui/icons-material";
 import React, { useContext } from "react";
 import { useState } from "react";
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-	get_collection,
-	modify_collaborator_access_level,
-	update_document,
-} from "../../api/client";
+import { get_collection, update_document } from "../../api/client";
 import { Section } from "./section.jsx";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
@@ -23,11 +18,9 @@ function OptionsSection({ collaborators, id, context }) {
 			},
 			update_set: {
 				collaborators: [
-					...collaborators.map((i) => {
-						return { user_id: i.user_id, access_level: i.access_level };
-					}),
+					...collaborators,
 					...selected_collaborators.map((i) => {
-						return { user_id: i.value, access_level: 1 };
+						return { user_id: i.value, is_owner: false };
 					}),
 				],
 			},
@@ -110,41 +103,34 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 		alert("done!");
 		get_global_data();
 	}
-	async function change_user_access_level(collaborator, mode) {
-		//mode === 1 : upgrade access level of that collaborator by 1
-		//mode === -1 : downgrade access level of that collaborator by 1
-		if (!window.confirm("are you sure ?!")) return;
-		if (collaborator.access_level + mode === 3) {
-			if (
-				!window.confirm(
-					"now you are owner but if you do this action you become an admin and this user with be owner. do you want to continue ? "
-				)
-			) {
-				return;
-			} else {
-				await modify_collaborator_access_level({
-					context,
-					id,
-					user_id: localStorage.getItem("user_id"),
-					new_access_level: 2,
-					global_data,
-				});
-				alert('your access level was changed to 2 ("admin").');
-			}
+	async function make_a_user_owner(collaborator) {
+		//it makes collaborator which is passed in the first parameter admin
+
+		if (
+			!window.confirm(
+				"now you are owner but if you do this action you become an admin and this user with be owner. do you want to continue ? "
+			)
+		) {
+			return;
 		}
-		try {
-			await modify_collaborator_access_level({
-				context,
-				id,
-				user_id: collaborator.user_id,
-				new_access_level: collaborator.access_level + mode,
-				global_data,
-			});
-			alert("all done!");
-		} catch (error) {
-			alert("something went wrong! details in console");
-			console.log(error);
-		}
+		await update_document({
+			collection: context,
+			update_filter: {
+				_id: id,
+			},
+			update_set: {
+				collaborators: [
+					...collaborators.filter(
+						(i) =>
+							i.user_id !== collaborator.user_id &&
+							i.user_id !== window.localStorage.getItem("user_id")
+					),
+					{ user_id: collaborator.user_id, is_owner: true },
+					{ user_id: window.localStorage.getItem("user_id"), is_owner: false },
+				],
+			},
+		});
+
 		get_global_data();
 	}
 	return (
@@ -178,42 +164,22 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 									<p>undefined</p>
 								)}
 							</p>
-							<p>
-								privilege level :{" "}
-								{collaborator.access_level === 3
-									? "owner"
-									: collaborator.access_level === 2
-									? "admin"
-									: "normal user"}
-							</p>
-							{logged_in_user.access_level > collaborator.access_level ? (
-								<>
-									<button
-										onClick={() =>
-											remove_collaborator_handler(collaborator.user_id)
-										}
-									>
-										remove collaborator
-									</button>
-									<button
-										onClick={() => change_user_access_level(collaborator, 1)}
-									>
-										{collaborator.access_level === 1 ? "make user admin" : null}
-										{collaborator.access_level === 2 ? "make user owner" : null}
-									</button>
-									{collaborator.access_level !== 1 ? (
+							<p>is_owner : {collaborator.is_owner === true ? "true" : "false"}</p>
+							{logged_in_user.is_owner &&
+								collaborator.user_id !== logged_in_user.user_id && (
+									<>
 										<button
 											onClick={() =>
-												change_user_access_level(collaborator, -1)
+												remove_collaborator_handler(collaborator.user_id)
 											}
 										>
-											{collaborator.access_level === 2
-												? "make user normal user"
-												: null}
+											remove collaborator
 										</button>
-									) : null}
-								</>
-							) : null}
+										<button onClick={() => make_a_user_owner(collaborator)}>
+											make this user admin
+										</button>
+									</>
+								)}
 						</div>
 					);
 				})}

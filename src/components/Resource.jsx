@@ -19,7 +19,7 @@ export const Resource = () => {
 		return <h1>access denied! you are not a collaborator of this resource</h1>;
 	}
 	async function change_resource_handler(type) {
-		if (resource_row.collaborators.find((i) => i.user_id === user_id).access_level === 1) {
+		if (!resource_row.collaborators.map((i) => i.user_id).includes(user_id)) {
 			alert(
 				"access denied! to do this you must either be the owner of this resource or an admin of that"
 			);
@@ -44,7 +44,7 @@ export const Resource = () => {
 		get_global_data();
 	}
 	async function leave_this_resource() {
-		if (resource_row.collaborators.find((i) => i.user_id === user_id).access_level === 3) {
+		if (resource_row.collaborators.find((i) => i.user_id === user_id).is_owner === true) {
 			alert(
 				"you are the owner of here. if you want to leave here you must upgrade another collaborator to owner (instead of yourself) first"
 			);
@@ -61,7 +61,7 @@ export const Resource = () => {
 			.finally(get_global_data);
 	}
 	async function delete_this_resource() {
-		if (resource_row.collaborators.find((i) => i.user_id === user_id).access_level !== 3) {
+		if (resource_row.collaborators.find((i) => i.user_id === user_id).is_owner !== true) {
 			alert("access denied! only owner of this resource can do this.");
 			return;
 		}

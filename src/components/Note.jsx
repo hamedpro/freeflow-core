@@ -102,7 +102,7 @@ export const Note = () => {
     */
 	};
 	async function change_note_handler(type) {
-		if (note.collaborators.find((i) => i.user_id === user_id).access_level === 1) {
+		if (!note.collaborators.map((i) => i.user_id).includes(user_id)) {
 			alert(
 				"access denied! to do this you must either be the owner of this note or an admin of that"
 			);
@@ -127,7 +127,7 @@ export const Note = () => {
 		get_global_data();
 	}
 	async function leave_this_note() {
-		if (note.collaborators.find((i) => i.user_id === user_id).access_level === 3) {
+		if (note.collaborators.find((i) => i.user_id === user_id).is_owner === true) {
 			alert(
 				"you are the owner of here. if you want to leave here you must upgrade another collaborator to owner (instead of yourself) first"
 			);
@@ -144,7 +144,7 @@ export const Note = () => {
 			.finally(get_global_data);
 	}
 	async function delete_this_note() {
-		if (note.collaborators.find((i) => i.user_id === user_id).access_level !== 3) {
+		if (note.collaborators.find((i) => i.user_id === user_id).is_owner === false) {
 			alert("access denied! only owner of this note can do this.");
 			return;
 		}

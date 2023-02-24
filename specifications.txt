@@ -1,0 +1,24 @@
+collaboration system : 
+    concept
+        every note or task or resource or pack has a 
+        number of users as its "collaborators" and we
+        call all other users "others". 
+        
+        only one of collaborators is "owner".
+
+        each pack or note or task or resource has a "rules"
+        value which clarify exact privileges of
+        each user whether that user is owner or another
+        collaborator or considered as "others".
+
+        this value ('rules') also saves other fields like the percentage of
+        approval required to accept an incoming change suggesstion and fields like this.
+
+    implementation
+        each task or resource or note or pack is saved as a js object (called document) in mongodb 
+        this object has a collaborators field with type of "array" which includes objects in this shape : 
+        {user_id : <24 digit hex mongodb _id> , is_owner : boolean  }
+
+        also it has another field "rules":
+        todo complete here
+
