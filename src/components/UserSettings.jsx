@@ -1,21 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { get_users, update_document, upload_files } from "../../api/client";
 import { Section } from "./section";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { StyledDiv } from "./styled_elements";
 export const UserSettings = () => {
-	var {global_data,get_global_data} = useContext(GlobalDataContext)
-	var [inputs_statuses, set_inputs_statuses] = useState({
-		email_address: false,
-		mobile: false,
-		full_name: false,
-		username: false,
-	});
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var user_id = localStorage.getItem("user_id");
-	var [user, set_user] = useState(null);
-	async function get_data() {
-		set_user((await get_users({ filters: { _id: user_id } ,global_data}))[0]);
-	}
+	var user = get_users({ filters: { _id: user_id }, global_data })[0];
 	async function simple_update(key, new_value) {
 		var update_set = {};
 		update_set[key] = new_value;
@@ -41,44 +33,50 @@ export const UserSettings = () => {
 		});
 		get_global_data();
 	}
-	useEffect(() => {
-		get_data();
-	}, []);
-	useEffect(() => {
-		var tmp = async () => {
-			set_user((await get_users({ filters: { _id: user_id }, global_data }))[0]);
-		};
-		tmp();
-	}, [global_data]);
 	if (user === null) return <h1>loading user ... </h1>;
 	return (
 		<>
-			<h1>UserSettings</h1>
-			<div style={{ width: "200px", height: "200px" }}>
-				{user.profile_image ? (
-					<img
-						src={
-							new URL(`/profile_images/${user.profile_image}`, window.api_endpoint)
-								.href
-						}
-						className="w-full h-full"
-					/>
-				) : (
-					<div className="w-full h-full bg-blue-600"></div>
-				)}
+			<div className="p-2">
+				<h1>UserSettings</h1>
+				<div style={{ width: "200px", height: "200px" }}>
+					{user.profile_image ? (
+						<img
+							src={
+								new URL(
+									`/profile_images/${user.profile_image}`,
+									window.api_endpoint
+								).href
+							}
+							className="w-full h-full"
+						/>
+					) : (
+						<div className="w-full h-full bg-blue-600"></div>
+					)}
+				</div>
+				<input type="file" id="new_profile_image_input" className="mt-2 block " />
+				<StyledDiv onClick={set_profile_picture} className="w-fit mt-2">
+					set this new profile image
+				</StyledDiv>
 			</div>
-			<input type="file" id="new_profile_image_input" />
-			<button onClick={set_profile_picture}>set this new profile image</button>
 			<Section title={"selecting type of calendar"}>
 				<Select
 					onChange={(e) => simple_update("calendar_type", e.value)}
-					options={["persian", "arabic", "english"].map((type) => {
-						return {
-							value: type,
-							label: type,
-						};
-					})}
-					value={{ value: user.calendar_type, label: user.calendar_type }}
+					options={[
+						{ value: null, label: "not chosen (use default )" },
+						...["persian", "arabic", "english"].map((type) => {
+							return {
+								value: type,
+								label: type,
+							};
+						}),
+					]}
+					value={{
+						value: user.calendar_type,
+						label:
+							user.calendar_type === null
+								? "not chosen (use default )"
+								: user.calendar_type,
+					}}
 				/>
 			</Section>
 
@@ -86,6 +84,7 @@ export const UserSettings = () => {
 				<Select
 					onChange={(e) => simple_update("week_starting_day", e.value)}
 					options={[
+						{ value: null, label: "not chosen (use default )" },
 						{
 							label: "popluar options",
 							options: ["saturday", "sunday", "monday"].map((i) => {
@@ -100,17 +99,27 @@ export const UserSettings = () => {
 							}),
 						},
 					]}
-					value={{ value: user.week_starting_day, label: user.week_starting_day }}
+					value={{
+						value: user.week_starting_day,
+						label:
+							user.week_starting_day === null
+								? "not chosen (use default )"
+								: user.week_starting_day,
+					}}
 				/>
 			</Section>
 			<Section title={"selecting language"}>
 				<Select
 					onChange={(e) => simple_update("language", e.value)}
 					options={[
+						{ value: null, label: "not chosen (use default )" },
 						{ value: "english", label: "english" },
 						{ value: "persian", label: "persian" },
 					]}
-					value={{ value: user.language, label: user.language }}
+					value={{
+						value: user.language,
+						label: user.language === null ? "not chosen (use default )" : user.language,
+					}}
 				/>
 			</Section>
 			<Section title={"changing personal information"}>
@@ -119,43 +128,22 @@ export const UserSettings = () => {
 						<div key={index} className="block">
 							{user[i] ? (
 								<>
-									<span>{i}</span> :{" "}
-									<input
-										value={user[i]}
-										onChange={(event) => simple_update(i, event.target.value)}
-										disabled={!inputs_statuses[i]}
-									/>
-									<button
-										onClick={() =>
-											set_inputs_statuses((prev_statuses) => {
-												var tmp = { ...prev_statuses };
-												tmp[i] = !prev_statuses[i];
-												return tmp;
-											})
-										}
-									>
-										{inputs_statuses[i]
-											? "disable modification"
-											: "enable modification"}
-									</button>
+									<span>{i}</span> : {user[i]}
 								</>
 							) : (
 								<>
 									<span>{i}</span> :{" "}
-									<span>there is not any value for this field yeat</span>
-									<button
-										className="border border-green-600 rounded  px-2 ml-2"
-										onClick={(event) => {
-											simple_update(
-												i,
-												window.prompt(`enter new value for ${i}`)
-											);
-										}}
-									>
-										set a value
-									</button>
+									<span>there is not any value for this field yet</span>
 								</>
 							)}
+							<button
+								className="border border-green-600 rounded  px-2 ml-2"
+								onClick={() => {
+									simple_update(i, window.prompt(`enter new value for ${i}`));
+								}}
+							>
+								change value
+							</button>
 						</div>
 					);
 				})}
