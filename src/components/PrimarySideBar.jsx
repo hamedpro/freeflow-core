@@ -4,22 +4,6 @@ import { useState } from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
 import { check_being_collaborator, custom_find_unique } from "../../common_helpers";
 import { GlobalDataContext } from "../GlobalDataContext";
-function Option({ text, indent_level, url }) {
-	var nav = useNavigate();
-	var is_selected = useMatch(url);
-	return (
-		<div
-			className={[
-				"border-t border-b border-black flex  items-center w-full",
-				is_selected ? "bg-blue-600 text-white" : "",
-			].join(" ")}
-			style={{ paddingLeft: indent_level * 20 + "px" }}
-			onClick={() => nav(url)}
-		>
-			{text}
-		</div>
-	);
-}
 function AddNewOptionRow() {
 	var nav = useNavigate();
 	var { global_data } = useContext(GlobalDataContext);
@@ -30,28 +14,30 @@ function AddNewOptionRow() {
 		*/
 
 		var { pathname } = window.location;
-		if (pathname.startsWith("/dashboard/packs") && pathname !== "/dashboard/packs/new") {
-			nav(`/dashboard/${type}/new?pack_id=${pathname.split("/")[3]}`);
+		var my_regex = /(?:\/)*dashboard\/packs\/(?<pack_id>[0-9A-Fa-f]{24})(?:\/)*$/g;
+		var tmp = my_regex.exec(pathname);
+		if (tmp) {
+			nav(`/dashboard/${type}/new?pack_id=${tmp.groups.pack_id}`);
 		} else {
 			//current active items is not a pack to create new note or ... inside it but
 			//we check if this item has a parent we create this new note or ... inside that
 
 			//todo this method of checking whether path matches pattern or not is not complete
-			if (
-				["notes", "tasks", "resources"].some((item) =>
-					pathname.startsWith(`/dashboard/${item}`)
-				) &&
-				pathname.split("/")[3] !== "new"
-			) {
-				let active_item = global_data.all[pathname.split("/")[2]].find(
-					(item) => item._id == pathname.split("/")[3]
+			var my_regex =
+				/(?:\/)*dashboard\/(?<thing_context>notes|resources|tasks)\/(?<thing_id>[0-9A-Fa-f]{24})(?:\/)*$/g;
+
+			var tmp = my_regex.exec(pathname);
+			if (tmp) {
+				var thing = global_data.all[tmp.groups.thing_context].find(
+					(i) => i._id === tmp.groups.thing_id
 				);
-				console.log(active_item);
-				if (active_item.pack_id) {
-					nav(`/dashboard/${type}/new?pack_id=${active_item.pack_id}`);
+				if (thing.pack_id) {
+					nav(`/dashboard/${type}/new?pack_id=${thing.pack_id}`);
 				} else {
 					nav(`/dashboard/${type}/new`);
 				}
+			} else {
+				nav(`/dashboard/${type}/new`);
 			}
 		}
 	}
@@ -72,7 +58,22 @@ function AddNewOptionRow() {
 		</div>
 	);
 }
-
+function Option({ text, indent_level, url }) {
+	var nav = useNavigate();
+	var is_selected = useMatch(url);
+	return (
+		<div
+			className={[
+				"border-t border-b border-black flex  items-center w-full",
+				is_selected ? "bg-blue-600 text-white" : "",
+			].join(" ")}
+			style={{ paddingLeft: indent_level * 20 + "px" }}
+			onClick={() => nav(url)}
+		>
+			{text}
+		</div>
+	);
+}
 export const PrimarySideBar = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var user_id = localStorage.getItem("user_id");
