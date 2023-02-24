@@ -87,6 +87,7 @@ export const NewTask = () => {
 			console.log(error);
 			alert("something went wrong. details in console");
 		}
+		get_global_data();
 	}
 	var [selected_calendar_category, select_calendar_category] = useState(null);
 	if (all_users === null || notes === null || calendar_categories === null)

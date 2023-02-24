@@ -65,6 +65,7 @@ export const NewResource = () => {
 			console.log(error);
 			alert("something went wrong. details in console");
 		}
+		get_global_data();
 	}
 	var [all_users, set_all_users] = useState(null);
 	async function get_data() {

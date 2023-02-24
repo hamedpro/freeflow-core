@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { get_users, new_note } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
@@ -27,6 +27,7 @@ export const NewNote = () => {
 			console.log(error);
 			alert("something went wrong. details in console");
 		}
+		get_global_data();
 	}
 	var [all_users, set_all_users] = useState(null);
 	async function get_data() {
@@ -89,7 +90,6 @@ export const NewNote = () => {
 							value: pack._id,
 							label: pack.title,
 						};
-						
 					}),
 				]}
 				isSearchable

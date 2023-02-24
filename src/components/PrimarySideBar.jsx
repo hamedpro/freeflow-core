@@ -64,10 +64,10 @@ function Option({ text, indent_level, url }) {
 	return (
 		<div
 			className={[
-				"border-t border-b border-black flex  items-center w-full",
+				" border-b border-black flex  items-center w-full cursor-pointer hover:bg-blue-600 duration-200",
 				is_selected ? "bg-blue-600 text-white" : "",
 			].join(" ")}
-			style={{ paddingLeft: indent_level * 20 + "px" }}
+			style={{ paddingLeft: indent_level * 20 + 5 + "px" }}
 			onClick={() => nav(url)}
 		>
 			{text}
@@ -76,7 +76,6 @@ function Option({ text, indent_level, url }) {
 }
 export const PrimarySideBar = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
-	var user_id = localStorage.getItem("user_id");
 	var [options, set_options] = useState();
 	var loc = useLocation();
 	function censor_tree(tree) {
@@ -138,9 +137,9 @@ export const PrimarySideBar = () => {
 					.filter((task) => task.pack_id === id)
 					.map((task) => {
 						return {
-							text: `task :  ${global_data.all.tasks.find(
-								(task) => task._id === task._id
-							)}`,
+							text: `task :  ${
+								global_data.all.tasks.find((task) => task._id === task._id).title
+							}`,
 							url: `/dashboard/tasks/${task._id}`,
 							context: "tasks",
 							id: task._id,
@@ -258,7 +257,7 @@ export const PrimarySideBar = () => {
 	}
 	useEffect(() => {
 		get_data();
-	}, [loc]);
+	}, [global_data, loc]);
 	if (options == null) {
 		return "loading options ...";
 	}
