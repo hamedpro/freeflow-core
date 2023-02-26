@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { new_comment as api_new_comment, edit_comment, delete_comment } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { Section } from "./section";
 const CommentSBox = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var urlParams = useParams();
@@ -99,7 +100,7 @@ const CommentSBox = () => {
 	};
 	if (comments === null) return <h1>loading ... </h1>;
 	return (
-		<div className="comments-box-container">
+		<Section title="comments">
 			{comments.map((comment) => (
 				<div className="" key={comment._id}>
 					<span>{comment.text}</span>
@@ -110,7 +111,7 @@ const CommentSBox = () => {
 
 			<input placeholder="enter a comment" id="new_comment_text_input" />
 			<button onClick={new_comment}>send </button>
-		</div>
+		</Section>
 	);
 };
 

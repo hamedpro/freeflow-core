@@ -3,32 +3,25 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { get_collection } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
+import { check_being_collaborator } from "../../common_helpers";
 import ObjectBox from "./ObjectBox";
 
 export const Event = () => {
 	var { event_id } = useParams();
-	var [event, set_event] = useState(null);
+	var [event, set_event] = useState();
+	var user_id = localStorage.getItem("user_id");
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
-	async function get_data() {
-		var event = (
-			await get_collection({
-				collection_name: "events",
-				filters: {
-					_id: event_id,
-				},
-				global_data,
-			})
-		)[0];
-		set_event(event);
-	}
-	useEffect(() => {
-		get_data();
-	}, []);
-	if (event === null) return <h1>still loading user event...</h1>;
+	var event = global_data.all.events.find((i) => i._id === event_id);
+	if (event === undefined) return <h1>still loading user event...</h1>;
+	if (!check_being_collaborator(event, user_id))
+		return <h1>event was loaded but you have not access to it</h1>;
 	return (
-		<>
+		<div className="p-2">
 			<h1>Event</h1>
+			<h1>event data : </h1>
 			<ObjectBox object={event} />
-		</>
+			<CollaboratorsManagementBox context={"events"} id={event_id} />
+		</div>
 	);
 };

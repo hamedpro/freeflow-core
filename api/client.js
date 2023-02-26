@@ -225,7 +225,7 @@ export var delete_event = ({ event_id }) =>
 		},
 		collection_name: "events",
 	});
-export var new_event = ({ end_date, user_id, start_date, title, category_id }) =>
+export var new_event = ({ collaborators, end_date, user_id, start_date, title, category_id }) =>
 	new_document({
 		collection_name: "events",
 		document: {
@@ -236,6 +236,7 @@ export var new_event = ({ end_date, user_id, start_date, title, category_id }) =
 			start_date,
 			title,
 			category_id,
+			collaborators,
 		},
 	});
 export var update_note = ({ note_id, update_set }) =>

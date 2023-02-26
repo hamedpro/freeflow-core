@@ -179,7 +179,7 @@ function App() {
 	async function get_global_data() {
 		var user_id = localStorage.getItem("user_id");
 		var new_user_context_state = { user: {}, all: {} };
-		var tmp = ["packs", "notes", "resources", "tasks"];
+		var tmp = ["packs", "notes", "resources", "tasks", "events"];
 		for (var i = 0; i < tmp.length; i++) {
 			new_user_context_state.all[tmp[i]] = await get_collection({
 				collection_name: tmp[i],
@@ -189,7 +189,7 @@ function App() {
 				user_id !== null ? await custom_get_collection({ context: tmp[i], user_id }) : null;
 		}
 
-		var tmp = ["events", "calendar_categories", "comments", "note_commits"];
+		tmp = ["calendar_categories", "comments", "note_commits"];
 		for (var i = 0; i < tmp.length; i++) {
 			new_user_context_state.user[tmp[i]] =
 				user_id !== null

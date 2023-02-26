@@ -45,20 +45,3 @@ html,
   transform: translateY(-50%);
   position: absolute;
 }
-/*comments-container-box temp styles*/
-.comments-box-container {
-  background-color: aqua;
-  opacity: 0.8;
-  border-radius: 1em;
-  padding: 1em;
-}
-.comment-container {
-  background-color: blueviolet;
-  display: flex;
-}
-.comment-toolbar-container {
-  margin-left: auto;
-  width: 100px;
-  display: flex;
-  justify-content: space-between;
-}

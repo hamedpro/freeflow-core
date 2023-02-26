@@ -1,3 +1,7 @@
+definitions : 
+    unit : each time saying unit it means a pack or resource or note or task 
+
+
 collaboration system : 
     concept
         every note or task or resource or pack has a 
@@ -21,4 +25,55 @@ collaboration system :
 
         also it has another field "rules":
         todo complete here
+lock system :
+    concept
+        we allow each unit to have more than 1 collaborator
+        and all of them may have privilege to write something in that.
+        so this can lead to conflicts and to avoid this we don't allow
+        simultaneous changes to a single unit .
+
+        to do this we lock each unit for a specific duration when someone wants
+        to write in it. in this duration only that user can write to that unit.
+
+        this user can then request a lock again if wants to continue working on that unit.
+    implementation 
+        to lock a file for yourself it's required to request a lock :
+
+        request : 
+            POST <api_endpoint>/locks
+            Content-Type : application/json
+
+            {
+                unit_context : "packs" | "resources" | "notes" | "tasks",
+                unit_id : "BlahBlah",
+                duration : x (must be s)
+            }
+
+        response :
+            Content-Type : application/json
+
+            that lock document is returned :
+            {
+                _id : string,
+                lock_start_time : string ,
+                lock_end_time : string ,
+                user_id : string ,
+                unit_context : string ,
+                unit_id : string 
+            }
+
+        by making this request a new document is created in locks collection and 
+        its just like shown response . 
+        
+        in frontend use this lock_end_time to show user how much
+        of his lock time is remained and when it reaches 2 min ask user if wants to 
+        extend lock time or not. if true request a new lock and update the timer.
+
+        each lock duration is 7 min 
+
+        a lock can also be released when user exits editing mode or by pressing a button.
+
+        
+
+
 

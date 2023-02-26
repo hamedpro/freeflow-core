@@ -11,14 +11,16 @@ import Select from "react-select";
 import { NewCalendarCategorySection } from "./NewCalendarCategorySection";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { StyledDiv } from "./styled_elements";
+import { useNavigate } from "react-router-dom";
 
 export const NewEvent = () => {
 	var user_id = localStorage.getItem("user_id");
-	var { global_data } = useContext(GlobalDataContext);
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var [selected_calendar_category, select_calendar_category] = useState(null);
 	var [calendar_categories, set_calendar_categories] = useState(null);
 	var [selected_dates, set_selected_dates] = useState({ end: null, start: null });
-
+	var [selected_collaborators, set_selected_collaborators] = useState([]);
+	var nav = useNavigate();
 	var submit_new_event = async () => {
 		try {
 			var tmp = {
@@ -27,9 +29,16 @@ export const NewEvent = () => {
 				category_id: selected_calendar_category.value._id,
 				title: document.getElementById("title_input").value,
 				user_id,
+				collaborators: [
+					...selected_collaborators.map((i) => {
+						return { is_owner: false, user_id: i.value };
+					}),
+					{ user_id, is_owner: true },
+				],
 			};
 
-			await new_event(tmp);
+			tmp = await new_event(tmp);
+			nav(`/dashboard/events/${tmp}`);
 			alert("done");
 		} catch (error) {
 			console.log(error);
@@ -88,6 +97,23 @@ export const NewEvent = () => {
 					</div>
 				);
 			})}
+			<h1>add collaborators to this new task :</h1>
+			<Select
+				onChange={set_selected_collaborators}
+				value={selected_collaborators}
+				options={[
+					...global_data.all.users
+						.filter((user) => user._id !== user_id)
+						.map((user) => {
+							return {
+								value: user._id,
+								label: `@${user.username}`,
+							};
+						}),
+				]}
+				isMulti
+				isSearchable
+			/>
 			<StyledDiv onClick={submit_new_event} className="w-fit mt-2">
 				submit this event
 			</StyledDiv>

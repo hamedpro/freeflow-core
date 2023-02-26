@@ -1,10 +1,12 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { custom_delete, leave_here, update_document } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import CommentsBox from "./CommentsBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
+import { StyledDiv } from "./styled_elements";
 export const Task = () => {
 	var nav = useNavigate();
 	var { task_id } = useParams();
@@ -19,14 +21,13 @@ export const Task = () => {
 	}
 	async function change_task_handler(type) {
 		if (task.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
-			alert(
-				"access denied! to do this you must either be the owner of this task or an admin of that"
-			);
+			alert("access denied! to do this you must be a collaborator of this task ");
 			return;
 		}
 		var user_input = window.prompt(`enter new value for ${type}`);
-		if (!user_input) {
-			alert("you cancelled or your input was an empty string");
+		if (user_input === null) return;
+		if (user_input === "") {
+			alert("invalid value : your input was an empty string");
 			return;
 		}
 		var update_set = {};
@@ -49,6 +50,7 @@ export const Task = () => {
 			);
 			return;
 		}
+		if (!window.confirm("are you sure you want to leave here ?")) return;
 		leave_here({ user_id, context: "tasks", context_id: task_id })
 			.then(
 				() => alert("all done!"),
@@ -85,14 +87,16 @@ export const Task = () => {
 		<div>
 			<h1>Task</h1>
 			<Section title="options">
-				<button onClick={() => change_task_handler("title")}>
-					change title of this task
-				</button>
-				<button onClick={() => change_task_handler("description")}>
-					change description of this task{" "}
-				</button>
-				<button onClick={leave_this_task}>leave this task </button>
-				<button onClick={delete_this_task}>delete this task</button>
+				<div className="flex flex-col space-y-2">
+					<StyledDiv onClick={() => change_task_handler("title")}>
+						change title of this task
+					</StyledDiv>
+					<StyledDiv onClick={() => change_task_handler("description")}>
+						change description of this task
+					</StyledDiv>
+					<StyledDiv onClick={leave_this_task}>leave this task </StyledDiv>
+					<StyledDiv onClick={delete_this_task}>delete this task</StyledDiv>
+				</div>
 			</Section>
 			<CollaboratorsManagementBox context={"tasks"} id={task_id} />
 			<ObjectBox object={task} />

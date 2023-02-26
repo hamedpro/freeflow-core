@@ -1,11 +1,12 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { download_resource } from "../../api/client";
+import { custom_delete, download_resource, leave_here, update_document } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import CommentSBox from "./CommentsBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
+import { StyledDiv } from "./styled_elements";
 
 export const Resource = () => {
 	var nav = useNavigate();
@@ -50,6 +51,7 @@ export const Resource = () => {
 			);
 			return;
 		}
+		if (!window.confirm("are you sure you want to leave this resource ? ")) return;
 		leave_here({ user_id, context: "resources", context_id: resource_id })
 			.then(
 				() => alert("all done!"),
@@ -83,24 +85,31 @@ export const Resource = () => {
 			.finally(get_global_data);
 	}
 	return (
-		<>
+		<div className="p-2 ">
 			<h1>resource</h1>
+			<StyledDiv
+				className="w-fit mt-2"
+				onClick={() => download_resource({ resource_id: resource_row._id })}
+			>
+				download this resource
+			</StyledDiv>
 			<Section title="options">
-				<button onClick={() => change_resource_handler("title")}>
-					change title of this resource
-				</button>
-				<button onClick={() => change_resource_handler("description")}>
-					change description of this resource
-				</button>
-				<button onClick={leave_this_resource}>leave this resource</button>
-				<button onClick={delete_this_resource}>delete this resource</button>
+				<div className="flex flex-col space-y-2">
+					<StyledDiv onClick={() => change_resource_handler("title")}>
+						change title of this resource
+					</StyledDiv>
+					<StyledDiv onClick={() => change_resource_handler("description")}>
+						change description of this resource
+					</StyledDiv>
+					<StyledDiv onClick={leave_this_resource}>leave this resource</StyledDiv>
+					<StyledDiv onClick={delete_this_resource}>delete this resource</StyledDiv>
+				</div>
 			</Section>
 			<CollaboratorsManagementBox context={"resources"} id={resource_id} />
+			<h1>resource data : </h1>
 			<ObjectBox object={resource_row} />
-			<button onClick={() => download_resource({ resource_id: resource_row._id })}>
-				download this resource
-			</button>
+
 			<CommentSBox />
-		</>
+		</div>
 	);
 };

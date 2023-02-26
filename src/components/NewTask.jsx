@@ -5,12 +5,10 @@ import { TextField } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { Section } from "./section";
 import {
 	custom_get_collection,
 	get_calendar_categories,
 	get_users,
-	new_calendar_category,
 	new_task,
 } from "../../api/client";
 import Select from "react-select";

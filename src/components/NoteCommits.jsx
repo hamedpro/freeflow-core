@@ -1,6 +1,8 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { Section } from "./section";
+import { StyledDiv } from "./styled_elements";
 
 export const NoteCommits = () => {
 	var nav = useNavigate();
@@ -11,20 +13,21 @@ export const NoteCommits = () => {
 		.sort((i1, i2) => i1.time - i2.time)
 		.reverse();
 	return (
-		<>
-			<h1>note commits of a note with id {note_id}</h1>
-			{note_commits.map((note_commit, index) => {
-				return (
-					<h1
-						key={index}
-						onClick={() =>
-							nav(`/dashboard/notes/${note_id}?note_commit_id=${note_commit._id}`)
-						}
-					>
-						note commit {note_commit._id}
-					</h1>
-				);
-			})}
-		</>
+		<Section title={`note commits of a note with id ${note_id}`}>
+			<div className="flex flex-col space-y-2">
+				{note_commits.map((note_commit, index) => {
+					return (
+						<StyledDiv
+							key={index}
+							onClick={() =>
+								nav(`/dashboard/notes/${note_id}?note_commit_id=${note_commit._id}`)
+							}
+						>
+							note commit {note_commit._id}
+						</StyledDiv>
+					);
+				})}
+			</div>
+		</Section>
 	);
 };
