@@ -1,11 +1,10 @@
 import React, { useContext, useState } from "react";
-import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { get_collection } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { check_being_collaborator } from "../../common_helpers";
 import ObjectBox from "./ObjectBox";
+import { MessagesBox } from "./MessagesBox";
 
 export const Event = () => {
 	var { event_id } = useParams();
@@ -22,6 +21,7 @@ export const Event = () => {
 			<h1>event data : </h1>
 			<ObjectBox object={event} />
 			<CollaboratorsManagementBox context={"events"} id={event_id} />
+			<MessagesBox />
 		</div>
 	);
 };

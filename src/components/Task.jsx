@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { custom_delete, leave_here, update_document } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
-import CommentsBox from "./CommentsBox";
+import { MessagesBox } from "./MessagesBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
@@ -100,7 +100,7 @@ export const Task = () => {
 			</Section>
 			<CollaboratorsManagementBox context={"tasks"} id={task_id} />
 			<ObjectBox object={task} />
-			<CommentsBox user_id={user_id} />
+			<MessagesBox />
 		</div>
 	);
 };

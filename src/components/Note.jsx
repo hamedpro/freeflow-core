@@ -9,11 +9,11 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { custom_delete, leave_here, new_document, update_document } from "../../api/client";
 import ObjectBox from "./ObjectBox";
-import CommentsBox from "./CommentsBox";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
+import { MessagesBox } from "./MessagesBox";
 export const Note = () => {
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
@@ -227,7 +227,7 @@ export const Note = () => {
 			<StyledDiv className="w-fit m-2" onClick={saveHandler}>
 				save current state
 			</StyledDiv>
-			<CommentsBox user_id={user_id} />
+			<MessagesBox />
 		</div>
 	);
 };

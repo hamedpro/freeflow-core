@@ -49,7 +49,10 @@ auth : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjNlOGU4OWMxYmQ2NWY4
 {}
 
 ###
-get http://localhost:4000/v2/users
+post http://localhost:4000/v2/messages
 Content-type : application/json
 
-{}
+{
+    "user_id" : "blahblah",
+    "other_field" : 22
+}

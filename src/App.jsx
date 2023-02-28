@@ -189,7 +189,7 @@ function App() {
 				user_id !== null ? await custom_get_collection({ context: tmp[i], user_id }) : null;
 		}
 
-		tmp = ["calendar_categories", "comments", "note_commits"];
+		tmp = ["calendar_categories", "messages", "note_commits"];
 		for (var i = 0; i < tmp.length; i++) {
 			new_user_context_state.user[tmp[i]] =
 				user_id !== null

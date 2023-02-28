@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { custom_delete, download_resource, leave_here, update_document } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
-import CommentSBox from "./CommentsBox";
+import { MessagesBox } from "./MessagesBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
@@ -109,7 +109,7 @@ export const Resource = () => {
 			<h1>resource data : </h1>
 			<ObjectBox object={resource_row} />
 
-			<CommentSBox />
+			<MessagesBox />
 		</div>
 	);
 };

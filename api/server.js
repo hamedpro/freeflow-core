@@ -428,13 +428,13 @@ app.post("/v2/auth/send_verification_code", async (request, response) => {
 
 	response.json("verification_code was sent");
 });
-app.post("/v2/users", async (request, response) => {
-	await db.collection("users").insertOne(request.body);
+app.post(/v2\/(users|messages)/, async (request, response) => {
+	await db.collection(request.params["0"]).insertOne(request.body);
 	response.json("ok");
 	return;
 });
-app.get("/v2/users", async (request, response) => {
-	response.json(await db.collection("users").find().toArray());
+app.get(/v2\/(users|messages)/, async (request, response) => {
+	response.json(await db.collection(request.params["0"]).find().toArray());
 	return;
 });
 app.post("/v2/playground", jwt_middle_ware, async (request, response) => {

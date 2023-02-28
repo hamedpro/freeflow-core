@@ -1,5 +1,6 @@
 definitions : 
-    unit : each time saying unit it means a pack or resource or note or task 
+    unit : each time saying unit it means a pack or resource or note or task or a event 
+    * only notice that events can not have a parent pack_id and may they also differ in other cases 
 
 
 collaboration system : 
@@ -73,7 +74,23 @@ lock system :
 
         a lock can also be released when user exits editing mode or by pressing a button.
 
-        
+messages specification : 
+    concept:
+        each unit has a messages box which works just like a group chat between colaborators of that unit
+        but special thing about that is every unit also shows messages of all its nested childrens by default 
+    implementation:
+    we have a messages collection which its documents look like this : 
+    {
+        submit_time : unix time stamp ,
+        text : string ,
+        user_id  : mongo db document id ,
+        replay_parent : (undefined | null ) | message document id,
+        unit_context : packs | tasks | events | notes | resources,
+        unit_id : mongodb doc id   
+    }
+
+    new message : post <api_endpoint>/v2/messages <- json stringified object 
+    get messages : get <api_endpoint>/v2/messages -> json stringified array 
 
 
 
