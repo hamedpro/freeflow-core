@@ -18,3 +18,6 @@ it to load all_users or all data ...
 todo just update keys of Route s when there is a change in url (it will avoid extra re-renders)
 
 make sure everywhere we are saving or processing a percentage we must not round them but when showing them simply 
+
+custom delete of pack had a error : it was attempting to delete this :
+no such file or directory, stat './uploaded/resources/undefined'
