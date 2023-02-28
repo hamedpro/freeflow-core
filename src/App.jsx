@@ -63,7 +63,7 @@ function TopBar() {
 				<div className="h-full text-white flex items-center space-x-3">
 					<CalendarMonthRounded />
 					<div>
-						{new Date().getUTCFullYear()} /{" "}
+						{new Date().getFullYear()} /{" "}
 						<Link to={`/dashboard/calendar/month`}>
 							{month_names[new Date().getMonth()]}
 						</Link>{" "}

@@ -1,45 +1,46 @@
-import React, { Fragment, useContext, useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { custom_get_collection, get_calendar_categories, get_user_events } from "../../api/client";
+import React, { Fragment, useContext } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ObjectBox from "./ObjectBox";
 import {
 	month_names,
+	simple_int_range,
 	sum_array,
 	timestamp_filled_range,
 	unique_items_of_array,
 } from "../../common_helpers.js";
 import { Section } from "./Section";
-import { is_there_any_conflict } from "../../common_helpers.js";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
 import { GlobalDataContext } from "../GlobalDataContext";
+import { DayCalendarTimeBar } from "./DayCalendarTimeBar";
 ChartJS.register(ArcElement, Tooltip, Legend);
 function Analytics({ calendar_categories, day_tasks, day_events }) {
 	var day_tasks_percenatages = calendar_categories.map((cal_cat) => {
 		return {
 			name: cal_cat.name,
-			percent:
+			percent: Math.round(
 				(sum_array(
 					day_tasks
 						.filter((i) => i.category_id === cal_cat._id)
 						.map((i) => i.end_date - i.start_date)
 				) /
 					(3600 * 1000 * 24)) *
-				100,
+					100
+			),
 			color: cal_cat.color,
 			category_id: cal_cat._id,
 		};
 	});
 	day_tasks_percenatages.push({
 		name: "empty",
-		percent: 100 - sum_array(day_tasks_percenatages.map((i) => i.percent)),
+		percent: Math.round(100 - sum_array(day_tasks_percenatages.map((i) => i.percent))),
 		color: "white",
 	});
 	var day_events_percenatages = calendar_categories.map((cal_cat) => {
 		//it also includes done_tasks inside itself
 		return {
 			name: cal_cat.name,
-			percent:
+			percent: Math.round(
 				(sum_array(
 					[
 						...day_events.filter((i) => i.category_id === cal_cat._id),
@@ -49,14 +50,15 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 					].map((i) => i.end_date - i.start_date)
 				) /
 					(3600 * 1000 * 24)) *
-				100,
+					100
+			),
 			color: cal_cat.color,
 			category_id: cal_cat._id,
 		};
 	});
 	day_events_percenatages.push({
 		name: "empty",
-		percent: 100 - sum_array(day_events_percenatages.map((i) => i.percent)),
+		percent: Math.round(100 - sum_array(day_events_percenatages.map((i) => i.percent))),
 		color: "white",
 	});
 	return (
@@ -197,14 +199,10 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 	);
 }
 export const DayCalendar = () => {
-	var { global_data, get_global_data } = useContext(GlobalDataContext);
-	var nav = useNavigate();
-	var user_id = localStorage.getItem("user_id");
-	var [day_tasks, set_day_tasks] = useState(null);
-	var [day_events, set_day_events] = useState(null);
-	var [calendar_categories, set_calendar_categories] = useState(null);
+	//detemine which time range to show (today or from url query (if present))
 	var [searchParams, setSearchParams] = useSearchParams();
 	var tmp = searchParams.get("default");
+
 	if (tmp !== null) {
 		var year = Number(tmp.split("-")[0]);
 		var month = month_names.indexOf(tmp.split("-")[1]) + 1;
@@ -218,34 +216,55 @@ export const DayCalendar = () => {
 
 	var start_timestamp = new Date(year, month - 1, day).getTime();
 	var end_timestamp = start_timestamp + 3600 * 1000 * 24;
-	async function get_data() {
-		var tasks = await custom_get_collection({ global_data,context: "tasks", user_id });
-		var events = await get_user_events({ user_id ,global_data });
-		set_day_tasks(
-			timestamp_filled_range({ start: start_timestamp, end: end_timestamp, items: tasks })
-				.filter((i) => i.value !== null)
-				.map((i) => {
-					return {
-						...i,
-						human_readble_start_date: new Date(i.start_date).toString(),
-						human_readble_end_date: new Date(i.end_date).toString(),
-					};
-				})
-		);
-		timestamp_filled_range({ start: start_timestamp, end: end_timestamp, items: tasks });
-		set_day_events(
-			timestamp_filled_range({ start: start_timestamp, end: end_timestamp, items: events })
-				.filter((i) => i.value !== null)
-				.map((i) => {
-					return {
-						...i,
-						human_readble_start_date: new Date(i.start_date).toString(),
-						human_readble_end_date: new Date(i.end_date).toString(),
-					};
-				})
-		);
-		set_calendar_categories(await get_calendar_categories({ user_id , global_data }));
-	}
+
+	var user_id = localStorage.getItem("user_id");
+	var { global_data, get_global_data } = useContext(GlobalDataContext);
+	var nav = useNavigate();
+
+	var tasks = global_data.user.tasks.map((task) => {
+		return {
+			...task,
+			human_readble_end_date: new Date(task.end_date).toString(),
+			human_readble_start_date: new Date(task.start_date).toString(),
+		};
+	});
+	var events = global_data.user.events.map((event) => {
+		return {
+			...event,
+			human_readble_end_date: new Date(event.end_date).toString(),
+			human_readble_start_date: new Date(event.start_date).toString(),
+		};
+	});
+	var calendar_categories = global_data.user.calendar_categories;
+
+	var day_tasks = timestamp_filled_range({
+		start: start_timestamp,
+		end: end_timestamp,
+		items: tasks,
+	})
+		.filter((i) => i.value !== null)
+		.map((i) => {
+			return {
+				...i,
+				human_readble_start_date: new Date(i.start_date).toString(),
+				human_readble_end_date: new Date(i.end_date).toString(),
+			};
+		});
+
+	var day_events = timestamp_filled_range({
+		start: start_timestamp,
+		end: end_timestamp,
+		items: events,
+	})
+		.filter((i) => i.value !== null)
+		.map((i) => {
+			return {
+				...i,
+				human_readble_start_date: new Date(i.start_date).toString(),
+				human_readble_end_date: new Date(i.end_date).toString(),
+			};
+		});
+
 	function open_item_page(item) {
 		if (item.value === null) {
 			alert("there is not any task or event where you clicked");
@@ -257,11 +276,7 @@ export const DayCalendar = () => {
 			nav(`/dashboard/events/${item._id}`);
 		}
 	}
-	useEffect(() => {
-		get_data();
-	}, []);
-	if (calendar_categories === null || day_events === null || day_tasks === null)
-		return <h1>loading data ...</h1>;
+
 	return (
 		<div className="p-2">
 			<div>DayCalendar</div>
@@ -319,7 +334,29 @@ export const DayCalendar = () => {
 								</div>
 							</div>
 							<div className="w-4/5">
-								<div className="w-full bg-red-400" style={{ height: "30px" }}></div>
+								<DayCalendarTimeBar
+									items={simple_int_range({
+										start: object.range_label === "day_half_1" ? 0 : 12,
+										end: object.range_label === "day_half_1" ? 11 : 23,
+									}).map((hour_number) => {
+										return {
+											text: hour_number,
+											onClick: () => {},
+											start_percent:
+												(object.range_label === "day_half_1"
+													? hour_number
+													: hour_number - 12) *
+												(100 / 12),
+											end_percent:
+												(object.range_label === "day_half_1"
+													? hour_number
+													: hour_number - 12) *
+													(100 / 12) +
+												100 / 12,
+											style: {},
+										};
+									})}
+								/>
 								{[
 									{
 										items: JSON.parse(JSON.stringify(day_tasks)),

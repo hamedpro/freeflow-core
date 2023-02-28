@@ -1,4 +1,4 @@
-import { AddTask, Backpack, CloudUpload, NoteAdd } from "@mui/icons-material";
+import { AddTask, Backpack, CloudUpload, Event, NoteAdd } from "@mui/icons-material";
 import React, { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
@@ -9,9 +9,14 @@ function AddNewOptionRow() {
 	var { global_data } = useContext(GlobalDataContext);
 	function onclick_handler(type) {
 		/* 
-		possible values for type : "packs" , "resources" , "notes" , "tasks"
+		possible values for type : "packs" , "resources" , "notes" , "tasks" , "events"
 		if type === "packs" it means create a new pack and the same for others
 		*/
+		if (type === "events") {
+			//events cant be included in a pack
+			nav(`/dashboard/events/new`);
+			return;
+		}
 
 		var { pathname } = window.location;
 		var my_regex = /(?:\/)*dashboard\/packs\/(?<pack_id>[0-9A-Fa-f]{24})(?:\/)*$/g;
@@ -54,6 +59,10 @@ function AddNewOptionRow() {
 			</button>
 			<button onClick={() => onclick_handler("notes")}>
 				<NoteAdd sx={{ color: "blue" }} />
+			</button>
+
+			<button onClick={() => onclick_handler("events")}>
+				<Event sx={{ color: "blue" }} />
 			</button>
 		</div>
 	);

@@ -146,29 +146,6 @@ export function gen_link_to_file(relative_file_path) {
 	// relative_file_path is relative with ./uploaded directory
 	return new URL(relative_file_path, window.api_endpoint).href;
 }
-export function setCookie(name, value, days) {
-	//it doesnt overwrite the other current cookies
-	var expires = "";
-	if (days) {
-		var date = new Date();
-		date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-		expires = "; expires=" + date.toUTCString();
-	}
-	document.cookie = name + "=" + (value || "") + expires + "; path=/";
-}
-export function getCookie(name) {
-	var nameEQ = name + "=";
-	var ca = document.cookie.split(";");
-	for (var i = 0; i < ca.length; i++) {
-		var c = ca[i];
-		while (c.charAt(0) == " ") c = c.substring(1, c.length);
-		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-	}
-	return null;
-}
-export function eraseCookie(name) {
-	document.cookie = name + "=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-}
 export function custom_range({ from = 0, to }) {
 	var result = [];
 	for (let i = from; i <= to; i++) {
@@ -181,13 +158,13 @@ export function get_start_and_end(timestamp, mode = "day") {
 	//what mode does : if mode = day it will smaller details than day like hours and minutes and ...
 	//but if its set to year it will return the exact start point of that year
 	var d = new Date(timestamp);
-	d.setUTCHours(0);
-	d.setUTCMinutes(0);
-	d.setUTCSeconds(0);
+	d.setHours(0);
+	d.setMinutes(0);
+	d.setSeconds(0);
 	if (mode === "month") {
-		d.setUTCDate(1);
+		d.setDate(1);
 		if (mode === "year") {
-			d.setUTCMonth(0);
+			d.setMonth(0);
 		}
 	}
 	d = d.getTime();
@@ -224,11 +201,15 @@ export function get_months_days_count(year) {
 	return [31, year % 4 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 }
 export function timestamp_filled_range({ start, end, items }) {
-	let result = [
-		...items.map((i) => {
-			return { ...i };
-		}),
-	];
+	//items must be an array of tasks or events
+	//start and end must be unix timestamps
+	//result items are like one of these :
+	// 1- {start_percent , end_percent , ...task}
+	// 2- empty spaces are like this : {start_percent , end_percent , end_date , start_date ,value : null }
+
+	//it cuts every part outside its range to fit items inside itself
+
+	let result = JSON.parse(JSON.stringify(items));
 	result = result
 		.sort((i1, i2) => i1.start_date - i2.start_date)
 		.filter((i) => is_there_any_conflict({ items: [i], start, end }));
@@ -245,13 +226,13 @@ export function timestamp_filled_range({ start, end, items }) {
 			result.unshift({ value: null, start_date: start, end_date: result[0].start_date });
 		}
 	}
-	if (result[result.length - 1].end_date !== end) {
-		if (result[result.length - 1].end_date > end) {
-			result[result.length - 1].end_date = end;
+	if (result.at(-1).end_date !== end) {
+		if (result.at(-1).end_date > end) {
+			result.at(-1).end_date = end;
 		} else {
 			result.push({
 				value: null,
-				start_date: result[result.length - 1].end_date,
+				start_date: result.at(-1).end_date,
 				end_date: end,
 			});
 		}
@@ -322,3 +303,11 @@ export var custom_find_unique = (array, custom_compare_function) => {
 	}
 	return cloned_array;
 };
+export function simple_int_range({ start, end }) {
+	//returns an array of integers including both start and end values
+	var result = [];
+	for (var i = start; i <= end; i++) {
+		result.push(i);
+	}
+	return result;
+}
