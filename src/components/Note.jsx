@@ -23,7 +23,7 @@ export const Note = () => {
 	var editor_js_instance = useRef();
 	var note = global_data.all.notes.find((note) => note._id === note_id);
 	const saveHandler = async () => {
-		editor_js_instanse.save().then(async (output_data) => {
+		editor_js_instance.current.save().then(async (output_data) => {
 			try {
 				await new_document({
 					collection_name: "note_commits",

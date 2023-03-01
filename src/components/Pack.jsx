@@ -7,6 +7,7 @@ import { MessagesBox } from "./MessagesBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
+import { PackRootChildUnit } from "./PackRootChildUnit";
 export const Pack = () => {
 	var { pack_id } = useParams();
 	var user_id = window.localStorage.getItem("user_id");
@@ -20,6 +21,18 @@ export const Pack = () => {
 	if (pack.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
 		return <h1>access denied! :that pack was found but you are not a collaborator of that </h1>;
 	}
+
+	//items of this array look like this :
+	//{ context: "notes" | "tasks" | "resources" | "packs" , child : that document }
+	var pack_childrens = [];
+	["packs", "resources", "notes", "tasks"].forEach((key) => {
+		pack_childrens = pack_childrens.concat(
+			global_data.all[key]
+				.filter((i) => i.pack_id === pack._id)
+				.map((i) => ({ context: key, child: i }))
+		);
+	});
+	//console.log(pack_childrens);
 	async function change_pack_handler(type) {
 		if (!pack.collaborators.map((i) => i.user_id).includes(user_id)) {
 			alert("access denied! to do this you must be a collaborator of this pack ");
@@ -86,6 +99,13 @@ export const Pack = () => {
 	return (
 		<div className="p-2">
 			<h1>Pack {pack_id}</h1>
+			<Section title="overview">
+				<div className="flex flex-wrap ">
+					{pack_childrens.map((i, index) => (
+						<PackRootChildUnit key={index} {...i}></PackRootChildUnit>
+					))}
+				</div>
+			</Section>
 			<Section title="options">
 				<div className="flex flex-col space-y-2 items-start">
 					<StyledDiv onClick={() => change_pack_handler("title")}>

@@ -41,6 +41,7 @@ import { LoginMethodChoosing } from "./components/LoginMethodChoosing";
 import { LoginPasswordBased } from "./components/LoginPasswordBased";
 import { LoginVerificationBased } from "./components/LoginVerificationBased";
 import { RegisterStep3 } from "./components/RegisterStep3";
+import editorjs2html from "editorjs-html";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -207,7 +208,7 @@ function App() {
 			collection_name: "users",
 			filters: {},
 		});
-		//console.log(new_user_context_state);
+		console.log(editorjs2html().parse(new_user_context_state.all.note_commits[0].data));
 		set_global_data(new_user_context_state);
 	}
 	useEffect(() => {
