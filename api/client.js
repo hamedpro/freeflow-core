@@ -275,36 +275,6 @@ export var flexible_user_finder = async ({ value }) =>
 			value,
 		},
 	});
-	
-export var upload_files = async ({ task, data = {}, input_element_id }) => {
-	var form = new FormData();
-	var files = document.getElementById(input_element_id).files;
-	var files_data = {};
-	for (var i = 0; i < files.length; i++) {
-		var file = files[i.toString()];
-		form.append(i.toString(), file);
-		files_data[i.toString()] = {};
-		for (const prop in file) {
-			files_data[i.toString()][prop] = file[prop];
-		}
-	}
-	form.append("data", JSON.stringify(data));
-	form.append("files_data", JSON.stringify(files_data));
-
-	return await custom_axios({
-		content_type_json: false,
-		body: form,
-		task,
-	});
-};
-
-export var upload_new_resources = ({ data, input_element_id }) =>
-	upload_files({
-		task: "upload_new_resources",
-		data,
-		input_element_id,
-	});
-
 export var get_resources = ({ filters = {}, global_data }) =>
 	get_collection({
 		collection_name: "resources",
@@ -315,7 +285,6 @@ export var custom_axios_download = async ({ url, file_name }) => {
 	var response = await axios({
 		url,
 		method: "GET",
-		withCredentials: true,
 		responseType: "blob",
 	});
 	// create file link in browser's memory
@@ -331,14 +300,6 @@ export var custom_axios_download = async ({ url, file_name }) => {
 	// clean up "a" element & remove ObjectURL
 	document.body.removeChild(link);
 	URL.revokeObjectURL(href);
-};
-
-export var download_resource = async ({ resource_id }) => {
-	var resource_name = (await get_resources({ filters: { _id: resource_id } }))[0].file_data.name;
-	custom_axios_download({
-		url: new URL(`/resources/${resource_id}`, window.api_endpoint).href,
-		file_name: resource_name,
-	});
 };
 
 export var new_comment = ({ date, text, user_id, context, id }) =>

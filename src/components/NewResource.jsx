@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { get_users, upload_new_resources } from "../../api/client";
+import { get_users, new_document } from "../../api/client";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { StyledDiv } from "./styled_elements";
+import axios from "axios";
 export const NewResource = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
@@ -40,18 +41,29 @@ export const NewResource = () => {
 		var title = document.getElementById("title_input").value;
 		collaborators.push({ is_owner: true, user_id });
 		try {
-			var tmp = {
-				input_element_id: "file_input",
-				data: {
+			var f = new FormData();
+			f.append("file", document.getElementById("file_input").files[0]);
+			var file_id = (
+				await axios({
+					data: f,
+					baseURL: window.api_endpoint,
+					url: "/v2/files",
+					method: "post",
+				})
+			).data.file_id;
+			var inserted_id = await new_document({
+				collection_name: "resources",
+				document: {
 					pack_id: selected_parent_pack.value,
 					collaborators,
 					description,
 					title,
+					file_id,
 				},
-			};
-			var result = await upload_new_resources(tmp);
+			});
+			await get_global_data();
 			alert(`all done! navigating to this new uploaded resource ...`);
-			nav(`/dashboard/resources/${result[0]}`);
+			nav(`/dashboard/resources/${inserted_id}`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");

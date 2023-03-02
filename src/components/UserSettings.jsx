@@ -1,9 +1,10 @@
 import React, { useContext } from "react";
-import { get_users, update_document, upload_files } from "../../api/client";
+import { custom_axios, get_users, update_document } from "../../api/client";
 import { Section } from "./section";
 import Select from "react-select";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { StyledDiv } from "./styled_elements";
+import axios from "axios";
 export const UserSettings = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var user_id = localStorage.getItem("user_id");
@@ -26,11 +27,26 @@ export const UserSettings = () => {
 			alert("first select an image");
 			return;
 		}
-		await upload_files({
-			data: { user_id },
-			input_element_id: "new_profile_image_input",
-			task: "set_new_profile_picture",
+		var f = new FormData();
+		f.append("file", files[0]);
+		var profile_image_file_id = (
+			await axios({
+				baseURL: window.api_endpoint,
+				url: "/v2/files",
+				method: "post",
+				data: f,
+			})
+		).data.file_id;
+		await update_document({
+			collection: "users",
+			update_filter: {
+				_id: user_id,
+			},
+			update_set: {
+				profile_image_file_id,
+			},
 		});
+
 		get_global_data();
 	}
 	if (user === null) return <h1>loading user ... </h1>;
@@ -39,11 +55,11 @@ export const UserSettings = () => {
 			<div className="p-2">
 				<h1>UserSettings</h1>
 				<div style={{ width: "200px", height: "200px" }}>
-					{user.profile_image ? (
+					{user.profile_image_file_id ? (
 						<img
 							src={
 								new URL(
-									`/profile_images/${user.profile_image}`,
+									`/v2/files/${user.profile_image_file_id}`,
 									window.api_endpoint
 								).href
 							}

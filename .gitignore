@@ -6,9 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-uploaded/*
-uploaded/*/*
-uploaded/*/*/*
+uploads
 node_modules
 dist
 dist-ssr

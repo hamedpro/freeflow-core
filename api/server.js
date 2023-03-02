@@ -17,7 +17,7 @@ const client = new MongoClient(mongodb_url);
 
 var db = client.db(db_name);
 async function init() {
-	["./uploaded", "./uploaded/resources", "./uploaded/profile_images"].forEach((path) => {
+	["./uploads"].forEach((path) => {
 		if (!fs.existsSync(path)) {
 			fs.mkdirSync(path);
 		}
@@ -176,62 +176,6 @@ app.all("/", async (req, res) => {
 			}),
 		};
 		res.json(user_hierarchy);
-	} else if (task === "set_new_profile_picture") {
-		var form = formidable({ UploadDir: "./uploaded/profile_images" });
-		await new Promise((resolve, reject) => {
-			form.parse(req, async (err, fields, files) => {
-				var { user_id } = JSON.parse(fields.data);
-				var user = await db.collection("users").findOne({ _id: ObjectId(user_id) });
-				if (user.profile_image) {
-					fs.rmSync(`./uploaded/profile_images/${user.profile_image}`, {
-						force: true,
-					});
-				}
-				var file = files[Object.keys(files)[0]];
-				var new_file_name = `${user_id}-${file.originalFilename}`;
-				fs.renameSync(file.filepath, `./uploaded/profile_images/${new_file_name}`);
-				await db
-					.collection("users")
-					.updateOne(
-						{ _id: ObjectId(user_id) },
-						{ $set: { profile_image: new_file_name } }
-					);
-				resolve();
-			});
-		});
-		res.json({});
-	} else if (task === "upload_new_resources") {
-		var form = formidable({ UploadDir: "./uploaded/resources" });
-		res.json(
-			await new Promise((resolve, reject) => {
-				form.parse(req, async (err, fields, files) => {
-					var files_data = JSON.parse(fields.files_data);
-					var data = JSON.parse(fields.data);
-					var promises = [];
-					Object.keys(files).forEach((key) => {
-						promises.push(
-							db
-								.collection("resources")
-								.insertOne({
-									...data,
-									file_data: files_data[key],
-								})
-								.then(async (result) => {
-									var inserted_row_id = result.insertedId.toString();
-									await fs.promises.rename(
-										files[key].filepath,
-										path.join("./uploaded/resources/", inserted_row_id)
-									);
-									return inserted_row_id;
-								})
-								.then()
-						);
-					});
-					var new_resource_ids = await Promise.all(promises);
-					resolve(new_resource_ids);
-				});
-			})
-		);
 	} else if (task === "get_collection") {
 		//body should be like this :{collection_name : string ,filters : {}}
 		var filters = req.body.filters;
@@ -440,6 +384,39 @@ app.get(/v2\/(users|messages)/, async (request, response) => {
 app.post("/v2/playground", jwt_middle_ware, async (request, response) => {
 	response.json(jwt.decode(request.headers.auth));
 	return;
+});
+app.get("/v2/files/:file_id", async (request, response) => {
+	response.sendFile(
+		path.resolve(
+			`./uploads/${fs
+				.readdirSync("./uploads")
+				.find((i) => i.startsWith(request.params.file_id))}`
+		)
+	);
+});
+app.post("/v2/files", async (request, response) => {
+	//saves the file with key = "file" inside sent form inside ./uploads directory
+	//returns json : {file_id : string }
+	//saved file name + extension is {file_id}-{original file name with extension }
+	var file_id = await new Promise((resolve, reject) => {
+		var f = formidable({ uploadDir: "./uploads" });
+		f.parse(request, (err, fields, files) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+			var file_id = `${new Date().getTime()}${Math.round(Math.random() * 10000)}`;
+			var new_file_path = path.resolve(
+				"./uploads",
+				`${file_id}-${files["file"].originalFilename}`
+			);
+
+			fs.renameSync(files["file"].filepath, new_file_path);
+			resolve(file_id);
+			return;
+		});
+	});
+	response.json({ file_id });
 });
 var server = app.listen(api_port, () => {
 	console.log(`server started listening`);

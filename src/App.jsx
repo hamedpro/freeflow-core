@@ -208,7 +208,6 @@ function App() {
 			collection_name: "users",
 			filters: {},
 		});
-		console.log(editorjs2html().parse(new_user_context_state.all.note_commits[0].data));
 		set_global_data(new_user_context_state);
 	}
 	useEffect(() => {

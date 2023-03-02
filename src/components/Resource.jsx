@@ -1,6 +1,11 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { custom_delete, download_resource, leave_here, update_document } from "../../api/client";
+import {
+	custom_axios_download,
+	custom_delete,
+	leave_here,
+	update_document,
+} from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { MessagesBox } from "./MessagesBox";
@@ -89,7 +94,12 @@ export const Resource = () => {
 			<h1>resource</h1>
 			<StyledDiv
 				className="w-fit mt-2"
-				onClick={() => download_resource({ resource_id: resource_row._id })}
+				onClick={() =>
+					custom_axios_download({
+						url: new URL(`/v2/files/${resource_row.file_id}`, window.api_endpoint),
+						file_name: resource_row.file_id,
+					})
+				}
 			>
 				download this resource
 			</StyledDiv>

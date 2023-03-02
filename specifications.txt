@@ -91,6 +91,13 @@ messages specification :
 
     new message : post <api_endpoint>/v2/messages <- json stringified object 
     get messages : get <api_endpoint>/v2/messages -> json stringified array 
+uploading files : 
+    each time we have to upload a file to the server we must post that file inside
+    a form with key = file (form.append('file',that file)) to <api_endpoint>/v2/files 
 
-
-
+    it generates a id like 16777681194848972 and saves that file in this path : 
+    ./uploads/16777681194848972-{originalFilename.its_extension}
+    response : json : {file_id : string }
+    then we save that file_id and each time we want that file back we send a get
+    request to this endpoint : 
+    /v2/files/16777681194848972
