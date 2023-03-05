@@ -9,7 +9,6 @@ import path from "path";
 import { MongoClient, ObjectId } from "mongodb";
 import { is_there_any_conflict } from "../common_helpers.js";
 import jwt from "jsonwebtoken";
-import { jwt_middle_ware } from "./jwt_middle_ware.js";
 var { frontend_port, api_port, api_endpoint, db_name, mongodb_url, jwt_secret } = JSON.parse(
 	fs.readFileSync("./env.json", "utf-8")
 );
@@ -115,8 +114,6 @@ app.all("/", async (req, res) => {
 			default:
 				res.status(400).send();
 		}
-	} else if (task === "move_task_or_event") {
-		//todo
 	} else if (task === "flexible_user_finder") {
 		var users = await db.collection("users").find().toArray();
 		var all_values = [];
@@ -292,6 +289,8 @@ app.all("/", async (req, res) => {
 	*/
 
 //important todo : res.end or res.json at the end of async requests becuse axios will await until this happens
+
+//starting api v2 routes :
 app.post("/v2/auth/password_verification", async (request, response) => {
 	var user = await db.collection("users").findOne({ _id: ObjectId(request.body.user_id) });
 	if (user === null) {
@@ -372,19 +371,6 @@ app.post("/v2/auth/send_verification_code", async (request, response) => {
 
 	response.json("verification_code was sent");
 });
-app.post(/v2\/(users|messages)/, async (request, response) => {
-	await db.collection(request.params["0"]).insertOne(request.body);
-	response.json("ok");
-	return;
-});
-app.get(/v2\/(users|messages)/, async (request, response) => {
-	response.json(await db.collection(request.params["0"]).find().toArray());
-	return;
-});
-app.post("/v2/playground", jwt_middle_ware, async (request, response) => {
-	response.json(jwt.decode(request.headers.auth));
-	return;
-});
 app.get("/v2/files/:file_id", async (request, response) => {
 	response.sendFile(
 		path.resolve(
@@ -418,6 +404,21 @@ app.post("/v2/files", async (request, response) => {
 	});
 	response.json({ file_id });
 });
-var server = app.listen(api_port, () => {
+app.post(
+	/v2\/(users|messages|note_commits|packs|notes|tasks|resources|events|calendar_categories|verification_codes)/,
+	async (request, response) => {
+		await db.collection(request.params["0"]).insertOne(request.body);
+		response.json("ok");
+		return;
+	}
+);
+app.get(
+	/v2\/(users|messages|note_commits|packs|notes|tasks|resources|events|calendar_categories|verification_codes)/,
+	async (request, response) => {
+		response.json(await db.collection(request.params["0"]).find().toArray());
+		return;
+	}
+);
+app.listen(api_port, () => {
 	console.log(`server started listening`);
 });

@@ -47,23 +47,37 @@ function AddNewOptionRow() {
 		}
 	}
 	return (
-		<div className="flex justify-around bg-white p-1">
-			<button onClick={() => onclick_handler("packs")}>
-				<Backpack sx={{ color: "blue" }} />
-			</button>
-			<button onClick={() => onclick_handler("tasks")}>
-				<AddTask sx={{ color: "blue" }} />
-			</button>
-			<button onClick={() => onclick_handler("resources")}>
-				<CloudUpload sx={{ color: "blue" }} />
-			</button>
-			<button onClick={() => onclick_handler("notes")}>
-				<NoteAdd sx={{ color: "blue" }} />
-			</button>
-
-			<button onClick={() => onclick_handler("events")}>
-				<Event sx={{ color: "blue" }} />
-			</button>
+		<div className="flex justify-around  p-1 border-b border-black">
+			{[
+				{
+					type: "packs",
+					icon: Backpack,
+				},
+				{
+					type: "tasks",
+					icon: AddTask,
+				},
+				{
+					type: "resources",
+					icon: CloudUpload,
+				},
+				{
+					type: "notes",
+					icon: NoteAdd,
+				},
+				{
+					type: "events",
+					icon: Event,
+				},
+			].map((i) => (
+				<button
+					key={i.type}
+					onClick={() => onclick_handler(i.type)}
+					className=" hover:bg-blue-700 rounded p-1"
+				>
+					<i.icon sx={{ color: "white" }} />
+				</button>
+			))}
 		</div>
 	);
 }
@@ -73,8 +87,8 @@ function Option({ text, indent_level, url }) {
 	return (
 		<div
 			className={[
-				" border-b border-black flex  items-center w-full cursor-pointer hover:bg-blue-600 duration-200",
-				is_selected ? "bg-blue-600 text-white" : "",
+				" border-b border-black flex  items-center w-full cursor-pointer hover:bg-blue-700 duration-200",
+				is_selected ? "bg-blue-800 text-white" : "",
 			].join(" ")}
 			style={{ paddingLeft: indent_level * 20 + 5 + "px" }}
 			onClick={() => nav(url)}

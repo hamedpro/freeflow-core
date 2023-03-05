@@ -16,8 +16,10 @@ import { PrimarySideBar } from "./components/PrimarySideBar";
 import { NewResource } from "./components/NewResource";
 import {
 	CalendarMonthRounded,
+	Home,
 	HomeOutlined,
 	Notifications,
+	Person2,
 	Person2Outlined,
 	Settings,
 } from "@mui/icons-material";
@@ -45,19 +47,16 @@ import editorjs2html from "editorjs-html";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
-		<div
-			className="w-full bg-blue-600 overflow-y-hidden flex items-center px-3 space-x-3"
-			style={{ height: "8%" }}
-		>
+		<div className="w-full h-14 bg-blue-700 overflow-y-hidden flex items-center px-3 space-x-3">
 			<div className="w-1/5">
 				<Link to={`/dashboard/settings`}>
 					<Settings style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
 				<Link to={`/users/${user_id}`}>
-					<Person2Outlined style={{ color: "white", width: "40px", height: "40px" }} />
+					<Person2 style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
 				<Link to={`/dashboard/`}>
-					<HomeOutlined style={{ color: "white", width: "40px", height: "40px" }} />
+					<Home style={{ color: "white", width: "40px", height: "40px" }} />
 				</Link>
 			</div>
 			<div className="w-4/5 flex justify-between items-center h-full ">
@@ -86,7 +85,7 @@ function Wrapper({ last_location_change_timestamp }) {
 		<div className="h-full w-full border-black-900 flex-col">
 			<TopBar />
 			<div className="w-full flex" style={{ height: "92%" }}>
-				<div className="w-1/5 bg-blue-500 overflow-y-auto h-full">
+				<div className="w-52 bg-blue-600 overflow-y-auto h-full">
 					<PrimarySideBar />
 				</div>
 				<div className="w-4/5 bg-blue-400 h-full overflow-y-auto h-9/10">
