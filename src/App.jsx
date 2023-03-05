@@ -30,7 +30,7 @@ import { Events } from "./components/Events";
 import { Event } from "./components/Event";
 import { Resource } from "./components/Resource";
 import { useEffect } from "react";
-import { custom_get_collection, get_collection } from "../api/client";
+import { custom_get_collection, get_collection, new_user } from "../api/client";
 import { GlobalDataContext } from "./GlobalDataContext";
 import { NoteCommits } from "./components/NoteCommits";
 import { Packs } from "./components/Packs";
@@ -44,6 +44,7 @@ import { LoginPasswordBased } from "./components/LoginPasswordBased";
 import { LoginVerificationBased } from "./components/LoginVerificationBased";
 import { RegisterStep3 } from "./components/RegisterStep3";
 import editorjs2html from "editorjs-html";
+import { NewPackView } from "./components/NewPackView";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -85,10 +86,13 @@ function Wrapper({ last_location_change_timestamp }) {
 		<div className="h-full w-full border-black-900 flex-col">
 			<TopBar />
 			<div className="w-full flex" style={{ height: "92%" }}>
-				<div className="w-52 bg-blue-600 overflow-y-auto h-full">
+				<div className=" bg-blue-600 overflow-y-auto h-full" style={{ width: "13rem" }}>
 					<PrimarySideBar />
 				</div>
-				<div className="w-4/5 bg-blue-400 h-full overflow-y-auto h-9/10">
+				<div
+					className=" bg-blue-400 h-full overflow-y-auto h-9/10"
+					style={{ width: "calc(100% - 13rem)" }}
+				>
 					<Routes>
 						<Route
 							path="packs"
@@ -99,9 +103,14 @@ function Wrapper({ last_location_change_timestamp }) {
 							element={<Pack key={last_location_change_timestamp} />}
 						/>
 						<Route
+							path="packs/:pack_id/new_pack_view"
+							element={<NewPackView key={last_location_change_timestamp} />}
+						/>
+						<Route
 							path="packs/new"
 							element={<NewPack key={last_location_change_timestamp} />}
 						/>
+
 						<Route
 							path="settings"
 							element={<UserSettings key={last_location_change_timestamp} />}
@@ -205,6 +214,10 @@ function App() {
 		}
 		new_user_context_state.all.users = await get_collection({
 			collection_name: "users",
+			filters: {},
+		});
+		new_user_context_state.all.pack_views = await get_collection({
+			collection_name: "pack_views",
 			filters: {},
 		});
 		set_global_data(new_user_context_state);

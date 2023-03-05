@@ -20,10 +20,10 @@ export const Task = () => {
 		return <h1>access denied! you are not a collaborator of this task </h1>;
 	}
 	async function change_task_handler(type) {
-		if (task.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
+		/* if (task.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
 			alert("access denied! to do this you must be a collaborator of this task ");
 			return;
-		}
+		} */
 		var user_input = window.prompt(`enter new value for ${type}`);
 		if (user_input === null) return;
 		if (user_input === "") {
@@ -62,10 +62,10 @@ export const Task = () => {
 			.finally(get_global_data);
 	}
 	async function delete_this_task() {
-		if (task.collaborators.find((i) => i.user_id === user_id).is_owner !== true) {
+		/* if (task.collaborators.find((i) => i.user_id === user_id).is_owner !== true) {
 			alert("access denied! only owner of this task can do this.");
 			return;
-		}
+		} */
 		if (!window.confirm("are you sure ?")) return;
 		custom_delete({
 			context: "tasks",

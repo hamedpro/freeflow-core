@@ -48,10 +48,10 @@ export const Note = () => {
     */
 	};
 	async function change_note_handler(type) {
-		if (!note.collaborators.map((i) => i.user_id).includes(user_id)) {
+		/* if (!note.collaborators.map((i) => i.user_id).includes(user_id)) {
 			alert("access denied! to do this you must be a collaborator of this note ");
 			return;
-		}
+		} */
 		var user_input = window.prompt(`enter new value for ${type}`);
 		if (user_input === null) return;
 		if (user_input === "") {
@@ -89,10 +89,10 @@ export const Note = () => {
 			.finally(get_global_data);
 	}
 	async function delete_this_note() {
-		if (note.collaborators.find((i) => i.user_id === user_id).is_owner === false) {
+		/* if (note.collaborators.find((i) => i.user_id === user_id).is_owner === false) {
 			alert("access denied! only owner of this note can do this.");
 			return;
-		}
+		} */
 		if (!window.confirm("are you sure ?")) return;
 		custom_delete({
 			context: "notes",
@@ -113,9 +113,9 @@ export const Note = () => {
 	useEffect(() => {
 		if (
 			note !== undefined &&
-			note.collaborators
+			/* note.collaborators
 				.map((i) => i.user_id)
-				.includes(window.localStorage.getItem("user_id")) &&
+				.includes(window.localStorage.getItem("user_id")) && */
 			editor_js_instance.current === undefined
 		) {
 			var editor_js_configs = {
@@ -186,11 +186,11 @@ export const Note = () => {
 		};
 	}, []);
 	if (note === undefined) return <h1>that note you are looking for was not found ...</h1>;
-	if (
+	/* if (
 		!note.collaborators.map((i) => i.user_id).includes(window.localStorage.getItem("user_id"))
 	) {
 		return <h1>access denied you are not a collaborator of this note</h1>;
-	}
+	} */
 	return (
 		<div className="p-2">
 			<h1 className="text-lg">Note</h1>

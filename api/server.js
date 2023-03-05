@@ -139,41 +139,7 @@ app.all("/", async (req, res) => {
 				info: "there is more than one match in valid search resources",
 			});
 		}
-	} else if (task === "get_user_data_hierarchy") {
-		var user_id = req.body.user_id;
-		var user_packs = (await db.collection("packs").find().toArray()).filter((i) =>
-			check_being_collaborator(i, user_id)
-		);
-		var user_notes = (await db.collection("notes").find().toArray()).filter((i) =>
-			check_being_collaborator(i, user_id)
-		);
-		var user_tasks = (await db.collection("tasks").find().toArray()).filter((i) =>
-			check_being_collaborator(i, user_id)
-		);
-		var resources = (await db.collection("resources").find().toArray()).filter((i) =>
-			check_being_collaborator(i, user_id)
-		);
-		var user_hierarchy = {
-			workspaces: user_workspaces.map((ws) => {
-				return {
-					...ws,
-					workflows: user_workflows
-						.filter((wf) => wf.workspace_id == ws._id)
-						.map((wf) => {
-							return {
-								...wf,
-								notes: user_notes.filter((note) => note.workflow_id == wf._id),
-								tasks: user_tasks.filter((task) => task.workflow_id == wf._id),
-								resources: resources.filter(
-									(resource) => resource.workflow_id == wf._id
-								),
-							};
-						}),
-				};
-			}),
-		};
-		res.json(user_hierarchy);
-	} else if (task === "get_collection") {
+	}else if (task === "get_collection") {
 		//body should be like this :{collection_name : string ,filters : {}}
 		var filters = req.body.filters;
 		if (Object.keys(filters).includes("_id")) {

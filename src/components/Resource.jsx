@@ -21,16 +21,16 @@ export const Resource = () => {
 	var resource_row = global_data.all.resources.find((i) => i._id === resource_id);
 	if (resource_row === undefined) {
 		return <h1>resource you are looking for doesn't even exist</h1>;
-	} else if (resource_row.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
+	} /* else if (resource_row.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
 		return <h1>access denied! you are not a collaborator of this resource</h1>;
-	}
+	} */
 	async function change_resource_handler(type) {
-		if (!resource_row.collaborators.map((i) => i.user_id).includes(user_id)) {
+		/* if (!resource_row.collaborators.map((i) => i.user_id).includes(user_id)) {
 			alert(
 				"access denied! to do this you must either be the owner of this resource or an admin of that"
 			);
 			return;
-		}
+		} */
 		var user_input = window.prompt(`enter new value for ${type}`);
 		if (!user_input) {
 			alert("you cancelled or your input was an empty string");
@@ -68,10 +68,10 @@ export const Resource = () => {
 			.finally(get_global_data);
 	}
 	async function delete_this_resource() {
-		if (resource_row.collaborators.find((i) => i.user_id === user_id).is_owner !== true) {
+		/* if (resource_row.collaborators.find((i) => i.user_id === user_id).is_owner !== true) {
 			alert("access denied! only owner of this resource can do this.");
 			return;
-		}
+		} */
 		if (!window.confirm("are you sure ?")) return;
 		custom_delete({
 			context: "resources",

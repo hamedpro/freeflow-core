@@ -13,8 +13,8 @@ export const Event = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var event = global_data.all.events.find((i) => i._id === event_id);
 	if (event === undefined) return <h1>still loading user event...</h1>;
-	if (!check_being_collaborator(event, user_id))
-		return <h1>event was loaded but you have not access to it</h1>;
+	/* if (!check_being_collaborator(event, user_id))
+		return <h1>event was loaded but you have not access to it</h1>; */
 	return (
 		<div className="p-2">
 			<h1>Event</h1>

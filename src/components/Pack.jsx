@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { custom_delete, leave_here, update_document } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
@@ -8,6 +8,8 @@ import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 import { PackRootChildUnit } from "./PackRootChildUnit";
+import { PackView } from "./PackView";
+import Select from "react-select";
 export const Pack = () => {
 	var { pack_id } = useParams();
 	var user_id = window.localStorage.getItem("user_id");
@@ -18,26 +20,27 @@ export const Pack = () => {
 	if (pack === undefined) {
 		return <h1>there is not any pack with that id </h1>;
 	}
-	if (pack.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
+	/* if (pack.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
 		return <h1>access denied! :that pack was found but you are not a collaborator of that </h1>;
-	}
+	} */
 
+	//pack_children only includes direct children of this pack and not its grandchildren
 	//items of this array look like this :
 	//{ context: "notes" | "tasks" | "resources" | "packs" , child : that document }
-	var pack_childrens = [];
+
+	var pack_children = [];
 	["packs", "resources", "notes", "tasks"].forEach((key) => {
-		pack_childrens = pack_childrens.concat(
+		pack_children = pack_children.concat(
 			global_data.all[key]
 				.filter((i) => i.pack_id === pack._id)
 				.map((i) => ({ context: key, child: i }))
 		);
 	});
-	//console.log(pack_childrens);
 	async function change_pack_handler(type) {
-		if (!pack.collaborators.map((i) => i.user_id).includes(user_id)) {
+		/* if (!pack.collaborators.map((i) => i.user_id).includes(user_id)) {
 			alert("access denied! to do this you must be a collaborator of this pack ");
 			return;
-		}
+		} */
 		var user_input = window.prompt(`enter new value for ${type}`);
 		if (user_input === null) return;
 		if (user_input === "") {
@@ -75,10 +78,10 @@ export const Pack = () => {
 			.finally(get_global_data);
 	}
 	async function delete_this_pack() {
-		if (pack.collaborators.find((i) => i.user_id === user_id).is_owner === false) {
+		/* if (pack.collaborators.find((i) => i.user_id === user_id).is_owner === false) {
 			alert("access denied! only owner of this pack can do this.");
 			return;
-		}
+		} */
 		if (!window.confirm("are you sure ?")) return;
 		custom_delete({
 			context: "packs",
@@ -96,16 +99,29 @@ export const Pack = () => {
 			)
 			.finally(get_global_data);
 	}
+	var [selected_view, set_selected_view] = useState({
+		value: undefined,
+		label: "default view mode",
+	});
+	var nav = useNavigate();
 	return (
 		<div className="p-2">
 			<h1>Pack {pack_id}</h1>
-			<Section title="overview">
-				<div className="flex flex-wrap ">
-					{pack_childrens.map((i, index) => (
-						<PackRootChildUnit key={index} {...i}></PackRootChildUnit>
-					))}
-				</div>
-			</Section>
+			<StyledDiv className="mb-2" onClick={() => nav("new_pack_view")}>
+				new pack view{" "}
+			</StyledDiv>
+			<Select
+				options={[
+					{ value: undefined, label: "default view mode" },
+					...global_data.all.pack_views
+						.filter((pack_view) => pack_view.pack_id === pack_id)
+						.map((pack_view) => ({ label: pack_view.name, value: pack_view._id })),
+				]}
+				isSearchable
+				value={selected_view}
+				onChange={(new_value) => set_selected_view(new_value)}
+			/>
+			<PackView pack_children={pack_children} view_id={selected_view.value} />
 			<Section title="options">
 				<div className="flex flex-col space-y-2 items-start">
 					<StyledDiv onClick={() => change_pack_handler("title")}>
