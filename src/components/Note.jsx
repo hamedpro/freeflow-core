@@ -14,6 +14,7 @@ import { GlobalDataContext } from "../GlobalDataContext";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 import { MessagesBox } from "./MessagesBox";
+import e2h from "editorjs-html";
 export const Note = () => {
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
@@ -129,16 +130,8 @@ export const Note = () => {
 						class: List,
 						inlineToolbar: true,
 					},
-					attach: {
-						class: Attach,
-						inlineToolbar: true,
-					},
 					table: {
 						class: Table,
-						inlineToolbar: true,
-					},
-					image: {
-						class: ImageTool,
 						inlineToolbar: true,
 					},
 					checklist: {
@@ -153,7 +146,6 @@ export const Note = () => {
 				},
 				defaultBlock: "header",
 				autofocus: true,
-				placeholder: "start typing your note here...",
 			};
 
 			var last_note_commit = global_data.all.note_commits
@@ -221,7 +213,7 @@ export const Note = () => {
 			<ObjectBox object={note} />
 			<CollaboratorsManagementBox context="notes" id={note_id} />
 			<Section title="note content" className=" relative w-full overflow-hidden">
-				<div id="editor-js-div"></div>
+				<div id="editor-js-div" className="px-4" style={{ minHeight: "200px" }}></div>
 			</Section>
 
 			<StyledDiv className="w-fit m-2" onClick={saveHandler}>

@@ -14,15 +14,7 @@ import { DayCalendar } from "./components/DayCalendar";
 import { Root } from "./components/Root.jsx";
 import { PrimarySideBar } from "./components/PrimarySideBar";
 import { NewResource } from "./components/NewResource";
-import {
-	CalendarMonthRounded,
-	Home,
-	HomeOutlined,
-	Notifications,
-	Person2,
-	Person2Outlined,
-	Settings,
-} from "@mui/icons-material";
+import { CalendarMonthRounded, Home, Notifications, Person2, Settings } from "@mui/icons-material";
 import UserProfile from "./components/UserProfile";
 import { UserSettings } from "./components/UserSettings";
 import { NewEvent } from "./components/NewEvent";
@@ -43,8 +35,8 @@ import { LoginMethodChoosing } from "./components/LoginMethodChoosing";
 import { LoginPasswordBased } from "./components/LoginPasswordBased";
 import { LoginVerificationBased } from "./components/LoginVerificationBased";
 import { RegisterStep3 } from "./components/RegisterStep3";
-import editorjs2html from "editorjs-html";
-import { NewPackView } from "./components/NewPackView";
+import { EditPackView } from "./EditPackView";
+import { NewPackViewPage } from "./NewPackViewPage";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -104,8 +96,13 @@ function Wrapper({ last_location_change_timestamp }) {
 						/>
 						<Route
 							path="packs/:pack_id/new_pack_view"
-							element={<NewPackView key={last_location_change_timestamp} />}
+							element={<NewPackViewPage key={last_location_change_timestamp} />}
 						/>
+						<Route
+							path="edit_pack_view"
+							element={<EditPackView key={last_location_change_timestamp} />}
+						/>
+
 						<Route
 							path="packs/new"
 							element={<NewPack key={last_location_change_timestamp} />}

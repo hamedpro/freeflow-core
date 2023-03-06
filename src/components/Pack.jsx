@@ -108,7 +108,7 @@ export const Pack = () => {
 		<div className="p-2">
 			<h1>Pack {pack_id}</h1>
 			<StyledDiv className="mb-2" onClick={() => nav("new_pack_view")}>
-				new pack view{" "}
+				new pack view
 			</StyledDiv>
 			<Select
 				options={[
