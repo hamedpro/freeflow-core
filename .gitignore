@@ -36,3 +36,4 @@ notesData.js
 api/task.ts
 api/pg.js
 env.json
+last_running_process

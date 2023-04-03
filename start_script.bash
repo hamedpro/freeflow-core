@@ -1,4 +1,4 @@
- function start(){
+function start(){
     git pull ;
     npm install ;
     node ./export_env_dot_json.js ; 
