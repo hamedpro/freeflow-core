@@ -4,8 +4,8 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"dev": "node script_executer.cjs dev",
-		"start": "node script_executer.cjs start"
+		"dev": "./dev_script.bash",
+		"start": "./start_script.bash"
 	},
 	"dependencies": {
 		"@date-io/jalaali": "^2.16.1",

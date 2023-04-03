@@ -21,3 +21,5 @@ make sure everywhere we are saving or processing a percentage we must not round 
 
 custom delete of pack had a error : it was attempting to delete this :
 no such file or directory, stat './uploaded/resources/undefined'
+
+env.json fields must not contain hypen or any invalid linux env var name character
