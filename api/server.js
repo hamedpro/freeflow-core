@@ -26,7 +26,7 @@ async function init() {
 	//todo take care about length of texts and max length of cells
 }
 var app = express();
-app.use(cors({ origin: "http://localhost:5000", credentials: true })); //todo read origin from env so when port or protocol changes it will keep going working properly
+app.use(cors()); //todo read origin from env so when port or protocol changes it will keep going working properly
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.static("./uploaded/"));

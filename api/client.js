@@ -19,7 +19,6 @@ export async function custom_axios({
 		method: method.toUpperCase(),
 		data: body,
 		headers,
-		withCredentials: true,
 	};
 	if (responseType) {
 		conf.responseType = responseType;
