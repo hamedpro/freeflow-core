@@ -1,5 +1,4 @@
 import axios from "axios";
-var window = { api_endpoint: "http://localhost:4000" };
 export async function custom_axios({
 	task,
 	body = {},
