@@ -8,7 +8,7 @@ import {
 	timestamp_filled_range,
 	unique_items_of_array,
 } from "../../common_helpers.js";
-import { Section } from "./Section";
+import { Section } from "./section";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
 import { GlobalDataContext } from "../GlobalDataContext";
