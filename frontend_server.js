@@ -9,6 +9,4 @@ app.use(cors());
 app.all("/*", (req, res) => {
 	res.sendFile(path.resolve("./dist/index.html"));
 });
-app.listen(Number(frontend_port), () => {
-	console.log(`frontend server started on port ${frontend_port}`);
-});
+app.listen(Number(frontend_port));

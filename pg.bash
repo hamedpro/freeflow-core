@@ -1,2 +1,3 @@
 #this file is just a playground to play with bash
-npm --help
+nodemon ./api/server.js ; 
+echo "hamed is here";

@@ -5,6 +5,7 @@ function start(){
     source ./.env ;
     node ./api/server.js &
     npx tailwindcss -c ./tailwind.config.cjs -i ./src/input.css -o ./src/output.css ;
+    vite build --base ./ ;
     node ./frontend_server.js &
 };
 start ;
