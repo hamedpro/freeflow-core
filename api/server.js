@@ -46,7 +46,7 @@ app.all("/", async (req, res) => {
 	if (task === undefined) {
 		res.json(`there is not any task in request's body`);
 	} else if (task === "auth") {
-		var user = await db.collection("users").findOne({ _id: ObjectId(req.body.user_id) });
+		var user = await db.collection("users").findOne({ _id: new ObjectId(req.body.user_id) });
 
 		if (req.body.verf_code !== undefined) {
 			var current_verification_code = await db
@@ -58,7 +58,7 @@ app.all("/", async (req, res) => {
 				);
 			}
 			if (current_verification_code.value == req.body.verf_code) {
-				var update_filter = { _id: ObjectId(req.body.user_id) };
+				var update_filter = { _id: new ObjectId(req.body.user_id) };
 				var update_object = {};
 				update_object[current_verification_code.kind + "_is_verified"] = true;
 				await db.collection("users").updateOne(update_filter, { $set: update_object });
@@ -72,7 +72,7 @@ app.all("/", async (req, res) => {
 		}
 	} else if (task === "send_verification_code") {
 		// body :{ kind : "mobile"  || "email_address" , user_id : string}
-		var user = await db.collection("users").findOne({ _id: ObjectId(req.body.user_id) });
+		var user = await db.collection("users").findOne({ _id: new ObjectId(req.body.user_id) });
 		if (user === undefined) {
 			res.status(400).json("there is not any user even found with that details");
 			return;
@@ -113,6 +113,7 @@ app.all("/", async (req, res) => {
 				break;
 			default:
 				res.status(400).send();
+				break;
 		}
 	} else if (task === "flexible_user_finder") {
 		var users = await db.collection("users").find().toArray();
@@ -139,11 +140,11 @@ app.all("/", async (req, res) => {
 				info: "there is more than one match in valid search resources",
 			});
 		}
-	}else if (task === "get_collection") {
+	} else if (task === "get_collection") {
 		//body should be like this :{collection_name : string ,filters : {}}
 		var filters = req.body.filters;
 		if (Object.keys(filters).includes("_id")) {
-			filters["_id"] = ObjectId(filters["_id"]);
+			filters["_id"] = new ObjectId(filters["_id"]);
 		}
 		var tasks = await db.collection(req.body.collection_name).find(filters).toArray();
 		res.json(tasks);
@@ -157,7 +158,7 @@ app.all("/", async (req, res) => {
 		//body must be like : {collection : string,update_filter : object, update_set : object}
 		var update_filter = req.body.update_filter;
 		if (update_filter._id !== undefined) {
-			update_filter._id = ObjectId(update_filter._id);
+			update_filter._id = new ObjectId(update_filter._id);
 		}
 		var update_statement = await db
 			.collection(req.body.collection)
@@ -167,14 +168,16 @@ app.all("/", async (req, res) => {
 		//body should look like this : {filter_object : object , collection_name : string}
 		var filters = req.body.filters;
 		if (Object.keys(filters).includes("_id")) {
-			filters["_id"] = ObjectId(filters["_id"]);
+			filters["_id"] = new ObjectId(filters["_id"]);
 		}
 		res.json(await db.collection(req.body.collection_name).deleteOne(filters));
 	} else if (task === "mark_task_as_done") {
 		//body should be like this : {task_id : string}
 		//first check if we do this there will be any conflict or not
 		var events = await db.collection("events").find().toArray();
-		var this_task = await db.collection("tasks").findOne({ _id: ObjectId(req.body.task_id) });
+		var this_task = await db
+			.collection("tasks")
+			.findOne({ _id: new ObjectId(req.body.task_id) });
 
 		if (
 			is_there_any_conflict({
@@ -191,20 +194,20 @@ app.all("/", async (req, res) => {
 		}
 		await db
 			.collection("tasks")
-			.updateOne({ _id: ObjectId(req.body.task_id) }, { is_done: true });
+			.updateOne({ _id: new ObjectId(req.body.task_id) }, { is_done: true });
 		res.json({});
 	} else if (task === "custom_delete") {
 		//how to use it -> to delete a pack with id=foo -> context = "packs", id = "foo"
 		//possible options for context : "packs" , "notes" , "resources" , "tasks"
 		var { context, id } = req.body;
 		async function delete_pack(pack_id) {
-			await db.collection("packs").deleteOne({ _id: ObjectId(pack_id) });
+			await db.collection("packs").deleteOne({ _id: new ObjectId(pack_id) });
 			await db.collection("notes").deleteMany({ pack_id });
 			await db.collection("tasks").deleteMany({ pack_id });
 			var resources = await db.collection("resources").find({ pack_id }).toArray();
 			for (var resource in resources) {
 				fs.rmSync(`./uploaded/resources/${resource._id}`);
-				await db.collection("resources").deleteOne({ _id: ObjectId(resource._id) });
+				await db.collection("resources").deleteOne({ _id: new ObjectId(resource._id) });
 			}
 			for (var pack of await db.collection("packs").find({ pack_id }).toArray()) {
 				await delete_pack(pack._id);
@@ -215,23 +218,23 @@ app.all("/", async (req, res) => {
 				await delete_pack(id);
 				break;
 			case "notes":
-				await db.collection("notes").deleteOne({ _id: ObjectId(id) });
+				await db.collection("notes").deleteOne({ _id: new ObjectId(id) });
 				var all_tasks = await db.collection("tasks").find().toArray();
 				for (var task of all_tasks.filter((i) => i.linked_notes.includes(id))) {
 					await db
 						.collection("tasks")
 						.updateOne(
-							{ _id: ObjectId(task._id) },
+							{ _id: new ObjectId(task._id) },
 							{ linked_notes: task.linked_notes.filter((i) => i !== id) }
 						);
 				}
 				break;
 			case "resources":
-				await db.collection("resources").deleteOne({ _id: ObjectId(id) });
+				await db.collection("resources").deleteOne({ _id: new ObjectId(id) });
 				fs.rmSync(`./uploaded/resources/${id}`);
 				break;
 			case "tasks":
-				await db.collection("tasks").deleteOne({ _id: ObjectId(id) });
+				await db.collection("tasks").deleteOne({ _id: new ObjectId(id) });
 				break;
 			case "events":
 				await db.collection("events").deleteOne({ _id: new ObjectId(id) });
@@ -261,7 +264,7 @@ app.all("/", async (req, res) => {
 
 //starting api v2 routes :
 app.post("/v2/auth/password_verification", async (request, response) => {
-	var user = await db.collection("users").findOne({ _id: ObjectId(request.body.user_id) });
+	var user = await db.collection("users").findOne({ _id: new ObjectId(request.body.user_id) });
 	if (user === null) {
 		response.status(404).json("user you are looking for doesnt exist");
 		return;
@@ -298,7 +301,7 @@ app.post("/v2/auth/verification_code_verification", async (request, response) =>
 		return;
 	}
 	if (current_verification_code_document.value == request.body.verf_code) {
-		var update_filter = { _id: ObjectId(request.body.user_id) };
+		var update_filter = { _id: new ObjectId(request.body.user_id) };
 		var update_object = {};
 		update_object[current_verification_code_document.kind + "_is_verified"] = true;
 		await db.collection("users").updateOne(update_filter, { $set: update_object });
