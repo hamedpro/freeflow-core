@@ -1,4 +1,3 @@
-import { AddTask, Backpack, CloudUpload, Event, NoteAdd } from "@mui/icons-material";
 import React, { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
@@ -51,23 +50,23 @@ function AddNewOptionRow() {
 			{[
 				{
 					type: "packs",
-					icon: Backpack,
+					icon: <i className="bi-box-fill text-white"></i>,
 				},
 				{
 					type: "tasks",
-					icon: AddTask,
+					icon: <i className="bi-clipboard-fill text-white"></i>,
 				},
 				{
 					type: "resources",
-					icon: CloudUpload,
+					icon: <i className="bi-cloud-upload-fill text-white"></i>,
 				},
 				{
 					type: "notes",
-					icon: NoteAdd,
+					icon: <i className="bi-card-text text-white"></i>,
 				},
 				{
 					type: "events",
-					icon: Event,
+					icon: <i className="bi-calendar4-event text-white"></i>,
 				},
 			].map((i) => (
 				<button
@@ -75,7 +74,7 @@ function AddNewOptionRow() {
 					onClick={() => onclick_handler(i.type)}
 					className=" hover:bg-blue-700 rounded p-1"
 				>
-					<i.icon sx={{ color: "white" }} />
+					{i.icon}
 				</button>
 			))}
 		</div>

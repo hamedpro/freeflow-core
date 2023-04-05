@@ -1,4 +1,3 @@
-import { BackpackRounded, FileDownload, Note, Task } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { LandscapeCard } from "./LandscapeCard";
 import ObjectBox from "./ObjectBox";
@@ -11,7 +10,7 @@ export const PackRootChildUnit = ({ context, child }) => {
 	if (context === "resources") {
 		return (
 			<LandscapeCard onClick={() => nav(`/dashboard/resources/${child._id}`)}>
-				<FileDownload />
+				<i className="bi-cloud-download-fill"></i>
 				resource : {child.title}
 				<ObjectBox object={child} />
 			</LandscapeCard>
@@ -19,7 +18,7 @@ export const PackRootChildUnit = ({ context, child }) => {
 	} else if (context === "tasks") {
 		return (
 			<LandscapeCard onClick={() => nav(`/dashboard/tasks/${child._id}`)}>
-				<Task />
+				<i className="bi-clipboard-fill"></i>
 				task : {child.title}
 				<ObjectBox object={child} />
 			</LandscapeCard>
@@ -27,7 +26,7 @@ export const PackRootChildUnit = ({ context, child }) => {
 	} else if (context === "notes") {
 		return (
 			<LandscapeCard onClick={() => nav(`/dashboard/notes/${child._id}`)}>
-				<Note />
+				<i className="bi-card-text"></i>
 				note : {child.title}
 				<ObjectBox object={child} />
 			</LandscapeCard>
@@ -35,7 +34,7 @@ export const PackRootChildUnit = ({ context, child }) => {
 	} else if (context === "packs") {
 		return (
 			<LandscapeCard onClick={() => nav(`/dashboard/packs/${child._id}`)}>
-				<BackpackRounded />
+				<i className="bi-box-fill"></i>
 				pack : {child.title}
 				<ObjectBox object={child} />
 			</LandscapeCard>

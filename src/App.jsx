@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./App.css";
 import "./output.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import { month_names, multi_lang_helper as ml } from "../common_helpers.js";
 import { SubscribtionPage } from "./components/subscribtionPage";
@@ -14,7 +15,6 @@ import { DayCalendar } from "./components/DayCalendar";
 import { Root } from "./components/Root.jsx";
 import { PrimarySideBar } from "./components/PrimarySideBar";
 import { NewResource } from "./components/NewResource";
-import { CalendarMonthRounded, Home, Notifications, Person2, Settings } from "@mui/icons-material";
 import UserProfile from "./components/UserProfile";
 import { UserSettings } from "./components/UserSettings";
 import { NewEvent } from "./components/NewEvent";
@@ -41,20 +41,29 @@ function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
 		<div className="w-full h-14 bg-blue-700 overflow-y-hidden flex items-center px-3 space-x-3">
-			<div className="w-1/5">
+			<div className="w-1/4 flex space-x-2">
 				<Link to={`/dashboard/settings`}>
-					<Settings style={{ color: "white", width: "40px", height: "40px" }} />
+					<i
+						style={{ color: "white" }}
+						className="text-3xl bi-person-fill-gear hover:bg-blue-900 duration-300 rounded-lg p-1"
+					/>
 				</Link>
 				<Link to={`/users/${user_id}`}>
-					<Person2 style={{ color: "white", width: "40px", height: "40px" }} />
+					<i
+						style={{ color: "white" }}
+						className="text-3xl bi-person-lines-fill hover:bg-blue-900 duration-300 rounded-lg p-1"
+					/>
 				</Link>
 				<Link to={`/dashboard/`}>
-					<Home style={{ color: "white", width: "40px", height: "40px" }} />
+					<i
+						style={{ color: "white" }}
+						className="bi-house-fill text-2xl hover:bg-blue-900 duration-300 rounded-lg p-1"
+					/>
 				</Link>
 			</div>
-			<div className="w-4/5 flex justify-between items-center h-full ">
+			<div className="w-3/4 flex justify-between items-center h-full ">
 				<div className="h-full text-white flex items-center space-x-3">
-					<CalendarMonthRounded />
+					<i className="bi-calendar4"></i>
 					<div>
 						{new Date().getFullYear()} /{" "}
 						<Link to={`/dashboard/calendar/month`}>
@@ -63,11 +72,14 @@ function TopBar() {
 						/ {<Link to={`/dashboard/calendar/day`}>{new Date().getDate()}</Link>}
 					</div>
 				</div>
-				<div className="flex items-center space-x-3 h-5/6 my-2 ">
-					<Notifications style={{ color: "white", width: "40px", height: "40px" }} />
-					<div className="px-2 rounded h-full flex justify-center items-center text-white bg-green-500">
-						subscribe
-					</div>
+				<div className="flex items-center space-x-3 h-5/6 my-2 py-2">
+					<i
+						style={{ color: "white" }}
+						className="text-2xl bi-bell-fill hover:bg-blue-900 duration-300 rounded-lg p-1"
+					/>
+					<button className="px-2 rounded h-full flex justify-center items-center text-white bg-green-500">
+						premium
+					</button>
 				</div>
 			</div>
 		</div>

@@ -1,4 +1,3 @@
-import { PersonRounded } from "@mui/icons-material";
 import React, { useContext } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -152,7 +151,7 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 									src={`${window.API_ENDPOINT}/profile_images/${collaborator.user_document.profile_image}`}
 								/>
 							) : (
-								<PersonRounded className="h-14 w-14 bg-white" />
+								<i className="bi-person-fill text-black" />
 							)}
 							<p>
 								username :{" "}

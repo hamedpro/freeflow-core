@@ -1,4 +1,3 @@
-import { CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LinkLikeP } from "./link_like_p";
@@ -42,7 +41,12 @@ export const RegisterStep1 = () => {
 						}
 						className="flex items-center space-x-1 mt-2"
 					>
-						{terms_are_accepted ? <CheckBox /> : <CheckBoxOutlineBlank />}i accept{" "}
+						{terms_are_accepted ? (
+							<i className="bi-toggle-on"></i>
+						) : (
+							<i className="bi-toggle-off" />
+						)}
+						i accept{" "}
 						<LinkLikeP link="/terms" className="inline-block">
 							terms of use
 						</LinkLikeP>

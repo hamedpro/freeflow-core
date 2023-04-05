@@ -1,4 +1,3 @@
-import { CheckBox, CheckBoxOutlineBlankRounded } from "@mui/icons-material";
 import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { GlobalDataContext } from "../GlobalDataContext";
@@ -39,7 +38,7 @@ export const PackViewModificationStage = ({ initial_order, onSubmit = () => {}, 
 									(j) => j.id === i.child._id && j.unit_context === i.context
 								) !== -1 ? (
 									<>
-										<CheckBox />{" "}
+										<i className="bi-toggle-on"></i>{" "}
 										{new_order.findIndex(
 											(j) =>
 												j.id === i.child._id && j.unit_context === i.context
@@ -54,7 +53,7 @@ export const PackViewModificationStage = ({ initial_order, onSubmit = () => {}, 
 											]);
 										}}
 									>
-										<CheckBoxOutlineBlankRounded />
+										<i className="bi-toggle-off"></i>
 									</button>
 								)}
 							</div>
