@@ -133,7 +133,7 @@ export const CollaboratorsManagementBox = ({ context, id }) => {
 		get_global_data();
 	}
 	return (
-		<Section title="Collaborators Management Box">
+		<Section title="Collaborators Management Box" className="">
 			<Section title="current collaborators">
 				{collaborators.map((collaborator, index) => {
 					var logged_in_user = collaborators.find(

@@ -37,6 +37,7 @@ import { LoginVerificationBased } from "./components/LoginVerificationBased";
 import { RegisterStep3 } from "./components/RegisterStep3";
 import { EditPackView } from "./EditPackView";
 import { NewPackViewPage } from "./NewPackViewPage";
+import "react-contexify/ReactContexify.css";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -78,7 +79,7 @@ function TopBar() {
 						className="text-2xl bi-bell-fill hover:bg-blue-900 duration-300 rounded-lg p-1"
 					/>
 					<button className="px-2 rounded h-full flex justify-center items-center text-white bg-green-500">
-						premium
+						<span>Go Premium</span>
 					</button>
 				</div>
 			</div>

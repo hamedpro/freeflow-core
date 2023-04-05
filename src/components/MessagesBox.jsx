@@ -3,6 +3,7 @@ import { update_document, new_document, delete_document } from "../../api/client
 import { GlobalDataContext } from "../GlobalDataContext";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
+import { Item, Menu, useContextMenu } from "react-contexify";
 export function MessagesBox() {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var { pathname } = window.location;
@@ -70,6 +71,9 @@ export function MessagesBox() {
 		get_global_data();
 	}
 	const delete_message_handler = async (message_id) => {
+		if (window.confirm("caution!\nare you sure you want to delete this message ?") !== true) {
+			return;
+		}
 		await {
 			filters: {
 				_id: message_id,
@@ -83,50 +87,87 @@ export function MessagesBox() {
 		});
 		get_global_data();
 	};
+	var { show } = useContextMenu({
+		id: "message_context_menu",
+	});
+	function handle_message_context_menu({ event, message_id }) {
+		show({
+			event,
+			props: {
+				message_id,
+			},
+		});
+	}
 	return (
-		<Section title="messages">
-			{messages_to_show.map((message) => (
-				<div
-					key={message._id}
-					className={`relative w-full flex ${
-						message.user_id === window.localStorage.getItem("user_id")
-							? "justify-start"
-							: "justify-end"
-					}`}
+		<>
+			<Menu id="message_context_menu">
+				<Item
+					id="delete"
+					onClick={(event) => delete_message_handler(event.props.message_id)}
 				>
-					<div className="border border-blue-500 w-1/2 h-full mb-2 rounded p-2">
-						<p className="mb-2">{message.text}</p>
+					Delete
+				</Item>
+				<Item id="edit" onClick={(event) => edit_message_handler(event.props.message_id)}>
+					Edit
+				</Item>
+			</Menu>
+			<Section title="messages">
+				{messages_to_show.map((message) => (
+					<div
+						key={message._id}
+						className={`relative w-full flex ${
+							message.user_id === window.localStorage.getItem("user_id")
+								? "justify-start"
+								: "justify-end"
+						}`}
+					>
+						<div
+							onContextMenu={(event) =>
+								handle_message_context_menu({ event, message_id: message._id })
+							}
+							className="border border-blue-500 w-1/2 h-full mb-2 rounded p-2 relative"
+						>
+							<p className="mb-2">{message.text}</p>
+							<StyledDiv
+								className="w-fit mb-1 mx-1 absolute top-2 right-2 text-xs flex items-center justify-center opacity-70 hover:opacity-100"
+								onClick={(event) =>
+									handle_message_context_menu({ event, message_id: message._id })
+								}
+							>
+								<i className="bi-three-dots" />
+							</StyledDiv>
+							<p className="text-xs">
+								@
+								{
+									global_data.all.users.find(
+										(user) => user._id === message.user_id
+									).username
+								}{" "}
+								| {new Date(message.submit_time).toString()}
+							</p>
+						</div>
+					</div>
+				))}
+				<hr />
+				<div className="flex items-center pt-2">
+					<div className="w-4/5 flex items-center">
+						<textarea
+							placeholder="type here ..."
+							className=" mx-2 px-1 w-full rounded "
+							id="new_comment_text_input"
+						/>
+					</div>
 
-						<StyledDiv
-							className="w-fit mb-1 inline mx-1"
-							onClick={() => delete_message_handler(message._id)}
+					<div className="w-1/5">
+						<button
+							className="w-full h-full flex items-center justify-center"
+							onClick={new_message}
 						>
-							delete
-						</StyledDiv>
-						<StyledDiv
-							className="w-fit mb-1 inline mx-1"
-							onClick={() => edit_message_handler(message._id)}
-						>
-							edit
-						</StyledDiv>
-						<p>
-							written by{" "}
-							{
-								global_data.all.users.find((user) => user._id === message.user_id)
-									.username
-							}{" "}
-							| {new Date(message.submit_time).toString()}
-						</p>
+							send
+						</button>
 					</div>
 				</div>
-			))}
-			<hr />
-			<input
-				placeholder="enter a comment"
-				className="mt-2 mx-2 px-1"
-				id="new_comment_text_input"
-			/>
-			<button onClick={new_message}>send</button>
-		</Section>
+			</Section>
+		</>
 	);
 }

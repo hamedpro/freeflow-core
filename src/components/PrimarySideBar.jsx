@@ -86,17 +86,23 @@ function Option({ text, indent_level, url, access_denied, context }) {
 	return (
 		<div
 			className={[
-				" border-b border-black flex  items-center w-full cursor-pointer hover:bg-blue-700 duration-200 space-x-2",
+				"border-b border-black flex  py-1 items-center w-full cursor-pointer hover:bg-blue-700 duration-200 space-x-2",
 				is_selected ? "bg-blue-800 text-white" : "",
 			].join(" ")}
-			style={{ paddingLeft: indent_level * 20 + 5 + "px" }}
+			style={{ paddingLeft: indent_level * 20 + 8 + "px" }}
 			onClick={() => nav(url)}
 		>
 			<div className="text-white">
-				{context === "packs" && <i className="bi-box-fill" />}
-				{context === "notes" && <i className="bi-card-text" />}
-				{context === "tasks" && <i className="bi-clipboard-fill" />}
-				{context === "resources" && <i className="bi-cloud-download-fill" />}
+				{access_denied === true ? (
+					<i className="bi-lock-fill" />
+				) : (
+					<>
+						{context === "packs" && <i className="bi-box-fill" />}
+						{context === "notes" && <i className="bi-card-text" />}
+						{context === "tasks" && <i className="bi-clipboard-fill" />}
+						{context === "resources" && <i className="bi-cloud-download-fill" />}
+					</>
+				)}
 			</div>
 			<span>{text}</span>
 		</div>

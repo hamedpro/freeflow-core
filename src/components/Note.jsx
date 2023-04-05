@@ -1,11 +1,9 @@
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import List from "@editorjs/list";
-import Attach from "@editorjs/attaches";
 import Table from "@editorjs/table";
-import ImageTool from "@editorjs/image";
 import Checklist from "@editorjs/checklist";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { custom_delete, leave_here, new_document, update_document } from "../../api/client";
 import ObjectBox from "./ObjectBox";
@@ -14,7 +12,7 @@ import { GlobalDataContext } from "../GlobalDataContext";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 import { MessagesBox } from "./MessagesBox";
-import e2h from "editorjs-html";
+import { Item, Menu, useContextMenu } from "react-contexify";
 export const Note = () => {
 	var nav = useNavigate();
 	var [search_params, set_search_params] = useSearchParams();
@@ -23,6 +21,10 @@ export const Note = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var editor_js_instance = useRef();
 	var note = global_data.all.notes.find((note) => note._id === note_id);
+	var { show } = useContextMenu({
+		id: "options_context_menu",
+	});
+
 	const saveHandler = async () => {
 		editor_js_instance.current.save().then(async (output_data) => {
 			try {
@@ -42,6 +44,7 @@ export const Note = () => {
 					"something went wrong when saving the new edited note data. details in console"
 				);
 			}
+			await get_global_data();
 		});
 		/* 
       TODO: auto save : pass onChange prop to editor_js_configs before initializing and save changes in that onChange
@@ -111,6 +114,11 @@ export const Note = () => {
 			)
 			.finally(get_global_data);
 	}
+	var last_note_commit = global_data.all.note_commits
+		.filter((i) => i.note_id === note_id)
+		.sort((i1, i2) => i1.time - i2.time)
+		.at(-1);
+
 	useEffect(() => {
 		if (
 			note !== undefined &&
@@ -148,11 +156,6 @@ export const Note = () => {
 				autofocus: true,
 			};
 
-			var last_note_commit = global_data.all.note_commits
-				.filter((i) => i.note_id === note_id)
-				.sort((i1, i2) => i1.time - i2.time)
-				.at(-1);
-
 			if (search_params.get("note_commit_id")) {
 				editor_js_configs["data"] = global_data.all.note_commits.find(
 					(i) => i._id === search_params.get("note_commit_id")
@@ -184,42 +187,57 @@ export const Note = () => {
 		return <h1>access denied you are not a collaborator of this note</h1>;
 	} */
 	return (
-		<div className="p-2">
-			<h1 className="text-lg">Note</h1>
-			<h1>
-				selected note_commit :{" "}
-				{search_params.get("note_commit_id")
-					? `not showing current state of this note : showing a note_commit ${search_params.get(
-							"note_commit_id"
-					  )}`
-					: "showing current state of this note"}
-			</h1>
-			<StyledDiv
-				className="w-fit mt-2"
-				onClick={() => nav(`/dashboard/notes/${note_id}/commits`)}
-			>
-				open commits history of this note
-			</StyledDiv>
-			<Section title="options">
-				<div className="flex flex-col space-y-2 items-start">
-					<StyledDiv onClick={() => change_note_handler("title")}>
-						change title of this note
-					</StyledDiv>
-					<StyledDiv onClick={leave_this_note}>leave this note </StyledDiv>
-					<StyledDiv onClick={delete_this_note}>delete this note</StyledDiv>
+		<>
+			<Menu id="options_context_menu">
+				<Item id="change_title" onClick={() => change_note_handler("title")}>
+					Change Title
+				</Item>
+				<Item id="leave_note" onClick={leave_this_note}>
+					Leave Note
+				</Item>
+				<Item id="delete_note" onClick={delete_this_note}>
+					Delete Note
+				</Item>
+			</Menu>
+			<div className="p-4">
+				<div className="flex justify-between mb-1 items-center">
+					<h1 className="text-lg">Note</h1>
+					<button className="items-center flex">
+						<i className="bi-list text-lg" />{" "}
+					</button>
 				</div>
-			</Section>
-			<h1>note_data : </h1>
-			<ObjectBox object={note} />
-			<CollaboratorsManagementBox context="notes" id={note_id} />
-			<Section title="note content" className=" relative w-full overflow-hidden">
-				<div id="editor-js-div" className="px-4" style={{ minHeight: "200px" }}></div>
-			</Section>
 
-			<StyledDiv className="w-fit m-2" onClick={saveHandler}>
-				save current state
-			</StyledDiv>
-			<MessagesBox />
-		</div>
+				<div className="break-all flex space-x-1 bg-blue-700 text-white p-2 rounded">
+					<i className="bi-info-circle-fill"></i>
+					<span>
+						{last_note_commit !== undefined
+							? search_params.get("note_commit_id")
+								? `showing note_commit #${search_params.get("note_commit_id")}`
+								: `showing latest note commit (#${last_note_commit._id})`
+							: `there is not any note commit for this note yet. type and hit save to create the
+					first note commit`}
+					</span>
+					<StyledDiv
+						className="w-fit mt-2 text-xs break-keep flex items-center justify-center text-center"
+						onClick={() => nav(`/dashboard/notes/${note_id}/commits`)}
+					>
+						<i className="bi-clock-history text-lg" />
+						commits history
+					</StyledDiv>
+				</div>
+				<h1>note_data : </h1>
+				<ObjectBox object={note} />
+
+				<CollaboratorsManagementBox context="notes" id={note_id} />
+				<Section title="note content" className=" relative w-full overflow-hidden">
+					<div id="editor-js-div" className="px-4" style={{ minHeight: "200px" }}></div>
+				</Section>
+
+				<StyledDiv className="w-fit m-2" onClick={saveHandler}>
+					save current state
+				</StyledDiv>
+				<MessagesBox />
+			</div>
+		</>
 	);
 };
