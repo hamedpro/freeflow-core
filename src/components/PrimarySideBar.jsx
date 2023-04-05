@@ -80,19 +80,25 @@ function AddNewOptionRow() {
 		</div>
 	);
 }
-function Option({ text, indent_level, url }) {
+function Option({ text, indent_level, url, access_denied, context }) {
 	var nav = useNavigate();
 	var is_selected = useMatch(url);
 	return (
 		<div
 			className={[
-				" border-b border-black flex  items-center w-full cursor-pointer hover:bg-blue-700 duration-200",
+				" border-b border-black flex  items-center w-full cursor-pointer hover:bg-blue-700 duration-200 space-x-2",
 				is_selected ? "bg-blue-800 text-white" : "",
 			].join(" ")}
 			style={{ paddingLeft: indent_level * 20 + 5 + "px" }}
 			onClick={() => nav(url)}
 		>
-			{text}
+			<div className="text-white">
+				{context === "packs" && <i className="bi-box-fill" />}
+				{context === "notes" && <i className="bi-card-text" />}
+				{context === "tasks" && <i className="bi-clipboard-fill" />}
+				{context === "resources" && <i className="bi-cloud-download-fill" />}
+			</div>
+			<span>{text}</span>
 		</div>
 	);
 }
@@ -121,7 +127,8 @@ export const PrimarySideBar = () => {
 				); */
 				return {
 					...option,
-					text: `hidden ${option.context.slice(0, option.context.length - 1)}`,
+					text: `access denied ! (${option.context.slice(0, option.context.length - 1)})`,
+					access_denied: true,
 				};
 			}
 		});
@@ -133,9 +140,8 @@ export const PrimarySideBar = () => {
 		if (["tasks", "notes", "resources"].includes(context)) {
 			return [
 				{
-					text: `${context.slice(0, context.length - 1)} : ${
-						global_data.all[context].find((item) => item._id === id).title
-					}`,
+					text: `${global_data.all[context].find((item) => item._id === id).title}`,
+
 					url: `/dashboard/${context}/${id}`,
 					context,
 					id,
@@ -146,7 +152,7 @@ export const PrimarySideBar = () => {
 		} else if (context === "packs") {
 			var tmp = [
 				{
-					text: `pack : ${global_data.all.packs.find((pack) => pack._id === id).title}`,
+					text: `${global_data.all.packs.find((pack) => pack._id === id).title}`,
 					url: `/dashboard/packs/${id}`,
 					context: "packs",
 					id,
@@ -159,7 +165,7 @@ export const PrimarySideBar = () => {
 					.filter((task) => task.pack_id === id)
 					.map((task) => {
 						return {
-							text: `task :  ${
+							text: `${
 								global_data.all.tasks.find((task) => task._id === task._id).title
 							}`,
 							url: `/dashboard/tasks/${task._id}`,
@@ -175,7 +181,7 @@ export const PrimarySideBar = () => {
 					.filter((resource) => resource.pack_id === id)
 					.map((resource) => {
 						return {
-							text: `resource : ${
+							text: `${
 								global_data.all.resources.find((item) => item._id === resource._id)
 									.title
 							}`,
@@ -192,7 +198,7 @@ export const PrimarySideBar = () => {
 					.filter((note) => note.pack_id === id)
 					.map((note) => {
 						return {
-							text: `note : ${
+							text: `${
 								global_data.all.notes.find((item) => item._id === note._id).title
 							}`,
 							url: `/dashboard/notes/${note._id}`,
