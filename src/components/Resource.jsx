@@ -12,6 +12,7 @@ import { MessagesBox } from "./MessagesBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
+import { Item, Menu, useContextMenu } from "react-contexify";
 
 export const Resource = () => {
 	var nav = useNavigate();
@@ -19,6 +20,9 @@ export const Resource = () => {
 	var user_id = localStorage.getItem("user_id");
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var resource_row = global_data.all.resources.find((i) => i._id === resource_id);
+	var { show } = useContextMenu({
+		id: "options_context_menu",
+	});
 	if (resource_row === undefined) {
 		return <h1>resource you are looking for doesn't even exist</h1>;
 	} /* else if (resource_row.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
@@ -90,36 +94,48 @@ export const Resource = () => {
 			.finally(get_global_data);
 	}
 	return (
-		<div className="p-2 ">
-			<h1>resource</h1>
-			<StyledDiv
-				className="w-fit mt-2"
-				onClick={() =>
-					custom_axios_download({
-						url: new URL(`/v2/files/${resource_row.file_id}`, window.api_endpoint),
-						file_name: resource_row.file_id,
-					})
-				}
-			>
-				download this resource
-			</StyledDiv>
-			<Section title="options">
-				<div className="flex flex-col space-y-2">
-					<StyledDiv onClick={() => change_resource_handler("title")}>
-						change title of this resource
-					</StyledDiv>
-					<StyledDiv onClick={() => change_resource_handler("description")}>
-						change description of this resource
-					</StyledDiv>
-					<StyledDiv onClick={leave_this_resource}>leave this resource</StyledDiv>
-					<StyledDiv onClick={delete_this_resource}>delete this resource</StyledDiv>
+		<>
+			<Menu id="options_context_menu">
+				<Item id="change_title" onClick={() => change_resource_handler("title")}>
+					Change Title
+				</Item>
+				<Item
+					id="change_description"
+					onClick={() => change_resource_handler("description")}
+				>
+					Change Description
+				</Item>
+				<Item id="leave_here" onClick={leave_this_resource}>
+					Leave Here
+				</Item>
+				<Item id="delete_resource" onClick={delete_this_resource}>
+					Delete Resource
+				</Item>
+			</Menu>
+			<div className="p-4">
+				<div className="flex justify-between mb-1 items-center p-1">
+					<h1 className="text-lg">Resource</h1>
+					<button className="items-center flex" onClick={(event) => show({ event })}>
+						<i className="bi-list text-lg" />{" "}
+					</button>
 				</div>
-			</Section>
-			<CollaboratorsManagementBox context={"resources"} id={resource_id} />
-			<h1>resource data : </h1>
-			<ObjectBox object={resource_row} />
+				<StyledDiv
+					className="w-fit mt-2 mb-3"
+					onClick={() =>
+						custom_axios_download({
+							url: new URL(`/v2/files/${resource_row.file_id}`, window.api_endpoint),
+							file_name: resource_row.file_id,
+						})
+					}
+				>
+					<i className="bi-cloud-download-fill" /> download this resource
+				</StyledDiv>
+				<CollaboratorsManagementBox context={"resources"} id={resource_id} />
+				<h1>resource data : </h1>
+				<ObjectBox object={resource_row} />
 
-			<MessagesBox />
-		</div>
+				<MessagesBox />
+			</div>
+		</>
 	);
 };

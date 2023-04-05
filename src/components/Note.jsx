@@ -202,7 +202,7 @@ export const Note = () => {
 			<div className="p-4">
 				<div className="flex justify-between mb-1 items-center">
 					<h1 className="text-lg">Note</h1>
-					<button className="items-center flex">
+					<button className="items-center flex" onClick={(event) => show({ event })}>
 						<i className="bi-list text-lg" />{" "}
 					</button>
 				</div>

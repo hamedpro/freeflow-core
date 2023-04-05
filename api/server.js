@@ -233,6 +233,9 @@ app.all("/", async (req, res) => {
 			case "tasks":
 				await db.collection("tasks").deleteOne({ _id: ObjectId(id) });
 				break;
+			case "events":
+				await db.collection("events").deleteOne({ _id: new ObjectId(id) });
+				break;
 		}
 		res.json({});
 	} else if (task === "custom_get_collection") {

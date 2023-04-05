@@ -28,6 +28,7 @@ export const NewEvent = () => {
 				start_date: selected_dates.start,
 				category_id: selected_calendar_category.value._id,
 				title: document.getElementById("title_input").value,
+				description: document.getElementById("description_input").value,
 				user_id,
 				collaborators: [
 					...selected_collaborators.map((i) => {
@@ -60,6 +61,8 @@ export const NewEvent = () => {
 			<h1>NewEvent</h1>
 			<p className="mt-2">enter a title :</p>
 			<input id="title_input" className="rounded px-1" />
+			<p className="mt-2">enter a description :</p>
+			<input id="description_input" className="rounded px-1" />
 			<h2 className="mt-2">select an existing calendar category or create a new one</h2>
 			<Select
 				onChange={select_calendar_category}

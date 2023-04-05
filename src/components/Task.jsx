@@ -7,12 +7,15 @@ import { MessagesBox } from "./MessagesBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
+import { Item, Menu, useContextMenu } from "react-contexify";
 export const Task = () => {
 	var nav = useNavigate();
 	var { task_id } = useParams();
 	var user_id = localStorage.getItem("user_id");
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
-
+	var { show } = useContextMenu({
+		id: "options_context_menu",
+	});
 	var task = global_data.all.tasks.find((i) => i._id === task_id);
 	if (task === undefined) {
 		return <h1>that task you are looking for doesn't even exist</h1>;
@@ -84,23 +87,35 @@ export const Task = () => {
 			.finally(get_global_data);
 	}
 	return (
-		<div>
-			<h1>Task</h1>
-			<Section title="options">
-				<div className="flex flex-col space-y-2">
-					<StyledDiv onClick={() => change_task_handler("title")}>
-						change title of this task
-					</StyledDiv>
-					<StyledDiv onClick={() => change_task_handler("description")}>
-						change description of this task
-					</StyledDiv>
-					<StyledDiv onClick={leave_this_task}>leave this task </StyledDiv>
-					<StyledDiv onClick={delete_this_task}>delete this task</StyledDiv>
+		<>
+			<Menu id="options_context_menu">
+				<Item id="change_title" onClick={() => change_task_handler("title")}>
+					Change Title
+				</Item>
+				<Item id="change_description" onClick={() => change_task_handler("description")}>
+					Change Description
+				</Item>
+				<Item id="leave_here" onClick={leave_this_task}>
+					Leave Here
+				</Item>
+				<Item id="delete_here" onClick={delete_this_task}>
+					Delete Here
+				</Item>
+			</Menu>
+			<div className="p-4">
+				<div className="flex justify-between mb-1 items-center">
+					<h1 className="text-lg">Task</h1>
+					<button className="items-center flex" onClick={(event) => show({ event })}>
+						<i className="bi-list text-lg" />{" "}
+					</button>
 				</div>
-			</Section>
-			<CollaboratorsManagementBox context={"tasks"} id={task_id} />
-			<ObjectBox object={task} />
-			<MessagesBox />
-		</div>
+				<div className="p-1">
+					<CollaboratorsManagementBox context={"tasks"} id={task_id} />
+					<h1 className="mt-2">Task Raw Data :</h1>
+					<ObjectBox object={task} />
+					<MessagesBox />
+				</div>
+			</div>
+		</>
 	);
 };

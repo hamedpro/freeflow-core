@@ -9,12 +9,7 @@ export const Events = () => {
 	var user_id = localStorage.getItem("user_id");
 	var [events, set_events] = useState(null);
 	async function get_data() {
-		var events = await get_collection({
-			collection_name: "events",
-			filters: { user_id },
-			global_data,
-		});
-		set_events(events);
+		set_events(global_data.user.events);
 	}
 	useEffect(() => {
 		get_data();
@@ -27,6 +22,7 @@ export const Events = () => {
 				return (
 					<Fragment key={index}>
 						<ObjectBox object={event} />
+						<hr />
 					</Fragment>
 				);
 			})}
