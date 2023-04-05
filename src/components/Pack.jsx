@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { custom_delete, leave_here, update_document } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
@@ -7,7 +7,6 @@ import { MessagesBox } from "./MessagesBox";
 import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
-import { PackRootChildUnit } from "./PackRootChildUnit";
 import { PackView } from "./PackView";
 import Select from "react-select";
 export const Pack = () => {
@@ -17,9 +16,31 @@ export const Pack = () => {
 
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var pack = global_data.all.packs.find((pack) => pack._id === pack_id);
+	var [selected_view, set_selected_view] = useState({
+		value: undefined,
+		label: "without a pack view",
+	});
+
+	//when for the first time pack is there and instead of loading
+	//actual data is showing up we set default pack view as selected_view state
+	//but it must just happen on first update when pack is true
+	var tmp = useRef(false);
+
+	useEffect(() => {
+		if (pack.default_pack_view_id && tmp.current === false) {
+			set_selected_view({
+				value: pack.default_pack_view_id,
+				label: global_data.all.pack_views.find(
+					(pack_view) => pack_view._id === pack.default_pack_view_id
+				).name,
+			});
+			tmp.current = true;
+		}
+	});
 	if (pack === undefined) {
 		return <h1>there is not any pack with that id </h1>;
 	}
+
 	/* if (pack.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
 		return <h1>access denied! :that pack was found but you are not a collaborator of that </h1>;
 	} */
@@ -99,11 +120,7 @@ export const Pack = () => {
 			)
 			.finally(get_global_data);
 	}
-	var [selected_view, set_selected_view] = useState({
-		value: undefined,
-		label: "default view mode",
-	});
-	var nav = useNavigate();
+
 	return (
 		<div className="p-2">
 			<h1>Pack {pack_id}</h1>
@@ -112,7 +129,7 @@ export const Pack = () => {
 			</StyledDiv>
 			<Select
 				options={[
-					{ value: undefined, label: "default view mode" },
+					{ value: undefined, label: "without a pack view" },
 					...global_data.all.pack_views
 						.filter((pack_view) => pack_view.pack_id === pack_id)
 						.map((pack_view) => ({ label: pack_view.name, value: pack_view._id })),

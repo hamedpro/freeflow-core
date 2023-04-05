@@ -41,7 +41,7 @@ export const NewPack = () => {
 			};
 			var id_of_new_pack = await new_pack(tmp);
 			alert("all done!. navigating to newly created pack's page ...");
-			nav(`/dashboard/packs/${id_of_new_pack}/`);
+			nav(`/dashboard/packs/${id_of_new_pack}`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");

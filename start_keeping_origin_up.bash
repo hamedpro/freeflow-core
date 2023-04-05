@@ -10,7 +10,7 @@ FILE="./last_running_process"
 
 if [ ! -f "$FILE" ]; then
     npm start ;
-else [[ $LOCAL == $BASE ]];
+elif [[ $LOCAL == $BASE ]]; then 
     echo "Behind upstream branch.\n";
     echo "shuting service down to start again after applying changes ...\n";
 
