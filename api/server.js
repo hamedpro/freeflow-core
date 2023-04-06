@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import fs from "fs";
 import formidable from "formidable";
-//app.use(express.static("./uploaded/"));
 import path from "path";
 import { MongoClient, ObjectId } from "mongodb";
 import { is_there_any_conflict } from "../common_helpers.js";
@@ -29,7 +28,6 @@ var app = express();
 app.use(cors()); //todo read origin from env so when port or protocol changes it will keep going working properly
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.static("./uploaded/"));
 try {
 	await init();
 } catch (e) {
@@ -204,9 +202,15 @@ app.all("/", async (req, res) => {
 			await db.collection("packs").deleteOne({ _id: new ObjectId(pack_id) });
 			await db.collection("notes").deleteMany({ pack_id });
 			await db.collection("tasks").deleteMany({ pack_id });
+
 			var resources = await db.collection("resources").find({ pack_id }).toArray();
 			for (var resource in resources) {
-				fs.rmSync(`./uploaded/resources/${resource._id}`);
+				var resource_file_path = path.resolve(
+					"./uploads",
+					fs.readdirSync("./uploads").find((i) => i.startsWith(resource.file_id))
+				);
+				console.log("going to delete a file with absolute path : ", resource_file_path);
+				fs.rmSync(resource_file_path);
 				await db.collection("resources").deleteOne({ _id: new ObjectId(resource._id) });
 			}
 			for (var pack of await db.collection("packs").find({ pack_id }).toArray()) {
@@ -230,8 +234,12 @@ app.all("/", async (req, res) => {
 				}
 				break;
 			case "resources":
+				var file_id = (await db.collection("resources").findOne({ _id: new ObjectId(id) }))
+					.file_id;
 				await db.collection("resources").deleteOne({ _id: new ObjectId(id) });
-				fs.rmSync(`./uploaded/resources/${id}`);
+				var tmp = fs.readdirSync("./uploads").find((i) => i.startsWith(file_id));
+				var resource_file_path = path.resolve("./uploads", tmp);
+				fs.rmSync(resource_file_path);
 				break;
 			case "tasks":
 				await db.collection("tasks").deleteOne({ _id: new ObjectId(id) });

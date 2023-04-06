@@ -40,8 +40,8 @@ export const NewTask = () => {
 	var user_id = localStorage.getItem("user_id");
 
 	const [selectedNotes, selectNotes] = useState([]);
-	const [title_input, set_title_input] = useState();
-	const [description_input, set_description_input] = useState();
+	const [title_input, set_title_input] = useState("");
+	const [description_input, set_description_input] = useState("");
 	var [all_users, set_all_users] = useState(null);
 	var [calendar_categories, set_calendar_categories] = useState(null);
 	var [notes, set_notes] = useState(null);

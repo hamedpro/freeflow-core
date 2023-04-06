@@ -5,6 +5,7 @@ import editor_js_to_html from "editorjs-html";
 import parse from "html-react-parser";
 import { useNavigate, useParams } from "react-router-dom";
 import ObjectBox from "./ObjectBox";
+import { Item, Menu, useContextMenu } from "react-contexify";
 function PackViewNote({ note }) {
 	var nav = useNavigate();
 
@@ -164,25 +165,39 @@ export const PackView = ({ pack_children, view_id }) => {
 	//schema of pack_views collection : {_id  ,name : string , pack_id : string , order :[{id : string , unit_context : string }]}
 	var nav = useNavigate();
 	var { pack_id } = useParams();
+	var { show } = useContextMenu({
+		id: "pack_view_options_context_menu",
+	});
 	return (
-		<div className="border border-blue-400 p-2">
-			<h1>pack view : </h1>
-			{view_id !== undefined ? (
-				<>
-					<button
-						onClick={() =>
-							nav(
-								`/dashboard/edit_pack_view?pack_view_id=${view_id}&pack_id=${pack_id}`
-							)
+		<>
+			<Menu id="pack_view_options_context_menu">
+				<Item
+					id="edit_pack_view"
+					onClick={() => {
+						if (view_id === undefined) {
+							alert("only user created pack views are editable.");
+							return;
 						}
-					>
-						edit this pack view{" "}
+						nav(`/dashboard/edit_pack_view?pack_view_id=${view_id}&pack_id=${pack_id}`);
+					}}
+				>
+					Edit Pack View
+				</Item>
+			</Menu>
+			<div className="border border-blue-400 mt-2">
+				<div className="flex justify-between mb-1 items-center">
+					<h1>pack view : {view_id !== undefined && `(#${view_id})`} </h1>
+					<button className="items-center flex" onClick={(event) => show({ event })}>
+						<i className="bi-list text-lg" />{" "}
 					</button>
+				</div>
+
+				{view_id !== undefined ? (
 					<CustomPackView {...{ pack_children, view_id }} />
-				</>
-			) : (
-				<DefaultPackView {...{ pack_children }} />
-			)}
-		</div>
+				) : (
+					<DefaultPackView {...{ pack_children }} />
+				)}
+			</div>
+		</>
 	);
 };

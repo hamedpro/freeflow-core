@@ -9,6 +9,7 @@ import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 import { PackView } from "./PackView";
 import Select from "react-select";
+import { Item, Menu, useContextMenu } from "react-contexify";
 export const Pack = () => {
 	var { pack_id } = useParams();
 	var user_id = window.localStorage.getItem("user_id");
@@ -27,7 +28,7 @@ export const Pack = () => {
 	var tmp = useRef(false);
 
 	useEffect(() => {
-		if (pack.default_pack_view_id && tmp.current === false) {
+		if (pack && pack.default_pack_view_id && tmp.current === false) {
 			set_selected_view({
 				value: pack.default_pack_view_id,
 				label: global_data.all.pack_views.find(
@@ -36,6 +37,9 @@ export const Pack = () => {
 			});
 			tmp.current = true;
 		}
+	});
+	var { show } = useContextMenu({
+		id: "options_context_menu",
 	});
 	if (pack === undefined) {
 		return <h1>there is not any pack with that id </h1>;
@@ -122,44 +126,67 @@ export const Pack = () => {
 	}
 
 	return (
-		<div className="p-2">
-			<h1>Pack {pack_id}</h1>
-			<StyledDiv className="mb-2" onClick={() => nav("new_pack_view")}>
-				new pack view
-			</StyledDiv>
-			<Select
-				options={[
-					{ value: undefined, label: "without a pack view" },
-					...global_data.all.pack_views
-						.filter((pack_view) => pack_view.pack_id === pack_id)
-						.map((pack_view) => ({ label: pack_view.name, value: pack_view._id })),
-				]}
-				isSearchable
-				value={selected_view}
-				onChange={(new_value) => set_selected_view(new_value)}
-			/>
-			<PackView pack_children={pack_children} view_id={selected_view.value} />
-			<Section title="options">
-				<div className="flex flex-col space-y-2 items-start">
-					<StyledDiv onClick={() => change_pack_handler("title")}>
-						change title of this pack
-					</StyledDiv>
+		<>
+			<Menu id="options_context_menu">
+				<Item id="change_title" onClick={() => change_pack_handler("title")}>
+					Change Title
+				</Item>
 
-					<StyledDiv onClick={() => change_pack_handler("description")}>
-						change description of this pack
-					</StyledDiv>
+				<Item id="change_description" onClick={() => change_pack_handler("description")}>
+					Change Description
+				</Item>
 
-					<StyledDiv onClick={leave_this_pack}>leave this pack </StyledDiv>
-					<StyledDiv onClick={delete_this_pack}>delete this pack</StyledDiv>
+				<Item id="leave_note" onClick={leave_this_pack}>
+					Leave Pack
+				</Item>
+				<Item id="delete_note" onClick={delete_this_pack}>
+					Delete Pack
+				</Item>
+			</Menu>
+			<div className="p-4">
+				<div className="flex justify-between mb-1 items-center">
+					<h1>Pack #{pack_id}</h1>
+					<button className="items-center flex" onClick={(event) => show({ event })}>
+						<i className="bi-list text-lg" />{" "}
+					</button>
 				</div>
-			</Section>
-			<CollaboratorsManagementBox context="packs" id={pack_id} />
-			<h1 className="mt-2">pack data :</h1>
-			<ObjectBox
-				object={global_data.all.packs.find((pack) => pack._id === pack_id)}
-				link={`/dashboard/packs/${pack_id}`}
-			/>
-			<MessagesBox />
-		</div>
+				<h1 className="mt-2">pack data :</h1>
+				<ObjectBox
+					object={global_data.all.packs.find((pack) => pack._id === pack_id)}
+					link={`/dashboard/packs/${pack_id}`}
+				/>
+				<h1>pack view selection :</h1>
+				<div className="flex space-x-1">
+					<div className="w-4/5">
+						<Select
+							options={[
+								{ value: undefined, label: "without a pack view" },
+								...global_data.all.pack_views
+									.filter((pack_view) => pack_view.pack_id === pack_id)
+									.map((pack_view) => ({
+										label: pack_view.name,
+										value: pack_view._id,
+									})),
+							]}
+							isSearchable
+							value={selected_view}
+							onChange={(new_value) => set_selected_view(new_value)}
+						/>
+					</div>
+					<div className="w-1/5">
+						<StyledDiv
+							className="mb-2 h-full flex items-center justify-center space-x-1"
+							onClick={() => nav("new_pack_view")}
+						>
+							<span>new</span> <i className="bi-binoculars-fill" />
+						</StyledDiv>
+					</div>
+				</div>
+
+				<PackView pack_children={pack_children} view_id={selected_view.value} />
+				<CollaboratorsManagementBox context="packs" id={pack_id} />
+				<MessagesBox />
+			</div>
+		</>
 	);
 };
