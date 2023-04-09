@@ -88,7 +88,7 @@ function TopBar() {
 }
 function Wrapper({ last_location_change_timestamp }) {
 	return (
-		<div className="h-full w-full border-black-900 flex-col">
+		<div className="h-full w-full border-black-900 flex-col overflow-hidden">
 			<TopBar />
 			<div className="w-full flex" style={{ height: "92%" }}>
 				<div className=" bg-blue-600 overflow-y-auto h-full" style={{ width: "13rem" }}>

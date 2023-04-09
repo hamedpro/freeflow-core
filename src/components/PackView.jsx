@@ -1,11 +1,11 @@
-import React, { useContext } from "react";
+import React, { Fragment, useContext } from "react";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { Section } from "./section";
 import editor_js_to_html from "editorjs-html";
 import parse from "html-react-parser";
 import { useNavigate, useParams } from "react-router-dom";
-import ObjectBox from "./ObjectBox";
 import { Item, Menu, useContextMenu } from "react-contexify";
+import { renderToString } from "react-dom/server";
 function PackViewNote({ note }) {
 	var nav = useNavigate();
 
@@ -25,7 +25,53 @@ function PackViewNote({ note }) {
 			</div>
 		);
 	} else {
-		var editor_js_to_html_parser = editor_js_to_html();
+		var editor_js_to_html_parser = editor_js_to_html({
+			table: (block) => {
+				if (block.data.content.length === 0) <b>[empty table]</b>;
+				return renderToString(
+					<table>
+						<thead>
+							<tr>
+								{block.withHeadings &&
+									block.data.content[0].map((i, index) => (
+										<th key={index}>{i}</th>
+									))}
+							</tr>
+							<tr>
+								{!block.withHeadings &&
+									block.data.content[0].map((i, index) => (
+										<td key={index}>{i}</td>
+									))}
+							</tr>
+						</thead>
+						<tbody>
+							{block.data.content
+								.slice(1, block.data.content.length)
+								.map((i, index1) => (
+									<tr key={index1}>
+										{i.map((i, index2) => (
+											<td key={index2}>{i}</td>
+										))}
+									</tr>
+								))}
+						</tbody>
+					</table>
+				);
+			},
+			checklist: (block) => {
+				return renderToString(
+					<>
+						{block.data.items.map((i, index) => (
+							<Fragment key={index}>
+								<i className={i.checked ? "bi-toggle-on" : "bi-toggle-off"} />
+								{i.text}
+								<br />
+							</Fragment>
+						))}
+					</>
+				);
+			},
+		});
 		var last_note_commit_as_html = parse(
 			editor_js_to_html_parser
 				.parse(latest_note_commit.data)
@@ -39,13 +85,30 @@ function PackViewNote({ note }) {
 				.join("")
 		);
 		return (
-			<div
-				className="overflow-auto   cursor-pointer border border-blue-500"
+			<Section
+				title={`note ${note._id}`}
 				onClick={() => nav(`/dashboard/notes/${note._id}`)}
+				className="cursor-pointer "
 			>
-				<h1>showing note {note._id} </h1>
+				<p>title : {note.title}</p>
+				<p>collaborators :</p>
+				<ol>
+					{note.collaborators.map((c) => (
+						<li
+							key={c.user_id}
+							onClick={(e) => {
+								e.stopPropagation();
+								nav(`/users/${c.user_id}`);
+							}}
+						>
+							user #{c.user_id}
+						</li>
+					))}
+				</ol>
+
+				<hr />
 				{last_note_commit_as_html}
-			</div>
+			</Section>
 		);
 	}
 }
@@ -53,38 +116,104 @@ function PackViewResource({ resource }) {
 	var nav = useNavigate();
 
 	return (
-		<div
-			className="overflow-auto   border border-blue-500 cursor-pointer "
+		<Section
+			title={`Resource #${resource._id}`}
 			onClick={() => nav(`/dashboard/resources/${resource._id}`)}
+			className="cursor-pointer "
 		>
-			resource {resource._id} :
-			<ObjectBox object={resource} />
-		</div>
+			<p>title : {resource.title}</p>
+			<p>collaborators :</p>
+			<ol>
+				{resource.collaborators.map((c) => (
+					<li
+						key={c.user_id}
+						onClick={(e) => {
+							e.stopPropagation();
+							nav(`/users/${c.user_id}`);
+						}}
+					>
+						user #{c.user_id}
+					</li>
+				))}
+			</ol>
+			<p>description : {resource.description}</p>
+		</Section>
 	);
 }
 function PackViewTask({ task }) {
 	var nav = useNavigate();
 	return (
-		<div
-			className="overflow-auto   border border-blue-500 cursor-pointer "
+		<Section
+			title={`task #${task._id}`}
 			onClick={() => nav(`/dashboard/tasks/${task._id}`)}
+			className="cursor-pointer "
 		>
-			task {task._id}:
-			<ObjectBox object={task} />
-		</div>
+			<p>title : {task.title}</p>
+			<p>collaborators :</p>
+			<ol>
+				{task.collaborators.map((c) => (
+					<li
+						key={c.user_id}
+						onClick={(e) => {
+							e.stopPropagation();
+							nav(`/users/${c.user_id}`);
+						}}
+					>
+						user #{c.user_id}
+					</li>
+				))}
+			</ol>
+			<p>description : {task.description}</p>
+		</Section>
 	);
 }
 function PackViewPack({ pack }) {
-	var nav = useNavigate();
 	//its used to show an overview of a pack inside another pack
+	var { global_data } = useContext(GlobalDataContext);
+	var nav = useNavigate();
 	return (
-		<div
-			className="overflow-auto   border border-blue-500 cursor-pointer "
+		<Section
+			title={`pack #${pack._id}`}
 			onClick={() => nav(`/dashboard/packs/${pack._id}`)}
+			className="cursor-pointer "
 		>
-			pack {pack._id} :
-			<ObjectBox object={pack} />
-		</div>
+			<p>title : {pack.title}</p>
+			<p>collaborators :</p>
+			<ol>
+				{pack.collaborators.map((c) => (
+					<li
+						key={c.user_id}
+						onClick={(e) => {
+							e.stopPropagation();
+							nav(`/users/${c.user_id}`);
+						}}
+					>
+						user #{c.user_id}
+					</li>
+				))}
+			</ol>
+			<p>description : {pack.description}</p>
+
+			<ol>
+				<li>
+					it contains {global_data.all.packs.filter((i) => i.pack_id === pack._id).length}{" "}
+					direct packs
+				</li>
+				<li>
+					it contains {global_data.all.notes.filter((i) => i.pack_id === pack._id).length}{" "}
+					direct notes
+				</li>
+				<li>
+					it contains{" "}
+					{global_data.all.resources.filter((i) => i.pack_id === pack._id).length} direct
+					resources
+				</li>
+				<li>
+					it contains {global_data.all.tasks.filter((i) => i.pack_id === pack._id).length}{" "}
+					direct tasks
+				</li>
+			</ol>
+		</Section>
 	);
 }
 export function PackViewItem({ thing, context }) {
