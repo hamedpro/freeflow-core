@@ -15,63 +15,49 @@ function PackViewNote({ note }) {
 		.filter((i) => i.note_id === note._id)
 		.sort((i1, i2) => i1.time - i2.time)
 		.at(-1);
-	if (latest_note_commit === undefined) {
-		return (
-			<div
-				className="overflow-auto   cursor-pointer border border-blue-400 rounded "
-				onClick={() => nav(`/dashboard/notes/${note._id}`)}
-			>
-				<h1>showing note {note._id} : there is not any note commit for this note </h1>
-			</div>
-		);
-	} else {
-		var editor_js_to_html_parser = editor_js_to_html({
-			table: (block) => {
-				if (block.data.content.length === 0) <b>[empty table]</b>;
-				return renderToString(
-					<table>
-						<thead>
-							<tr>
-								{block.withHeadings &&
-									block.data.content[0].map((i, index) => (
-										<th key={index}>{i}</th>
-									))}
-							</tr>
-							<tr>
-								{!block.withHeadings &&
-									block.data.content[0].map((i, index) => (
-										<td key={index}>{i}</td>
-									))}
-							</tr>
-						</thead>
-						<tbody>
-							{block.data.content
-								.slice(1, block.data.content.length)
-								.map((i, index1) => (
-									<tr key={index1}>
-										{i.map((i, index2) => (
-											<td key={index2}>{i}</td>
-										))}
-									</tr>
+
+	var editor_js_to_html_parser = editor_js_to_html({
+		table: (block) => {
+			if (block.data.content.length === 0) <b>[empty table]</b>;
+			return renderToString(
+				<table>
+					<thead>
+						<tr>
+							{block.withHeadings &&
+								block.data.content[0].map((i, index) => <th key={index}>{i}</th>)}
+						</tr>
+						<tr>
+							{!block.withHeadings &&
+								block.data.content[0].map((i, index) => <td key={index}>{i}</td>)}
+						</tr>
+					</thead>
+					<tbody>
+						{block.data.content.slice(1, block.data.content.length).map((i, index1) => (
+							<tr key={index1}>
+								{i.map((i, index2) => (
+									<td key={index2}>{i}</td>
 								))}
-						</tbody>
-					</table>
-				);
-			},
-			checklist: (block) => {
-				return renderToString(
-					<>
-						{block.data.items.map((i, index) => (
-							<Fragment key={index}>
-								<i className={i.checked ? "bi-toggle-on" : "bi-toggle-off"} />
-								{i.text}
-								<br />
-							</Fragment>
+							</tr>
 						))}
-					</>
-				);
-			},
-		});
+					</tbody>
+				</table>
+			);
+		},
+		checklist: (block) => {
+			return renderToString(
+				<>
+					{block.data.items.map((i, index) => (
+						<Fragment key={index}>
+							<i className={i.checked ? "bi-toggle-on" : "bi-toggle-off"} />
+							{i.text}
+							<br />
+						</Fragment>
+					))}
+				</>
+			);
+		},
+	});
+	if (latest_note_commit !== undefined) {
 		var last_note_commit_as_html = parse(
 			editor_js_to_html_parser
 				.parse(latest_note_commit.data)
@@ -84,37 +70,39 @@ function PackViewNote({ note }) {
 				})
 				.join("")
 		);
-		return (
-			<Section
-				title={`note ${note._id}`}
-				onClick={() => nav(`/dashboard/notes/${note._id}`)}
-				className="cursor-pointer "
-			>
-				<p>title : {note.title}</p>
-				<p>collaborators :</p>
-				<ol>
-					{note.collaborators.map((c) => (
-						<li
-							key={c.user_id}
-							onClick={(e) => {
-								e.stopPropagation();
-								nav(`/users/${c.user_id}`);
-							}}
-						>
-							user #{c.user_id}
-						</li>
-					))}
-				</ol>
-
-				<hr />
-				{last_note_commit_as_html}
-			</Section>
-		);
 	}
+
+	return (
+		<Section
+			title={`note ${note._id}`}
+			onClick={() => nav(`/dashboard/notes/${note._id}`)}
+			className="cursor-pointer "
+		>
+			<p>title : {note.title}</p>
+			<p>collaborators :</p>
+			<ol>
+				{note.collaborators.map((c) => (
+					<li
+						key={c.user_id}
+						onClick={(e) => {
+							e.stopPropagation();
+							nav(`/users/${c.user_id}`);
+						}}
+					>
+						user #{c.user_id}
+					</li>
+				))}
+			</ol>
+
+			<hr />
+			{last_note_commit_as_html || (
+				<h1>showing note {note._id} : there is not any note commit for this note </h1>
+			)}
+		</Section>
+	);
 }
 function PackViewResource({ resource }) {
 	var nav = useNavigate();
-
 	return (
 		<Section
 			title={`Resource #${resource._id}`}
@@ -218,16 +206,16 @@ function PackViewPack({ pack }) {
 }
 export function PackViewItem({ thing, context }) {
 	if (context === "packs") {
-		return <PackViewPack pack={thing.child} />;
+		return <PackViewPack pack={thing} />;
 	} else if (context === "tasks") {
-		return <PackViewTask task={thing.child} />;
+		return <PackViewTask task={thing} />;
 	} else if (context === "resources") {
-		return <PackViewResource resource={thing.child} />;
+		return <PackViewResource resource={thing} />;
 	} else if (context === "notes") {
-		return <PackViewNote note={thing.child} />;
+		return <PackViewNote note={thing} />;
 	}
 }
-function DefaultPackView({ pack_children }) {
+function GroupedPackView({ pack_children }) {
 	return (
 		<>
 			<Section title="packs">
@@ -273,60 +261,43 @@ function DefaultPackView({ pack_children }) {
 		</>
 	);
 }
-function CustomPackView({ pack_children, view_id }) {
-	var { global_data, get_global_data } = useContext(GlobalDataContext);
-	var view_order = global_data.all.pack_views.find(
-		(pack_view) => pack_view._id === view_id
-	).order;
-	return view_order.map(({ unit_context, id }) => (
-		<PackViewItem
-			key={unit_context + id}
-			thing={pack_children.find((i) => i.child._id === id)}
-			context={unit_context}
-		/>
-	));
+function CustomPackView({ pack_children }) {
+	return pack_children.map(({ context, child }) => {
+		return <PackViewItem key={context + child._id} thing={child} context={context} />;
+	});
 }
-export const PackView = ({ pack_children, view_id }) => {
-	//if view_id is undefined we
-	//show tasks, units, ... separately inside boxes
-	//but if a view_id is there we get order property of that view
-	//from database and show pack_children in that order
+export const PackView = ({ pack_children, view_as_groups = false, sort }) => {
 	//schema of pack_views collection : {_id  ,name : string , pack_id : string , order :[{id : string , unit_context : string }]}
+
 	var nav = useNavigate();
-	var { pack_id } = useParams();
-	var { show } = useContextMenu({
-		id: "pack_view_options_context_menu",
+	/* var { pack_id } = useParams(); */
+	var sorted_pack_children = pack_children.sort((i1, i2) => {
+		if (sort === "timestamp_desc") {
+			return i1.child.creation_time - i2.child.creation_time;
+		} else if (sort === "timestamp_asce") {
+			return -(i1.child.creation_time - i2.child.creation_time);
+		}
 	});
 	return (
-		<>
-			<Menu id="pack_view_options_context_menu">
-				<Item
-					id="edit_pack_view"
-					onClick={() => {
-						if (view_id === undefined) {
-							alert("only user created pack views are editable.");
-							return;
-						}
-						nav(`/dashboard/edit_pack_view?pack_view_id=${view_id}&pack_id=${pack_id}`);
-					}}
-				>
-					Edit Pack View
-				</Item>
-			</Menu>
-			<div className="border border-blue-400 mt-2">
-				<div className="flex justify-between mb-1 items-center">
-					<h1>pack view : {view_id !== undefined && `(#${view_id})`} </h1>
-					<button className="items-center flex" onClick={(event) => show({ event })}>
-						<i className="bi-list text-lg" />{" "}
-					</button>
-				</div>
-
-				{view_id !== undefined ? (
-					<CustomPackView {...{ pack_children, view_id }} />
-				) : (
-					<DefaultPackView {...{ pack_children }} />
-				)}
+		<div className="border border-blue-400 mt-2">
+			<div className="flex justify-between mb-1 items-center">
+				<h1>
+					{view_as_groups
+						? "showing data in grouped mode"
+						: "showing data without grouping"}{" "}
+					{sort === "timestamp_asce" && ", sorting items ascending by time "}
+					{sort === "timestamp_desc" && ", sorting items descending by time "}
+				</h1>
+				<button className="items-center flex" onClick={(event) => show({ event })}>
+					<i className="bi-list text-lg" />{" "}
+				</button>
 			</div>
-		</>
+
+			{view_as_groups !== true ? (
+				<CustomPackView pack_children={sorted_pack_children} />
+			) : (
+				<GroupedPackView pack_children={sorted_pack_children} />
+			)}
+		</div>
 	);
 };

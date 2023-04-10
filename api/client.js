@@ -140,14 +140,10 @@ export var new_note = ({ collaborators, title, pack_id }) =>
 			title,
 			init_date: new Date().getTime(),
 			pack_id,
+			creation_time: new Date().getTime(),
 		},
 	});
-export var new_pack = async ({
-	title,
-	description,
-	collaborators,
-	pack_id /* either null or string */,
-}) =>
+export var new_pack = async ({ title, description, collaborators, pack_id /* either null or string */ }) =>
 	new_document({
 		collection_name: "packs",
 		document: {
@@ -156,6 +152,7 @@ export var new_pack = async ({
 			description,
 			collaborators,
 			pack_id,
+			creation_time: new Date().getTime(),
 		},
 	});
 export var new_task = ({
@@ -176,7 +173,7 @@ export var new_task = ({
 			end_date,
 			pack_id,
 			collaborators,
-
+			creation_time: new Date().getTime(),
 			start_date,
 			title,
 			category_id,
@@ -230,7 +227,7 @@ export var new_event = ({ collaborators, end_date, user_id, start_date, title, c
 			init_date: new Date().getTime(),
 			end_date,
 			user_id,
-
+			creation_time: new Date().getTime(),
 			start_date,
 			title,
 			category_id,

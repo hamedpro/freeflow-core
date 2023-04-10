@@ -59,6 +59,7 @@ export const NewResource = () => {
 					description,
 					title,
 					file_id,
+					creation_time: new Date().getTime(),
 				},
 			});
 			await get_global_data();

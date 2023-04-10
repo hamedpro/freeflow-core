@@ -4,23 +4,20 @@ import { custom_delete, leave_here, update_document } from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { MessagesBox } from "./MessagesBox";
-import ObjectBox from "./ObjectBox";
 import { Section } from "./section";
-import { StyledDiv } from "./styled_elements";
 import { PackView } from "./PackView";
-import Select from "react-select";
 import { Item, Menu, useContextMenu } from "react-contexify";
 export const Pack = () => {
 	var { pack_id } = useParams();
 	var user_id = window.localStorage.getItem("user_id");
 	var nav = useNavigate();
-
+	var [pack_view_filters, set_pack_view_filters] = useState({
+		view_as_groups: false,
+		sort: "timestamp_asce",
+		// possible values : "timestamp_asce" | "timestamp_desc"
+	});
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var pack = global_data.all.packs.find((pack) => pack._id === pack_id);
-	var [selected_view, set_selected_view] = useState({
-		value: undefined,
-		label: "without a pack view",
-	});
 
 	//when for the first time pack is there and instead of loading
 	//actual data is showing up we set default pack view as selected_view state
@@ -154,36 +151,68 @@ export const Pack = () => {
 					<p>title : {pack.title} </p>
 					<p>description : {pack.description} </p>
 				</Section>
+				<Section title="pack view customisation">
+					<h1>sort mode : </h1>
+					<p
+						onClick={() =>
+							set_pack_view_filters((prev) => ({ ...prev, sort: "timestamp_asce" }))
+						}
+					>
+						{pack_view_filters.sort === "timestamp_asce" ? (
+							<i className="bi-toggle-on" />
+						) : (
+							<i className="bi-toggle-off" />
+						)}{" "}
+						sorting ascending by time
+					</p>
+					<p
+						onClick={() =>
+							set_pack_view_filters((prev) => ({ ...prev, sort: "timestamp_desc" }))
+						}
+					>
+						{pack_view_filters.sort === "timestamp_desc" ? (
+							<i className="bi-toggle-on" />
+						) : (
+							<i className="bi-toggle-off" />
+						)}{" "}
+						sorting descending by time
+					</p>
+					<br />
 
-				<h1>pack view selection :</h1>
-				<div className="flex space-x-1">
-					<div className="w-4/5">
-						<Select
-							options={[
-								{ value: undefined, label: "without a pack view" },
-								...global_data.all.pack_views
-									.filter((pack_view) => pack_view.pack_id === pack_id)
-									.map((pack_view) => ({
-										label: pack_view.name,
-										value: pack_view._id,
-									})),
-							]}
-							isSearchable
-							value={selected_view}
-							onChange={(new_value) => set_selected_view(new_value)}
-						/>
-					</div>
-					<div className="w-1/5">
-						<StyledDiv
-							className="mb-2 h-full flex items-center justify-center space-x-1"
-							onClick={() => nav("new_pack_view")}
-						>
-							<span>new</span> <i className="bi-binoculars-fill" />
-						</StyledDiv>
-					</div>
-				</div>
-
-				<PackView pack_children={pack_children} view_id={selected_view.value} />
+					<h1>showing mode : </h1>
+					<p
+						onClick={() =>
+							set_pack_view_filters((prev) => ({ ...prev, view_as_groups: true }))
+						}
+					>
+						{pack_view_filters.view_as_groups ? (
+							<i className="bi-toggle-on" />
+						) : (
+							<i className="bi-toggle-off" />
+						)}
+						grouped mode{" "}
+					</p>
+					<p
+						onClick={() =>
+							set_pack_view_filters((prev) => ({ ...prev, view_as_groups: false }))
+						}
+					>
+						{pack_view_filters.view_as_groups !== true ? (
+							<i className="bi-toggle-on" />
+						) : (
+							<i className="bi-toggle-off" />
+						)}
+						without groups{" "}
+					</p>
+				</Section>
+				<PackView
+					pack_children={pack_children} /* 
+						sorting is done by PackView comp 
+						it means you dont have to pass sorted data as pack_children 
+					*/
+					view_as_groups={pack_view_filters.view_as_groups}
+					sort={pack_view_filters.sort}
+				/>
 				<CollaboratorsManagementBox context="packs" id={pack_id} />
 				<MessagesBox />
 			</div>

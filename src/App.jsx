@@ -35,8 +35,6 @@ import { LoginMethodChoosing } from "./components/LoginMethodChoosing";
 import { LoginPasswordBased } from "./components/LoginPasswordBased";
 import { LoginVerificationBased } from "./components/LoginVerificationBased";
 import { RegisterStep3 } from "./components/RegisterStep3";
-import { EditPackView } from "./EditPackView";
-import { NewPackViewPage } from "./NewPackViewPage";
 import "react-contexify/ReactContexify.css";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
@@ -106,14 +104,6 @@ function Wrapper({ last_location_change_timestamp }) {
 						<Route
 							path="packs/:pack_id"
 							element={<Pack key={last_location_change_timestamp} />}
-						/>
-						<Route
-							path="packs/:pack_id/new_pack_view"
-							element={<NewPackViewPage key={last_location_change_timestamp} />}
-						/>
-						<Route
-							path="edit_pack_view"
-							element={<EditPackView key={last_location_change_timestamp} />}
 						/>
 
 						<Route
