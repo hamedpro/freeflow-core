@@ -192,7 +192,7 @@ app.all("/", async (req, res) => {
 		}
 		await db
 			.collection("tasks")
-			.updateOne({ _id: new ObjectId(req.body.task_id) }, { is_done: true });
+			.updateOne({ _id: new ObjectId(req.body.task_id) }, { $set: { is_done: true } });
 		res.json({});
 	} else if (task === "custom_delete") {
 		//how to use it -> to delete a pack with id=foo -> context = "packs", id = "foo"
@@ -209,7 +209,6 @@ app.all("/", async (req, res) => {
 					"./uploads",
 					fs.readdirSync("./uploads").find((i) => i.startsWith(resource.file_id))
 				);
-				console.log("going to delete a file with absolute path : ", resource_file_path);
 				fs.rmSync(resource_file_path);
 				await db.collection("resources").deleteOne({ _id: new ObjectId(resource._id) });
 			}
@@ -229,7 +228,7 @@ app.all("/", async (req, res) => {
 						.collection("tasks")
 						.updateOne(
 							{ _id: new ObjectId(task._id) },
-							{ linked_notes: task.linked_notes.filter((i) => i !== id) }
+							{ $set: { linked_notes: task.linked_notes.filter((i) => i !== id) } }
 						);
 				}
 				break;

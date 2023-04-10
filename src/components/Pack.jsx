@@ -150,11 +150,11 @@ export const Pack = () => {
 						<i className="bi-list text-lg" />{" "}
 					</button>
 				</div>
-				<h1 className="mt-2">pack data :</h1>
-				<ObjectBox
-					object={global_data.all.packs.find((pack) => pack._id === pack_id)}
-					link={`/dashboard/packs/${pack_id}`}
-				/>
+				<Section title="pack data :">
+					<p>title : {pack.title} </p>
+					<p>description : {pack.description} </p>
+				</Section>
+
 				<h1>pack view selection :</h1>
 				<div className="flex space-x-1">
 					<div className="w-4/5">
