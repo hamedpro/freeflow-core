@@ -18,7 +18,7 @@ function PackViewNote({ note }) {
 
 	var editor_js_to_html_parser = editor_js_to_html({
 		table: (block) => {
-			if (block.data.content.length === 0) <b>[empty table]</b>;
+			if (block.data.content.length === 0) return <b>[empty table]</b>;
 			return renderToString(
 				<table>
 					<thead>

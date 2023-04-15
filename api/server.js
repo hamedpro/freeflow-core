@@ -205,6 +205,7 @@ app.all("/", async (req, res) => {
 
 			var resources = await db.collection("resources").find({ pack_id }).toArray();
 			for (var resource in resources) {
+				console.log(resource);
 				var resource_file_path = path.resolve(
 					"./uploads",
 					fs.readdirSync("./uploads").find((i) => i.startsWith(resource.file_id))
