@@ -28,6 +28,15 @@ export const Resource = () => {
 	} /* else if (resource_row.collaborators.map((i) => i.user_id).includes(user_id) !== true) {
 		return <h1>access denied! you are not a collaborator of this resource</h1>;
 	} */
+	async function export_unit_handler() {
+		await custom_axios_download({
+			file_name: `resources-${resource_id}-at-${new Date().getTime()}.tar`,
+			url: new URL(
+				`/v2/export_unit?unit_id=${resource_id}&unit_context=resources`,
+				window.api_endpoint
+			),
+		});
+	}
 	async function change_resource_handler(type) {
 		/* if (!resource_row.collaborators.map((i) => i.user_id).includes(user_id)) {
 			alert(
@@ -110,6 +119,9 @@ export const Resource = () => {
 				</Item>
 				<Item id="delete_resource" onClick={delete_this_resource}>
 					Delete Resource
+				</Item>
+				<Item id="export_unit" onClick={export_unit_handler}>
+					Export Unit
 				</Item>
 			</Menu>
 			<div className="p-4">

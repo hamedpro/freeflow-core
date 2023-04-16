@@ -5,7 +5,13 @@ import Table from "@editorjs/table";
 import Checklist from "@editorjs/checklist";
 import React, { useContext, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { custom_delete, leave_here, new_document, update_document } from "../../api/client";
+import {
+	custom_axios_download,
+	custom_delete,
+	leave_here,
+	new_document,
+	update_document,
+} from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { GlobalDataContext } from "../GlobalDataContext";
@@ -186,6 +192,15 @@ export const Note = () => {
 	) {
 		return <h1>access denied you are not a collaborator of this note</h1>;
 	} */
+	async function export_unit_handler() {
+		await custom_axios_download({
+			file_name: `notes-${note_id}-at-${new Date().getTime()}.tar`,
+			url: new URL(
+				`/v2/export_unit?unit_id=${note_id}&unit_context=notes`,
+				window.api_endpoint
+			),
+		});
+	}
 	return (
 		<>
 			<Menu id="options_context_menu">
@@ -197,6 +212,9 @@ export const Note = () => {
 				</Item>
 				<Item id="delete_note" onClick={delete_this_note}>
 					Delete Note
+				</Item>
+				<Item id="export_unit" onClick={export_unit_handler}>
+					Export Unit
 				</Item>
 			</Menu>
 			<div className="p-4">

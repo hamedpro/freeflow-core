@@ -1,6 +1,11 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { custom_delete, leave_here, update_document } from "../../api/client";
+import {
+	custom_axios_download,
+	custom_delete,
+	leave_here,
+	update_document,
+} from "../../api/client";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { MessagesBox } from "./MessagesBox";
@@ -86,6 +91,15 @@ export const Task = () => {
 			)
 			.finally(get_global_data);
 	}
+	async function export_unit_handler() {
+		await custom_axios_download({
+			file_name: `tasks-${task_id}-at-${new Date().getTime()}.tar`,
+			url: new URL(
+				`/v2/export_unit?unit_id=${task_id}&unit_context=tasks`,
+				window.api_endpoint
+			),
+		});
+	}
 	return (
 		<>
 			<Menu id="options_context_menu">
@@ -100,6 +114,9 @@ export const Task = () => {
 				</Item>
 				<Item id="delete_here" onClick={delete_this_task}>
 					Delete Here
+				</Item>
+				<Item id="export_unit" onClick={export_unit_handler}>
+					Export Unit
 				</Item>
 			</Menu>
 			<div className="p-4">

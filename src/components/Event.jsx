@@ -5,7 +5,12 @@ import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import ObjectBox from "./ObjectBox";
 import { MessagesBox } from "./MessagesBox";
 import { Item, Menu, useContextMenu } from "react-contexify";
-import { custom_delete, leave_here, update_document } from "../../api/client";
+import {
+	custom_axios_download,
+	custom_delete,
+	leave_here,
+	update_document,
+} from "../../api/client";
 
 export const Event = () => {
 	var { event_id } = useParams();
@@ -80,6 +85,15 @@ export const Event = () => {
 			)
 			.finally(get_global_data);
 	}
+	async function export_unit_handler() {
+		await custom_axios_download({
+			file_name: `events-${event_id}-at-${new Date().getTime()}.tar`,
+			url: new URL(
+				`/v2/export_unit?unit_id=${event_id}&unit_context=events`,
+				window.api_endpoint
+			),
+		});
+	}
 	if (event === undefined) return <h1>still loading user event...</h1>;
 	/* if (!check_being_collaborator(event, user_id))
 		return <h1>event was loaded but you have not access to it</h1>; */
@@ -97,6 +111,9 @@ export const Event = () => {
 				</Item>
 				<Item id="delete_here" onClick={() => delete_this_event()}>
 					Delete Event
+				</Item>
+				<Item id="export_unit" onClick={export_unit_handler}>
+					Export Unit
 				</Item>
 			</Menu>
 			<div className="p-4">
