@@ -5,16 +5,19 @@ import fs from "fs";
 import path from "path";
 import { ObjectId } from "mongodb";
 import tar from "tar-fs";
-import { build_units_downside_tree, order_not_guranteed_tree_members } from "./pink_rose_helpers";
+import {
+	build_units_downside_tree,
+	order_not_guranteed_tree_members,
+} from "./pink_rose_helpers.js";
 export async function pink_rose_export({ db, unit_context, unit_id, uploads_dir_path }) {
 	var archive_filename = `${new Date().getTime()}-${unit_context}-${unit_id}`;
 	var archive = archiver("tar");
-	var output_stream = fs.createWriteStream(archive_filename + ".zip");
+	var output_stream = fs.createWriteStream(archive_filename + ".tar");
 	archive.pipe(output_stream);
 
 	//saving db documents of that tree in data.json file
 	var tree = await build_units_downside_tree({ unit_context, unit_id, db });
-	archive.append(JSON.stringify(tree), { name: "data.json" });
+	await archive.append(JSON.stringify(tree), { name: "data.json" });
 
 	//saving connected uploaded files
 
@@ -22,20 +25,28 @@ export async function pink_rose_export({ db, unit_context, unit_id, uploads_dir_
 	//now we just include resources files
 
 	var connected_files_ids = [];
-	order_not_guranteed_tree_members(tree).forEach((tree_member) => {
+	var tms = order_not_guranteed_tree_members(tree);
+	tms.forEach((tree_member) => {
 		if (tree_member.unit_context === "resources") {
-			connected_files_ids.push(tree_member.self._id);
+			connected_files_ids.push(tree_member.self.file_id);
 		}
 	});
 	fs.mkdirSync(archive_filename);
-	fs.readdirSync(uploads_dir_path).forEach((file_name) => {
-		if (connected_files_ids.some((i) => file_name.startsWith(i))) {
-			fs.copyFileSync(path.join(uploads_dir_path, file_name), archive_filename);
-		}
+	var uploaded_file_names = fs.readdirSync(uploads_dir_path);
+	connected_files_ids.forEach((file_id) => {
+		var connected_file_name = uploaded_file_names.find((file_name) =>
+			file_name.startsWith(file_id)
+		);
+		fs.copyFileSync(
+			path.resolve(uploads_dir_path, connected_file_name),
+			path.resolve(archive_filename, connected_file_name)
+		);
 	});
+
 	archive.directory(archive_filename, "files");
-	archive.finalize();
+	await archive.finalize();
 	fs.rmSync(archive_filename, { force: true, recursive: true });
+	return archive_filename + ".tar";
 }
 export async function pink_rose_import({ db, source_file_path, files_destination_path }) {
 	var random_string = Math.random().toString(36).slice(2);

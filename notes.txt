@@ -23,3 +23,8 @@ custom delete of pack had a error : it was attempting to delete this :
 no such file or directory, stat './uploaded/resources/undefined'
 
 env.json fields must not contain hypen or any invalid linux env var name character
+
+_id fields in output of mongodb.collection(x).find().toArray() are not string 
+take care about comparing that against strings 
+solution : map them to something like this : JSON.parse(JSON.stringify(document))
+this is also the same for other finds like findOne method 

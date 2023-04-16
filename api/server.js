@@ -8,6 +8,8 @@ import path from "path";
 import { MongoClient, ObjectId } from "mongodb";
 import { is_there_any_conflict } from "../common_helpers.js";
 import jwt from "jsonwebtoken";
+import { pink_rose_export } from "./pink_rose_io.js";
+import { build_units_downside_tree } from "./pink_rose_helpers.js";
 var { frontend_port, api_port, api_endpoint, db_name, mongodb_url, jwt_secret } = JSON.parse(
 	fs.readFileSync("./env.json", "utf-8")
 );
@@ -60,7 +62,6 @@ app.all("/", async (req, res) => {
 				var update_object = {};
 				update_object[current_verification_code.kind + "_is_verified"] = true;
 				await db.collection("users").updateOne(update_filter, { $set: update_object });
-				console.log({ update_filter, update_object });
 				res.json(true);
 			} else {
 				res.json(false);
@@ -128,7 +129,6 @@ app.all("/", async (req, res) => {
 		} else if (matches_count === 1) {
 			var matched_user = users.find((user) => {
 				var tmp = [user.email_address, user.mobile, user._id.toString(), user.username];
-				console.log({ list: tmp, value: req.body.value });
 				return tmp.includes(req.body.value);
 			});
 			res.json(matched_user);
@@ -205,7 +205,6 @@ app.all("/", async (req, res) => {
 
 			var resources = await db.collection("resources").find({ pack_id }).toArray();
 			for (var resource in resources) {
-				console.log(resource);
 				var resource_file_path = path.resolve(
 					"./uploads",
 					fs.readdirSync("./uploads").find((i) => i.startsWith(resource.file_id))
@@ -399,6 +398,38 @@ app.get(
 		return;
 	}
 );
+app.get("/v2/export_unit", async (request, response) => {
+	//requested url must be like :
+	// `/v2/export_unit?unit_id=${pack_id}&unit_context=packs`
+	var archive_filename = await pink_rose_export({
+		db,
+		...request.query,
+		uploads_dir_path: "./uploads",
+	});
+	await new Promise((resolve, reject) => {
+		response.sendFile(path.resolve(archive_filename), (err) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve();
+			}
+		});
+	});
+
+	fs.rmSync(archive_filename, { force: true, recursive: true });
+});
+app.get("/test/:pack_id", async (request, response) => {
+	response.json(
+		await build_units_downside_tree({
+			unit_context: "packs",
+			unit_id: request.params.pack_id,
+			db,
+		})
+	);
+});
+app.get("/test", async (req, res) => {
+	res.json(await db.collection("packs").findOne());
+});
 app.listen(api_port, () => {
 	console.log(`server started listening`);
 });

@@ -36,18 +36,30 @@ export async function build_units_downside_tree({ unit_context, unit_id, db }) {
 
 	if (unit_context === "packs") {
 		var tmp = {
-			self: await db.collection("packs").findOne({ _id: ObjectId(pack_id) }),
-			packs: await Promise.all(
-				(
-					await db.collection("packs").find({ pack_id }).toArray()
-				).map((i) => build_units_downside_tree(i._id))
+			unit_context: "packs",
+			self: JSON.parse(
+				JSON.stringify(await db.collection("packs").findOne({ _id: ObjectId(unit_id) }))
 			),
+			packs: [],
 		};
+
+		for (var i of (await db.collection("packs").find({ pack_id: unit_id }).toArray()).map(
+			(doc) => ({ ...doc, _id: doc._id.toString() })
+		)) {
+			tmp.packs.push(
+				await build_units_downside_tree({
+					unit_id: i._id,
+					unit_context: "packs",
+					db,
+				})
+			);
+		}
+
 		for (var i of ["resources", "notes", "tasks", "events"]) {
 			tmp[i] = await Promise.all(
-				(
-					await db.collection(i).find({ pack_id }).toArray()
-				).map((j) => build_units_downside_tree({ unit_context: i, unit_id: j._id, db }))
+				(await db.collection(i).find({ pack_id: unit_id }).toArray())
+					.map((doc) => ({ ...doc, _id: doc._id.toString() }))
+					.map((j) => build_units_downside_tree({ unit_context: i, unit_id: j._id, db }))
 			);
 		}
 
@@ -55,7 +67,11 @@ export async function build_units_downside_tree({ unit_context, unit_id, db }) {
 	} else {
 		return {
 			unit_context,
-			self: await db.collection(unit_context).findOne({ _id: ObjectId(unit_id) }),
+			self: JSON.parse(
+				JSON.stringify(
+					await db.collection(unit_context).findOne({ _id: ObjectId(unit_id) })
+				)
+			),
 		};
 	}
 }
