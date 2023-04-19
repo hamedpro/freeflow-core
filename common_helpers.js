@@ -311,3 +311,22 @@ export function simple_int_range({ start, end }) {
 	}
 	return result;
 }
+export function simple_find_duplicates(...arrays) {
+	//accepts 2 or more arrays and returns items which all of them have in common
+	if (arrays.length < 2) throw new Error("at least 2 arrays must be passed");
+
+	if (arrays.length === 2) {
+		var results = [];
+		arrays[0].forEach((item) => {
+			if (arrays[1].includes(item)) {
+				results.push(item);
+			}
+		});
+		return results;
+	} else {
+		return simple_find_duplicates(
+			simple_find_duplicates(...arrays.slice(0, arrays.length - 1)),
+			arrays.at(-1)
+		);
+	}
+}

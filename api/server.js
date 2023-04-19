@@ -8,7 +8,7 @@ import path from "path";
 import { MongoClient, ObjectId } from "mongodb";
 import { is_there_any_conflict } from "../common_helpers.js";
 import jwt from "jsonwebtoken";
-import { pink_rose_export } from "./pink_rose_io.js";
+import { pink_rose_export, pink_rose_import } from "./pink_rose_io.js";
 import { build_units_downside_tree } from "./pink_rose_helpers.js";
 var { frontend_port, api_port, api_endpoint, db_name, mongodb_url, jwt_secret } = JSON.parse(
 	fs.readFileSync("./env.json", "utf-8")
@@ -429,6 +429,25 @@ app.get("/test/:pack_id", async (request, response) => {
 });
 app.get("/test", async (req, res) => {
 	res.json(await db.collection("packs").findOne());
+});
+app.post("/import_exported_file", async (request, response) => {
+	try {
+		var uploaded_files = fs.readdirSync("./uploads");
+		var exported_file_path = path.resolve(
+			"./uploads",
+			uploaded_files.find((i) => i.startsWith(request.body.file_id))
+		);
+		await pink_rose_import({
+			db,
+			source_file_path: exported_file_path,
+			files_destination_path: "./uploads",
+		});
+		fs.rmSync(exported_file_path, { force: true, recursive: true });
+		response.json("done");
+	} catch (error) {
+		console.log(error);
+		response.status(500).json(error);
+	}
 });
 app.listen(api_port, () => {
 	console.log(`server started listening`);

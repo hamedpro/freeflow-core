@@ -49,6 +49,39 @@ export const UserSettings = () => {
 
 		get_global_data();
 	}
+	async function import_exported_unit() {
+		var files = document.getElementById("importing_exported_unit").files;
+		if (files.length !== 1) {
+			alert("Error : selected files count is invalid");
+			return;
+		}
+		var f = new FormData();
+		f.append("file", files[0]);
+		var uploaded_file_id = (
+			await axios({
+				baseURL: window.api_endpoint,
+				url: "/v2/files",
+				method: "post",
+				data: f,
+			})
+		).data.file_id;
+		try {
+			var response = await axios({
+				baseURL: window.api_endpoint,
+				method: "post",
+				data: {
+					file_id: uploaded_file_id,
+				},
+				url: "/import_exported_file",
+			});
+			alert("done !");
+		} catch (error) {
+			console.log(error);
+			alert("something went wrong, details are in console");
+		}
+
+		await get_global_data();
+	}
 	if (user === null) return <h1>loading user ... </h1>;
 	return (
 		<>
@@ -74,6 +107,12 @@ export const UserSettings = () => {
 					set this new profile image
 				</StyledDiv>
 			</div>
+			<Section title="importing exported unit">
+				<input type="file" id="importing_exported_unit" />
+				<StyledDiv className="w-fit mt-2" onClick={import_exported_unit}>
+					start importing
+				</StyledDiv>
+			</Section>
 			<Section title={"selecting type of calendar"}>
 				<Select
 					onChange={(e) => simple_update("calendar_type", e.value)}
