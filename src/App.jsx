@@ -36,6 +36,9 @@ import { LoginPasswordBased } from "./components/LoginPasswordBased";
 import { LoginVerificationBased } from "./components/LoginVerificationBased";
 import { RegisterStep3 } from "./components/RegisterStep3";
 import "react-contexify/ReactContexify.css";
+import { Asks } from "./components/Asks";
+import { NewAsk } from "./components/NewAsk";
+import { Ask } from "./components/Ask";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -159,6 +162,20 @@ function Wrapper({ last_location_change_timestamp }) {
 							element={<Event key={last_location_change_timestamp} />}
 						/>
 
+						<Route
+							path="asks"
+							element={<Asks key={last_location_change_timestamp} />}
+						/>
+						<Route
+							path="asks/new"
+							element={<NewAsk key={last_location_change_timestamp} />}
+						/>
+
+						<Route
+							path="asks/:ask_id"
+							element={<Ask key={last_location_change_timestamp} />}
+						/>
+
 						<Route path="calendar">
 							<Route
 								path="month"
@@ -188,7 +205,7 @@ function App() {
 	async function get_global_data() {
 		var user_id = localStorage.getItem("user_id");
 		var new_user_context_state = { user: {}, all: {} };
-		var tmp = ["packs", "notes", "resources", "tasks", "events"];
+		var tmp = ["packs", "notes", "resources", "tasks", "events", "asks"];
 		for (var i = 0; i < tmp.length; i++) {
 			new_user_context_state.all[tmp[i]] = await get_collection({
 				collection_name: tmp[i],
@@ -197,8 +214,7 @@ function App() {
 			new_user_context_state.user[tmp[i]] =
 				user_id !== null ? await custom_get_collection({ context: tmp[i], user_id }) : null;
 		}
-
-		tmp = ["calendar_categories", "messages", "note_commits"];
+		tmp = ["calendar_categories", "messages", "note_commits", "ask_results"];
 		for (var i = 0; i < tmp.length; i++) {
 			new_user_context_state.user[tmp[i]] =
 				user_id !== null

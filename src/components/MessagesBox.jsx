@@ -14,11 +14,11 @@ export function MessagesBox() {
 		//and maps every unit to an object like this : {unit_context , unit_id }
 		//and returns an array containing those objects
 
-		if (["resources", "notes", "tasks", "events"].includes(unit_context)) {
+		if (["resources", "notes", "tasks", "events", "asks"].includes(unit_context)) {
 			return [{ unit_context, unit_id }];
 		} else if (unit_context === "packs") {
 			return [
-				...["resources", "notes", "tasks", "events"]
+				...["resources", "notes", "tasks", "events", "asks", "packs"]
 					.map((i) => {
 						return global_data.all[i]
 							.filter((j) => j.pack_id === unit_id)
@@ -31,7 +31,7 @@ export function MessagesBox() {
 		}
 	}
 	var regex_result =
-		/(?:\/)*dashboard\/(?<unit_context>packs|events|notes|resources|tasks)\/(?<unit_id>[0-9A-Fa-f]{24})(?:\/)*$/g.exec(
+		/(?:\/)*dashboard\/(?<unit_context>packs|events|notes|resources|tasks|asks)\/(?<unit_id>[0-9A-Fa-f]{24})(?:\/)*$/g.exec(
 			pathname
 		);
 	var messages_to_show = get_hierarchy_unit_context_and_id(

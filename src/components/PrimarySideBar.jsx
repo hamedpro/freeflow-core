@@ -8,7 +8,7 @@ function AddNewOptionRow() {
 	var { global_data } = useContext(GlobalDataContext);
 	function onclick_handler(type) {
 		/* 
-		possible values for type : "packs" , "resources" , "notes" , "tasks" , "events"
+		possible values for type : any unit 
 		if type === "packs" it means create a new pack and the same for others
 		*/
 		if (type === "events") {
@@ -28,7 +28,7 @@ function AddNewOptionRow() {
 
 			//todo this method of checking whether path matches pattern or not is not complete
 			var my_regex =
-				/(?:\/)*dashboard\/(?<thing_context>notes|resources|tasks)\/(?<thing_id>[0-9A-Fa-f]{24})(?:\/)*$/g;
+				/(?:\/)*dashboard\/(?<thing_context>notes|resources|tasks|asks)\/(?<thing_id>[0-9A-Fa-f]{24})(?:\/)*$/g;
 
 			var tmp = my_regex.exec(pathname);
 			if (tmp) {
@@ -68,6 +68,10 @@ function AddNewOptionRow() {
 					type: "events",
 					icon: <i className="bi-calendar4-event text-white"></i>,
 				},
+				{
+					type: "asks",
+					icon: <i className="bi-patch-question-fill text-white"></i>,
+				},
 			].map((i) => (
 				<button
 					key={i.type}
@@ -101,6 +105,7 @@ function Option({ text, indent_level, url, access_denied, context }) {
 						{context === "notes" && <i className="bi-card-text" />}
 						{context === "tasks" && <i className="bi-clipboard-fill" />}
 						{context === "resources" && <i className="bi-cloud-download-fill" />}
+						{context === "asks" && <i className="bi-patch-question-fill" />}
 					</>
 				)}
 			</div>
@@ -140,13 +145,17 @@ export const PrimarySideBar = () => {
 		});
 	}
 	function create_downside_tree({ context, id, pack_id, indent_level }) {
-		//possible values for context : packs , tasks , resources , notes
+		//possible values for context : any unit
 		//it returns an array of options (with correct order and indentation and ready to be rendered )
 
-		if (["tasks", "notes", "resources"].includes(context)) {
+		if (["tasks", "notes", "resources", "asks"].includes(context)) {
 			return [
 				{
-					text: `${global_data.all[context].find((item) => item._id === id).title}`,
+					text: `${
+						global_data.all[context].find((item) => item._id === id)[
+							context === "asks" ? "question" : "title"
+						]
+					}`,
 
 					url: `/dashboard/${context}/${id}`,
 					context,
@@ -215,6 +224,22 @@ export const PrimarySideBar = () => {
 						};
 					})
 			);
+			tmp = tmp.concat(
+				global_data.all.asks
+					.filter((ask) => ask.pack_id === id)
+					.map((ask) => {
+						return {
+							text: `${
+								global_data.all.asks.find((item) => item._id === ask._id).question
+							}`,
+							url: `/dashboard/asks/${ask._id}`,
+							context: "asks",
+							id: ask._id,
+							pack_id,
+							indent_level: indent_level + 1,
+						};
+					})
+			);
 			global_data.all.packs
 				.filter((pack) => pack.pack_id === id)
 				.forEach((pack) => {
@@ -231,7 +256,7 @@ export const PrimarySideBar = () => {
 		}
 	}
 	function create_full_tree(context, id) {
-		//possible values for context : packs , tasks , resources , notes
+		//possible values for context : any unit
 		if (global_data.all[context].find((i) => i._id === id).pack_id) {
 			var latest_found_parent = global_data.all[context].find((i) => i._id === id).pack_id;
 			while (global_data.all.packs.find((pack) => pack._id === latest_found_parent).pack_id) {
@@ -286,7 +311,9 @@ export const PrimarySideBar = () => {
 		global_data.user.packs.forEach((pack) => {
 			trees.push(create_full_tree("packs", pack._id));
 		});
-
+		global_data.user.asks.forEach((ask) => {
+			trees.push(create_full_tree("asks", ask._id));
+		});
 		set_options(censor_tree(custom_find_unique(trees, compare_custom_trees).flat()));
 	}
 	useEffect(() => {
