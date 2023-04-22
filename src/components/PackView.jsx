@@ -1,11 +1,9 @@
-import React, { Fragment, useContext } from "react";
+import React, { Fragment, useContext, useRef, useState, useEffect } from "react";
 import { GlobalDataContext } from "../GlobalDataContext";
 import { Section } from "./section";
-import editor_js_to_html from "editorjs-html";
-import parse from "html-react-parser";
 import { useNavigate, useParams } from "react-router-dom";
 import { Item, Menu, useContextMenu } from "react-contexify";
-import { renderToString } from "react-dom/server";
+import { custom_editorjs_to_jsx } from "../../jsx_helpers.jsx";
 function PackViewNote({ note }) {
 	var nav = useNavigate();
 
@@ -15,62 +13,15 @@ function PackViewNote({ note }) {
 		.filter((i) => i.note_id === note._id)
 		.sort((i1, i2) => i1.time - i2.time)
 		.at(-1);
-
-	var editor_js_to_html_parser = editor_js_to_html({
-		table: (block) => {
-			if (block.data.content.length === 0) return <b>[empty table]</b>;
-			return renderToString(
-				<table>
-					<thead>
-						<tr>
-							{block.withHeadings &&
-								block.data.content[0].map((i, index) => <th key={index}>{i}</th>)}
-						</tr>
-						<tr>
-							{!block.withHeadings &&
-								block.data.content[0].map((i, index) => <td key={index}>{i}</td>)}
-						</tr>
-					</thead>
-					<tbody>
-						{block.data.content.slice(1, block.data.content.length).map((i, index1) => (
-							<tr key={index1}>
-								{i.map((i, index2) => (
-									<td key={index2}>{i}</td>
-								))}
-							</tr>
-						))}
-					</tbody>
-				</table>
-			);
-		},
-		checklist: (block) => {
-			return renderToString(
-				<>
-					{block.data.items.map((i, index) => (
-						<Fragment key={index}>
-							<i className={i.checked ? "bi-toggle-on" : "bi-toggle-off"} />
-							{i.text}
-							<br />
-						</Fragment>
-					))}
-				</>
-			);
-		},
-	});
-	if (latest_note_commit !== undefined) {
-		var last_note_commit_as_html = parse(
-			editor_js_to_html_parser
-				.parse(latest_note_commit.data)
-				.map((i) => {
-					if (typeof i === "string") {
-						return i;
-					} else {
-						return `<p>converting this block to html is not supported yet</p>`;
-					}
-				})
-				.join("")
-		);
-	}
+	var [last_note_commit_as_jsx, set_last_note_commit_as_jsx] = useState();
+	useEffect(() => {
+		var async_tmp = async () => {
+			if (latest_note_commit !== undefined) {
+				set_last_note_commit_as_jsx(await custom_editorjs_to_jsx(latest_note_commit.data));
+			}
+		};
+		async_tmp();
+	}, [global_data]);
 
 	return (
 		<Section
@@ -95,7 +46,9 @@ function PackViewNote({ note }) {
 			</ol>
 
 			<hr />
-			{last_note_commit_as_html || (
+			{latest_note_commit ? (
+				last_note_commit_as_jsx || "loading latest note commit ..."
+			) : (
 				<h1>showing note {note._id} : there is not any note commit for this note </h1>
 			)}
 		</Section>
