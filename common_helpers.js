@@ -276,7 +276,7 @@ export var check_being_collaborator = (item, user_id) =>
 	item.collaborators.map((collaborator) => collaborator.user_id).includes(user_id);
 
 export var unique_items_of_array = (
-	array // it may not work for array containing anything other than numbers or string
+	array //todo : it may not work for array containing anything other than numbers or string
 ) => array.filter((i, index) => array.indexOf(i) === index);
 
 export var custom_find_unique = (array, custom_compare_function) => {
