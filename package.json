@@ -48,6 +48,8 @@
 		"react-select": "^5.7.0",
 		"recursive-diff": "^1.0.9",
 		"sharp": "^0.30.7",
+		"socket.io": "^4.6.1",
+		"socket.io-client": "^4.6.1",
 		"tar-fs": "^2.1.1"
 	},
 	"devDependencies": {
