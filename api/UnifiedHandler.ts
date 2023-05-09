@@ -1,3 +1,6 @@
+import { formidable } from "formidable";
+import jwt from "jsonwebtoken";
+import express from "express";
 import EditorJS from "@editorjs/editorjs";
 //read README file : UnifiedHandlerSystem.md
 import fs from "fs";
@@ -7,6 +10,12 @@ var { applyDiff, getDiff } = rdiff;
 var common_helpers = await import(fileURLToPath(new URL("../common_helpers.js", import.meta.url)));
 var { unique_items_of_array } = common_helpers;
 import { Server, Socket } from "socket.io";
+import { io } from "socket.io-client";
+import path from "path";
+import { pink_rose_export, pink_rose_import } from "./pink_rose_io.js";
+function gen_verification_code() {
+	return Math.floor(100000 + Math.random() * 900000);
+}
 interface thing {
 	type: string;
 	current_state: any;
@@ -17,6 +26,7 @@ type transaction = {
 	time: number;
 	diff: rdiff.rdiffResult[];
 	type: string;
+	user_id?: number;
 };
 interface meta_lock extends thing {
 	type: "meta/lock";
@@ -32,6 +42,7 @@ interface meta_privileges extends thing {
 		collaborators_except_owner: "write/read" | "read";
 		others: "write/read" | "read";
 		for: number /* thing_id of assosiated thing */;
+		admin: "read/write" | "read";
 	};
 }
 interface meta_collaborators extends thing {
@@ -79,6 +90,22 @@ interface unit_event extends thing {
 		category_id?: number | null;
 	};
 }
+interface message extends thing {
+	type: "message";
+	current_state: {
+		text: string;
+		unit_context: "packs" | "resources" | "events" | "notes" | "tasks" | "asks";
+		unit_id: number;
+	};
+}
+interface verification_code extends thing {
+	type: "verification_code";
+	current_state: {
+		kind: "email_address" | "mobile";
+		value: number;
+		user_id: number;
+	};
+}
 interface unit_ask extends thing {
 	type: "unit/ask";
 	current_state: {
@@ -89,7 +116,7 @@ interface unit_ask extends thing {
 		correct_option_index?: number;
 	};
 }
-interface note extends thing {
+interface unit_note extends thing {
 	type: "unit/note";
 	current_state: {
 		title: string;
@@ -115,6 +142,10 @@ interface user extends thing {
 			| "friday"
 			| null;
 		language?: "english" | "persian";
+		username?: string;
+		email_is_verified?: boolean;
+		mobile_is_verified?: boolean;
+		full_name?: string;
 	};
 }
 interface calendar_category extends thing {
@@ -125,6 +156,7 @@ interface calendar_category extends thing {
 		user_id: number;
 	};
 }
+
 interface surface_cache_item {
 	thing_id: number;
 	thing:
@@ -135,10 +167,12 @@ interface surface_cache_item {
 		| unit_task
 		| unit_event
 		| unit_ask
-		| note
+		| unit_note
 		| user
-		| calendar_category
-		| meta_collaborators;
+		| meta_collaborators
+		| verification_code
+		| message
+		| calendar_category;
 }
 type SurfaceCache = surface_cache_item[];
 type UnifiedHandlerType = {
@@ -152,31 +186,292 @@ interface websocket_client {
 	user_id: number;
 	last_synced_snapshot: number | undefined /*  a transaction_id  */;
 }
-var { frontend_port, api_port, api_endpoint, db_name, mongodb_url, jwt_secret } = JSON.parse(
-	fs.readFileSync(fileURLToPath(new URL("../env.json", import.meta.url)), "utf-8")
-);
+var {
+	frontend_port,
+	restful_api_port,
+	api_endpoint,
+	db_name,
+	mongodb_url,
+	jwt_secret,
+	websocket_api_port,
+} = JSON.parse(fs.readFileSync(fileURLToPath(new URL("../env.json", import.meta.url)), "utf-8"));
 
 export class UnifiedHandler implements UnifiedHandlerType {
 	//todo i tested and there was 2 loop iterations with same result for new Date().getTime()
 	//make sure we can always store everything (including transactions in their exact order )
 	//there must be always just a single unified handler db connected to a single mongo db collection
 	db_change_promises: Promise<void>[] = [];
-	onChange: (transaction: transaction) => void;
+	onChange: () => void;
 	virtual_transactions: transaction[];
 	websocket_clients: websocket_client[] = [];
+	restful_express_app: express.Express;
 	constructor() {
 		if (fs.existsSync("./store.json") !== true) {
 			fs.writeFileSync("./store.json", JSON.stringify([]));
 		}
 		this.virtual_transactions = JSON.parse(fs.readFileSync("./store.json", "utf-8"));
 
-		this.onChange = (transaction) => {
+		this.onChange = () => {
 			for (var i of this.websocket_clients) {
 				this.sync_websocket_client(i);
 			}
 		};
+		this.restful_express_app = express();
+		this.restful_express_app.post(
+			"flexible_user_finder",
+			async (request: any, response: any) => {
+				var tmp: any = this.surface_cache.filter(
+					(item: surface_cache_item) => item.thing.type === "user"
+				);
+				var all_values: string[] = [];
+				tmp.forEach((item: any) => {
+					all_values.push(
+						...[
+							item.thing.current_state.username,
+							item.thing.current_state.mobile,
+							item.thing.current_state.email_address,
+							item.thing_id,
+						]
+							.filter((i) => i !== undefined)
+							.map((i) => String(i))
+					);
+				});
+				var matches_count = all_values.filter(
+					(value) => value == String(request.body.value)
+				).length;
+				if (matches_count === 0) {
+					response.status(400).json({
+						status: 2,
+						info: "there is more not any match in valid search resources",
+					});
+				} else if (matches_count === 1) {
+					var matched_users = tmp.filter((item: any) => {
+						return [
+							item.thing.current_state.username,
+							item.thing.current_state.mobile,
+							item.thing.current_state.email_address,
+							item.thing_id,
+						]
+							.filter((i) => i !== undefined)
+							.map((i) => String(i))
+							.includes(String(request.body.value));
+					});
+					response.json(matched_users[0]);
+				} else {
+					response.status(400).json({
+						status: 3,
+						info: "there is more than one match in valid search resources",
+					});
+				}
+			}
+		);
+		this.restful_express_app.post(
+			"/auth/password_verification",
+			async (request: any, response: any) => {
+				var filtered_user_things: any = this.surface_cache.filter(
+					(item) => item.thing_id === request.body.user_id
+				);
+				if (filtered_user_things.length === 0) {
+					response.status(404).json("user you are looking for doesnt exist");
+					return;
+				}
+
+				if (
+					request.body.password === filtered_user_things[0].thing.current_state.password
+				) {
+					response.json({
+						verified: true,
+						jwt: jwt.sign(
+							{
+								user_id: filtered_user_things[0].thing.current_state.user_id,
+							},
+							jwt_secret
+						),
+					});
+					return;
+				} else {
+					response.json({
+						verified: false,
+					});
+					return;
+				}
+			}
+		);
+		this.restful_express_app.post(
+			"/auth/verification_code_verification",
+			async (request: any, response: any) => {
+				var filtered_surface_cache: any = this.surface_cache.filter((i: any) => {
+					return (
+						i.thing.type === "verification_code" &&
+						i.thing.current_state.user_id === request.body.user_id
+					);
+				});
+
+				if (filtered_surface_cache.length === 0) {
+					response
+						.status(400)
+						.json(
+							"there is not any verification code sending request was done for this uesr please request a verification code first"
+						);
+					return;
+				}
+				if (
+					filtered_surface_cache[0].thing.current_state.value === request.body.verf_code
+				) {
+					var user_surface_item = this.surface_cache.filter(
+						(i: any) => i.thing.type === "user" && i.thing_id === request.body.user_id
+					)[0];
+					this.new_transaction({
+						diff: getDiff(user_surface_item.thing.current_state, {
+							...user_surface_item.thing.current_state,
+							[filtered_surface_cache[0].thing.current_state.kind + "_is_verified"]:
+								true,
+						}),
+						thing_id: user_surface_item.thing_id,
+						type: "user",
+						user_id: undefined,
+					});
+					/* todo new transaction must not repeat type = x when trying to update a thing 
+					maybe type must be inside current value
+					*/
+					response.json({
+						verified: true,
+						jwt: jwt.sign(
+							{
+								user_id: request.body.user_id,
+							},
+							jwt_secret
+						),
+					});
+				} else {
+					response.json({
+						verified: false,
+					});
+				}
+			}
+		);
+		this.restful_express_app.post(
+			"/auth/send_verification_code",
+			async (request: any, response: any) => {
+				// body :{ kind : "mobile"  || "email_address" , user_id : string}
+				/* response
+				.status(503)
+				.json(
+					"email sending is broken or sms sending service is broken. you can try again later ..."
+				);
+			return; */
+
+				var verf_code = gen_verification_code();
+
+				//todo here i must send verf_code to the user through api request to sms web service
+				var verf_code_surface_item = this.surface_cache.filter(
+					(item: any) =>
+						item.thing.type === "verification_code" &&
+						item.thing.current_state.user_id === request.body.user_id
+				)[0];
+				if (verf_code_surface_item === undefined) {
+					this.new_transaction({
+						user_id: request.body.user_id,
+						type: "verification_code",
+						diff: getDiff(
+							{},
+							{
+								kind: request.body.kind,
+								user_id: request.body.user_id,
+								value: gen_verification_code(),
+							}
+						),
+						thing_id: Math.max(...this.surface_cache.map((i) => i.thing_id)) + 1,
+					});
+				} else {
+					this.new_transaction({
+						type: "verification_code",
+						user_id: request.body.user_id,
+						thing_id: verf_code_surface_item.thing_id,
+						diff: getDiff(verf_code_surface_item.thing.current_state, {
+							...verf_code_surface_item.thing.current_state,
+							kind: request.body.kind,
+							value: gen_verification_code(),
+						}),
+					});
+				}
+				response.json("verification_code was sent");
+			}
+		);
+		this.restful_express_app.get("/files/:file_id", async (request: any, response: any) => {
+			response.sendFile(
+				path.resolve(
+					`./uploads/${fs
+						.readdirSync("./uploads")
+						.find((i) => i.startsWith(request.params.file_id))}`
+				)
+			);
+		});
+		this.restful_express_app.post("/files", async (request, response) => {
+			//saves the file with key = "file" inside sent form inside ./uploads directory
+			//returns json : {file_id : string }
+			//saved file name + extension is {file_id}-{original file name with extension }
+			var file_id = await new Promise((resolve, reject) => {
+				var f = formidable({ uploadDir: "./uploads" });
+				f.parse(request, (err: any, fields: any, files: any) => {
+					if (err) {
+						reject(err);
+						return;
+					}
+					var file_id = `${new Date().getTime()}${Math.round(Math.random() * 10000)}`;
+					var new_file_path = path.resolve(
+						"./uploads",
+						`${file_id}-${files["file"].originalFilename}`
+					);
+
+					fs.renameSync(files["file"].filepath, new_file_path);
+					resolve(file_id);
+					return;
+				});
+			});
+			response.json({ file_id });
+		});
+		this.restful_express_app.get("/export_unit", async (request, response) => {
+			//requested url must be like :
+			// `/v2/export_unit?unit_id=${pack_id}&unit_context=packs`
+			var archive_filename = await pink_rose_export({
+				db: "tmp",
+				...request.query,
+				uploads_dir_path: "./uploads",
+			});
+			await new Promise((resolve, reject) => {
+				response.sendFile(path.resolve(archive_filename), (err) => {
+					if (err) {
+						reject(err);
+					} else {
+						resolve("done!");
+					}
+				});
+			});
+
+			fs.rmSync(archive_filename, { force: true, recursive: true });
+		});
+		this.restful_express_app.post("/import_exported_file", async (request, response) => {
+			try {
+				var uploaded_files = fs.readdirSync("./uploads");
+				var exported_file_path = path.resolve(
+					"./uploads",
+					uploaded_files.filter((i) => i.startsWith(request.body.file_id))[0]
+				);
+				await pink_rose_import({
+					db: "tmp",
+					source_file_path: exported_file_path,
+					files_destination_path: "./uploads",
+				});
+				fs.rmSync(exported_file_path, { force: true, recursive: true });
+				response.json("done");
+			} catch (error) {
+				console.log(error);
+				response.status(500).json(error);
+			}
+		});
 	}
-	check_lock({ user_id, thing_id }: { thing_id: number; user_id: number }): boolean {
+	check_lock({ user_id, thing_id }: { thing_id: number; user_id: number | undefined }): boolean {
 		var lock = this.surface_cache.find((i: surface_cache_item) => {
 			return i.thing.type === "meta/lock" && i.thing.current_state.thing_id === thing_id;
 		});
@@ -195,23 +490,18 @@ export class UnifiedHandler implements UnifiedHandlerType {
 		return false;
 	}
 
-	check_privilege(user_id: number, thing_id: number, job: "write" | "read"): boolean {
-		/* returns a boolean which is true when this
-		user has privilege of doing specified "job" to that thing 
-		*/
-		//todo complete this :
-		// when there is not any meta / privileges for a "thing"
-		//we give write / read permission to everyone
-		//but obviously it must not be like that
+	check_privilege(user_id: number | undefined, thing_id: number, job: "write" | "read"): boolean {
+		if (user_id === undefined) return true;
+		/* returns whether the user has privilege of doing specified "job" to that thing */
 		var privilege_thing = this.surface_cache.find(
 			(i: surface_cache_item) =>
 				i.thing.type === "meta/privileges" && i.thing.current_state.for === thing_id
 		);
 		if (privilege_thing === undefined) {
 			return true;
+		} else {
+			var privilege: any = privilege_thing.thing.current_state;
 		}
-
-		var privilege: any = privilege_thing.thing.current_state;
 
 		var collaborators_thing: any = this.surface_cache.find(
 			(i: surface_cache_item) =>
@@ -220,6 +510,17 @@ export class UnifiedHandler implements UnifiedHandlerType {
 
 		var collaborators = collaborators_thing.current_state.value;
 
+		var user_thing: any = this.surface_cache.find(
+			(i: surface_cache_item) => i.thing.type === "user" && i.thing_id === user_id
+		);
+		var user = user_thing.current_state;
+		/* 	priority of admin privilege on something is higher.
+			it means if its said that admin has write access but
+			the admin is also a non-owner collaborator and its said
+			they have only read access that user can write there.
+		*/
+		if (user.is_admin === true) {
+		}
 		if (
 			collaborators
 				.map((i: { user_id: number; is_owner: boolean }) => i.user_id)
@@ -248,7 +549,7 @@ export class UnifiedHandler implements UnifiedHandlerType {
 				return privilege.others === "write/read" || privilege.others === "read";
 			}
 		}
-		return false;
+		return true;
 	}
 	get surface_cache(): surface_cache_item[] {
 		//returns an array which contains a mapping
@@ -267,12 +568,16 @@ export class UnifiedHandler implements UnifiedHandlerType {
 		diff: rdiff.rdiffResult[];
 		thing_id: number;
 		type: string;
-		user_id: number;
+		user_id: number | undefined;
+		/* 
+			if user_id is passed undefined
+			privilege checks are ignored and new transaction
+			is done by system itself.
+		*/
 	}): number {
 		//applies transaction to virtual_transactions then
 		//schedules applying that to db (its promise is pushed
 		//to this.db_change_promises and its index is returned)
-
 		if (this.check_privilege(user_id, thing_id, "write") !== true) {
 			throw new Error(
 				"access denied. required privileges to insert new transaction were not met"
@@ -295,7 +600,7 @@ export class UnifiedHandler implements UnifiedHandlerType {
 		var tmp = this.db_change_promises.push(
 			fs.promises.writeFile("./store.json", JSON.stringify(this.virtual_transactions))
 		);
-		this.onChange(transaction);
+		this.onChange();
 		return tmp;
 	}
 
@@ -363,19 +668,31 @@ export class UnifiedHandler implements UnifiedHandlerType {
 
 		//adding event listener of to listen to incoming
 		//transaction insertion requests from this client
-		socket.on("new_transaction", (args) => {
-			/* args type : {
-			diff: rdiff.rdiffResult[];
-			thing_id: number;
-			type: string; */
-
-			try {
-				this.new_transaction({ ...args, user_id: user_id });
-			} catch (error) {
-				socket.emit("transaction_insertion_failed", args, error);
+		socket.on(
+			"new_transaction",
+			(args: { diff: rdiff.rdiffResult[]; thing_id: number; type: string }) => {
+				try {
+					this.new_transaction({ ...args, user_id: user_id });
+				} catch (error) {
+					socket.emit("transaction_insertion_failed", args, error);
+				}
 			}
-		});
+		);
 
 		this.websocket_clients.push(new_websocket_client);
+	}
+}
+export class UnifiedHandlerClient {
+	websocket: ReturnType<typeof io>;
+	discoverable_transactions: transaction[] = [];
+	constructor(websocket_url: string) {
+		this.websocket = io(websocket_url);
+		this.websocket.on("syncing_discoverable_transactions", (args: rdiff.rdiffResult[]) => {
+			applyDiff(this.discoverable_transactions, args);
+		});
+		this.websocket.on("transaction_insertion_failed", (args) => {
+			console.error(args);
+			//todo : do something with this error
+		});
 	}
 }

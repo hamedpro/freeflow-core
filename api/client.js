@@ -106,32 +106,7 @@ export var delete_user = ({ user_id }) =>
 			_id: user_id,
 		},
 	});
-export var auth = async ({ user_id, password = undefined, verf_code = undefined }) =>
-	//about args : user_id is necessary but only one of verf_code or password should be !undefined
-	//returns a json stringified boolean which indicates that user auth was done or not
-	//extra description : if password is included it checks user password with included one
-	//and if verf_code is there it will check it with the latest verf_code of that user (if present) in verf_codes collection
-	//important todo think about if user's password is null and we pass null to this func too
-	await custom_axios({
-		task: "auth",
-		body: {
-			user_id,
-			password,
-			verf_code,
-		},
-	});
 
-export var send_verification_code = async ({ kind, user_id }) =>
-	//body should contain user_id and also kind that should be either "mobile" or "email_address"
-	//if this function doesnt throw anything its done
-	//test status : passed
-	await custom_axios({
-		task: "send_verification_code",
-		body: {
-			kind,
-			user_id,
-		},
-	});
 export var new_note = ({ collaborators, title, pack_id }) =>
 	new_document({
 		collection_name: "notes",

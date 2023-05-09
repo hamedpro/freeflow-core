@@ -39,6 +39,7 @@ import "react-contexify/ReactContexify.css";
 import { Asks } from "./components/Asks";
 import { NewAsk } from "./components/NewAsk";
 import { Ask } from "./components/Ask";
+import { io } from "socket.io-client";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -204,7 +205,7 @@ function App() {
 	);
 	async function get_global_data() {
 		var user_id = localStorage.getItem("user_id");
-		var new_user_context_state = { user: {}, all: {} };
+		var new_user_context_state = { user: {}, all: {}, discoverable_transactions: undefined };
 		var tmp = ["packs", "notes", "resources", "tasks", "events", "asks"];
 		for (var i = 0; i < tmp.length; i++) {
 			new_user_context_state.all[tmp[i]] = await get_collection({
@@ -236,6 +237,10 @@ function App() {
 			collection_name: "pack_views",
 			filters: {},
 		});
+		var socket = io("http://localhost:4000");
+		socket.on('sync_transactions', (transactions) => {
+			new_user_context_state.discoverable_transactions = transactions
+		})
 		set_global_data(new_user_context_state);
 	}
 	useEffect(() => {

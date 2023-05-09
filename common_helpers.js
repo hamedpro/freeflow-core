@@ -65,10 +65,6 @@ export function is_there_any_conflict({ start, end, items }) {
 	);
 }
 
-export function gen_verification_code() {
-	return Math.floor(100000 + Math.random() * 900000);
-}
-
 export function toHHMMSS(seconds) {
 	var sec_num = parseInt(seconds, 10);
 	var hours = Math.floor(sec_num / 3600);

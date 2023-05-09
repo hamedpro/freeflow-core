@@ -1,4 +1,4 @@
-import { UnifiedHandlerDB } from "./UnifiedHandler.js";
+/* import { UnifiedHandlerDB } from "./UnifiedHandler.js";
 
 import rdiff from "recursive-diff";
 var { applyDiff, getDiff } = rdiff;
@@ -8,9 +8,8 @@ var test = new UnifiedHandlerDB({
 		console.log("new transaction : ", transaction);
 	},
 });
-/* 
-test.new_transaction({
-	diff: getDiff({}, { username: "vahidpro", password: "vahid1378" }),
-	thing_id: 2,
-}); */
 console.log(test.surface_cache);
+ */
+function say_hello<T>: T 
+var a = say_hello<string>
+a
