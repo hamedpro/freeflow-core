@@ -237,10 +237,7 @@ function App() {
 			collection_name: "pack_views",
 			filters: {},
 		});
-		var socket = io("http://localhost:4000");
-		socket.on('sync_transactions', (transactions) => {
-			new_user_context_state.discoverable_transactions = transactions
-		})
+
 		set_global_data(new_user_context_state);
 	}
 	useEffect(() => {

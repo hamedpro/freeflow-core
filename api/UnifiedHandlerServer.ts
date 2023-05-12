@@ -1,3 +1,4 @@
+import cors from "cors";
 import formidable from "formidable";
 import jwt_module from "jsonwebtoken";
 import express from "express";
@@ -16,181 +17,16 @@ import { io } from "socket.io-client";
 import path from "path";
 import { pink_rose_export, pink_rose_import } from "./pink_rose_io.js";
 import axios from "axios";
+import {
+	UnifiedHandlerType,
+	authenticated_websocket_client,
+	meta_lock,
+	surface_cache_item,
+	transaction,
+} from "./UnifiedHandler_types.js";
 function gen_verification_code() {
 	return Math.floor(100000 + Math.random() * 900000);
 }
-interface thing {
-	type: string;
-	current_state: any;
-}
-type transaction = {
-	id: number;
-	thing_id: number;
-	time: number;
-	diff: rdiff.rdiffResult[];
-	type: string;
-	user_id?: number;
-};
-interface meta_lock extends thing {
-	type: "meta/lock";
-	current_state: {
-		is_locked: boolean;
-		thing_id: number;
-		user_id?: number;
-	};
-}
-interface meta_privileges extends thing {
-	type: "meta/privileges";
-	current_state: {
-		collaborators_except_owner: "write/read" | "read";
-		others: "write/read" | "read";
-		for: number /* thing_id of assosiated thing */;
-		admin: "read/write" | "read";
-	};
-}
-interface meta_collaborators extends thing {
-	type: "meta/collaborators";
-	current_state: {
-		value: { user_id: string; is_owner: boolean }[];
-		for: number /* thing id of assosiated thing  */;
-	};
-}
-interface unit_pack extends thing {
-	type: "unit/pack";
-	current_state: {
-		title: string;
-		description: string;
-		pack_id?: number | null;
-	};
-}
-interface unit_resource extends thing {
-	type: "unit/resource";
-	current_state: {
-		pack_id?: number | null;
-		description: string;
-		title: string;
-		file_id: number;
-	};
-}
-interface unit_task extends thing {
-	type: "unit/task";
-	current_state: {
-		linked_notes: number[];
-		end_time: number;
-		pack_id?: number | null;
-		start_time: number;
-		title: string;
-		category_id?: number | null;
-		description: string;
-	};
-}
-interface unit_event extends thing {
-	type: "unit/event";
-	current_state: {
-		end_time: number;
-		start_time: number;
-		title: string;
-		category_id?: number | null;
-	};
-}
-interface message extends thing {
-	type: "message";
-	current_state: {
-		text: string;
-		unit_context: "packs" | "resources" | "events" | "notes" | "tasks" | "asks";
-		unit_id: number;
-	};
-}
-interface verification_code extends thing {
-	type: "verification_code";
-	current_state: {
-		kind: "email_address" | "mobile";
-		value: number;
-		user_id: number;
-	};
-}
-interface unit_ask extends thing {
-	type: "unit/ask";
-	current_state: {
-		question: string;
-		pack_id?: null | number;
-		mode: "poll" | "multiple_choice" | "text_answer";
-		options?: string[];
-		correct_option_index?: number;
-	};
-}
-interface unit_note extends thing {
-	type: "unit/note";
-	current_state: {
-		title: string;
-		pack_id?: null | number;
-		data: EditorJS.OutputData;
-	};
-}
-interface user extends thing {
-	type: "user";
-	current_state: {
-		mobile?: string | null;
-		email_address?: string | null;
-		password?: string | null;
-		profile_image_file_id?: number | null;
-		calendar_type?: "persian" | "arabic" | "english" | null;
-		week_starting_day?:
-			| "saturday"
-			| "sunday"
-			| "monday"
-			| "tuesday"
-			| "wednesday"
-			| "thursday"
-			| "friday"
-			| null;
-		language?: "english" | "persian";
-		username?: string;
-		email_is_verified?: boolean;
-		mobile_is_verified?: boolean;
-		full_name?: string;
-	};
-}
-interface calendar_category extends thing {
-	type: "calendar_category";
-	current_state: {
-		name: string;
-		color: string;
-		user_id: number;
-	};
-}
-interface surface_cache_item {
-	thing_id: number;
-	thing:
-		| meta_lock
-		| meta_privileges
-		| unit_pack
-		| unit_resource
-		| unit_task
-		| unit_event
-		| unit_ask
-		| unit_note
-		| user
-		| meta_collaborators
-		| verification_code
-		| message
-		| calendar_category;
-}
-type SurfaceCache = surface_cache_item[];
-interface authenticated_websocket_client {
-	socket: Socket;
-	user_id: number;
-	last_synced_snapshot: number | undefined /*  a transaction_id  */;
-}
-type UnifiedHandlerType = {
-	virtual_transactions: transaction[];
-	db_change_promises: Promise<void>[];
-	onChange: (transaction: transaction) => void;
-	authenticated_websocket_clients: authenticated_websocket_client[];
-	jwt_secret: string;
-	websocket_api_port: number;
-	restful_api_port: number;
-};
 export class UnifiedHandlerServer implements UnifiedHandlerType {
 	//todo i tested and there was 2 loop iterations with same result for new Date().getTime()
 	//make sure we can always store everything (including transactions in their exact order )
@@ -203,7 +39,12 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 	jwt_secret: string;
 	websocket_api_port: number;
 	restful_api_port: number;
-	constructor(websocket_api_port: number, restful_api_port: number, jwt_secret: string) {
+	constructor(
+		websocket_api_port: number,
+		restful_api_port: number,
+		jwt_secret: string,
+		frontend_endpoint: string
+	) {
 		this.jwt_secret = jwt_secret;
 		this.websocket_api_port = websocket_api_port;
 		this.restful_api_port = restful_api_port;
@@ -219,6 +60,8 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 			}
 		};
 		this.restful_express_app = express();
+		this.restful_express_app.use(cors());
+		this.restful_express_app.use(express.json());
 		this.restful_express_app.post(
 			"flexible_user_finder",
 			async (request: any, response: any) => {
@@ -477,7 +320,12 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 
 		this.restful_express_app.listen(this.restful_api_port);
 
-		var io = new Server(this.websocket_api_port);
+		var io = new Server(this.websocket_api_port, {
+			cors: {
+				origin: frontend_endpoint,
+				methods: ["GET", "POST"],
+			},
+		});
 		io.on("connection", (socket) => {
 			this.add_socket(socket);
 		});
@@ -685,20 +533,6 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 					this.sync_websocket_client(new_websocket_client);
 				}
 			} catch (error) {}
-		});
-	}
-}
-export class UnifiedHandlerClient {
-	websocket: ReturnType<typeof io>;
-	discoverable_transactions: transaction[] = [];
-	configured_axios: ReturnType<typeof axios.create>;
-	constructor(websocket_api_endpoint: string, restful_api_endpoint: string) {
-		this.configured_axios = axios.create({
-			baseURL: restful_api_endpoint,
-		});
-		this.websocket = io(websocket_api_endpoint);
-		this.websocket.on("syncing_discoverable_transactions", (args: rdiff.rdiffResult[]) => {
-			applyDiff(this.discoverable_transactions, args);
 		});
 	}
 }
