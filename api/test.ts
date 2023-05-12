@@ -10,6 +10,3 @@ var test = new UnifiedHandlerDB({
 });
 console.log(test.surface_cache);
  */
-function say_hello<T>: T 
-var a = say_hello<string>
-a

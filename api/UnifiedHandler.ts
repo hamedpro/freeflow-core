@@ -1,5 +1,5 @@
 import { formidable } from "formidable";
-import jwt from "jsonwebtoken";
+import jwt_module from "jsonwebtoken";
 import express from "express";
 import EditorJS from "@editorjs/editorjs";
 //read README file : UnifiedHandlerSystem.md
@@ -175,17 +175,18 @@ interface surface_cache_item {
 		| calendar_category;
 }
 type SurfaceCache = surface_cache_item[];
-type UnifiedHandlerType = {
-	virtual_transactions: transaction[];
-	db_change_promises: Promise<void>[];
-	onChange: (transaction: transaction) => void;
-	websocket_clients: websocket_client[];
-};
-interface websocket_client {
+interface authenticated_websocket_client {
 	socket: Socket;
 	user_id: number;
 	last_synced_snapshot: number | undefined /*  a transaction_id  */;
 }
+type UnifiedHandlerType = {
+	virtual_transactions: transaction[];
+	db_change_promises: Promise<void>[];
+	onChange: (transaction: transaction) => void;
+	authenticated_websocket_clients: authenticated_websocket_client[];
+};
+
 var {
 	frontend_port,
 	restful_api_port,
@@ -196,14 +197,14 @@ var {
 	websocket_api_port,
 } = JSON.parse(fs.readFileSync(fileURLToPath(new URL("../env.json", import.meta.url)), "utf-8"));
 
-export class UnifiedHandler implements UnifiedHandlerType {
+export class UnifiedHandlerServer implements UnifiedHandlerType {
 	//todo i tested and there was 2 loop iterations with same result for new Date().getTime()
 	//make sure we can always store everything (including transactions in their exact order )
 	//there must be always just a single unified handler db connected to a single mongo db collection
 	db_change_promises: Promise<void>[] = [];
 	onChange: () => void;
 	virtual_transactions: transaction[];
-	websocket_clients: websocket_client[] = [];
+	authenticated_websocket_clients: authenticated_websocket_client[] = [];
 	restful_express_app: express.Express;
 	constructor() {
 		if (fs.existsSync("./store.json") !== true) {
@@ -212,7 +213,7 @@ export class UnifiedHandler implements UnifiedHandlerType {
 		this.virtual_transactions = JSON.parse(fs.readFileSync("./store.json", "utf-8"));
 
 		this.onChange = () => {
-			for (var i of this.websocket_clients) {
+			for (var i of this.authenticated_websocket_clients) {
 				this.sync_websocket_client(i);
 			}
 		};
@@ -281,7 +282,7 @@ export class UnifiedHandler implements UnifiedHandlerType {
 				) {
 					response.json({
 						verified: true,
-						jwt: jwt.sign(
+						jwt: jwt_module.sign(
 							{
 								user_id: filtered_user_things[0].thing.current_state.user_id,
 							},
@@ -336,9 +337,10 @@ export class UnifiedHandler implements UnifiedHandlerType {
 					*/
 					response.json({
 						verified: true,
-						jwt: jwt.sign(
+						jwt: jwt_module.sign(
 							{
 								user_id: request.body.user_id,
+								exp: Math.round(new Date().getTime() / 1000 + 24 * 3600 * 3),
 							},
 							jwt_secret
 						),
@@ -436,7 +438,8 @@ export class UnifiedHandler implements UnifiedHandlerType {
 			// `/v2/export_unit?unit_id=${pack_id}&unit_context=packs`
 			var archive_filename = await pink_rose_export({
 				db: "tmp",
-				...request.query,
+				unit_id: request.query.unit_id,
+				unit_context: request.query.unit_context,
 				uploads_dir_path: "./uploads",
 			});
 			await new Promise((resolve, reject) => {
@@ -469,6 +472,11 @@ export class UnifiedHandler implements UnifiedHandlerType {
 				console.log(error);
 				response.status(500).json(error);
 			}
+		});
+
+		var io = new Server(3000);
+		io.on("connection", (socket) => {
+			this.add_socket(socket);
 		});
 	}
 	check_lock({ user_id, thing_id }: { thing_id: number; user_id: number | undefined }): boolean {
@@ -637,7 +645,7 @@ export class UnifiedHandler implements UnifiedHandlerType {
 			)
 			.flat();
 	}
-	sync_websocket_client(websocket_client: websocket_client) {
+	sync_websocket_client(websocket_client: authenticated_websocket_client) {
 		if (websocket_client.last_synced_snapshot === undefined) {
 			websocket_client.socket.emit(
 				"syncing_discoverable_transactions",
@@ -656,30 +664,25 @@ export class UnifiedHandler implements UnifiedHandlerType {
 			);
 		}
 	}
-	add_socket(socket: Socket, user_id: number) {
-		var new_websocket_client: websocket_client = {
-			socket: socket,
-			user_id,
-			last_synced_snapshot: undefined,
-		};
-
-		//sending all discoverable transactions to that user (in diff format)
-		this.sync_websocket_client(new_websocket_client);
-
+	add_socket(socket: Socket) {
 		//adding event listener of to listen to incoming
 		//transaction insertion requests from this client
-		socket.on(
-			"new_transaction",
-			(args: { diff: rdiff.rdiffResult[]; thing_id: number; type: string }) => {
-				try {
-					this.new_transaction({ ...args, user_id: user_id });
-				} catch (error) {
-					socket.emit("transaction_insertion_failed", args, error);
+		socket.on("auth", (args: { jwt: string }) => {
+			try {
+				var decoded_jwt = jwt_module.verify(args.jwt, jwt_secret);
+				if (typeof decoded_jwt !== "string" /* this bool is always true */) {
+					var { user_id } = decoded_jwt;
+					var new_websocket_client: authenticated_websocket_client = {
+						socket,
+						user_id,
+						last_synced_snapshot: undefined,
+					};
+					this.authenticated_websocket_clients.push(new_websocket_client);
+					//sending all discoverable transactions to that user (in diff format)
+					this.sync_websocket_client(new_websocket_client);
 				}
-			}
-		);
-
-		this.websocket_clients.push(new_websocket_client);
+			} catch (error) {}
+		});
 	}
 }
 export class UnifiedHandlerClient {
