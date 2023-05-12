@@ -1,4 +1,4 @@
-import { formidable } from "formidable";
+import formidable from "formidable";
 import jwt_module from "jsonwebtoken";
 import express from "express";
 import EditorJS from "@editorjs/editorjs";
@@ -7,12 +7,15 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import rdiff from "recursive-diff";
 var { applyDiff, getDiff } = rdiff;
-var common_helpers = await import(fileURLToPath(new URL("../common_helpers.js", import.meta.url)));
-var { unique_items_of_array } = common_helpers;
+var unique_items_of_array = (
+	array: (string | number)[] //todo : it may not work for array containing anything other than numbers or string
+) => array.filter((i, index) => array.indexOf(i) === index) as any;
+
 import { Server, Socket } from "socket.io";
 import { io } from "socket.io-client";
 import path from "path";
 import { pink_rose_export, pink_rose_import } from "./pink_rose_io.js";
+import axios from "axios";
 function gen_verification_code() {
 	return Math.floor(100000 + Math.random() * 900000);
 }
@@ -156,7 +159,6 @@ interface calendar_category extends thing {
 		user_id: number;
 	};
 }
-
 interface surface_cache_item {
 	thing_id: number;
 	thing:
@@ -185,18 +187,10 @@ type UnifiedHandlerType = {
 	db_change_promises: Promise<void>[];
 	onChange: (transaction: transaction) => void;
 	authenticated_websocket_clients: authenticated_websocket_client[];
+	jwt_secret: string;
+	websocket_api_port: number;
+	restful_api_port: number;
 };
-
-var {
-	frontend_port,
-	restful_api_port,
-	api_endpoint,
-	db_name,
-	mongodb_url,
-	jwt_secret,
-	websocket_api_port,
-} = JSON.parse(fs.readFileSync(fileURLToPath(new URL("../env.json", import.meta.url)), "utf-8"));
-
 export class UnifiedHandlerServer implements UnifiedHandlerType {
 	//todo i tested and there was 2 loop iterations with same result for new Date().getTime()
 	//make sure we can always store everything (including transactions in their exact order )
@@ -206,7 +200,14 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 	virtual_transactions: transaction[];
 	authenticated_websocket_clients: authenticated_websocket_client[] = [];
 	restful_express_app: express.Express;
-	constructor() {
+	jwt_secret: string;
+	websocket_api_port: number;
+	restful_api_port: number;
+	constructor(websocket_api_port: number, restful_api_port: number, jwt_secret: string) {
+		this.jwt_secret = jwt_secret;
+		this.websocket_api_port = websocket_api_port;
+		this.restful_api_port = restful_api_port;
+
 		if (fs.existsSync("./store.json") !== true) {
 			fs.writeFileSync("./store.json", JSON.stringify([]));
 		}
@@ -286,7 +287,7 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 							{
 								user_id: filtered_user_things[0].thing.current_state.user_id,
 							},
-							jwt_secret
+							this.jwt_secret
 						),
 					});
 					return;
@@ -342,7 +343,7 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 								user_id: request.body.user_id,
 								exp: Math.round(new Date().getTime() / 1000 + 24 * 3600 * 3),
 							},
-							jwt_secret
+							this.jwt_secret
 						),
 					});
 				} else {
@@ -474,7 +475,9 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 			}
 		});
 
-		var io = new Server(3000);
+		this.restful_express_app.listen(this.restful_api_port);
+
+		var io = new Server(this.websocket_api_port);
 		io.on("connection", (socket) => {
 			this.add_socket(socket);
 		});
@@ -669,7 +672,7 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 		//transaction insertion requests from this client
 		socket.on("auth", (args: { jwt: string }) => {
 			try {
-				var decoded_jwt = jwt_module.verify(args.jwt, jwt_secret);
+				var decoded_jwt = jwt_module.verify(args.jwt, this.jwt_secret);
 				if (typeof decoded_jwt !== "string" /* this bool is always true */) {
 					var { user_id } = decoded_jwt;
 					var new_websocket_client: authenticated_websocket_client = {
@@ -688,14 +691,14 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 export class UnifiedHandlerClient {
 	websocket: ReturnType<typeof io>;
 	discoverable_transactions: transaction[] = [];
-	constructor(websocket_url: string) {
-		this.websocket = io(websocket_url);
+	configured_axios: ReturnType<typeof axios.create>;
+	constructor(websocket_api_endpoint: string, restful_api_endpoint: string) {
+		this.configured_axios = axios.create({
+			baseURL: restful_api_endpoint,
+		});
+		this.websocket = io(websocket_api_endpoint);
 		this.websocket.on("syncing_discoverable_transactions", (args: rdiff.rdiffResult[]) => {
 			applyDiff(this.discoverable_transactions, args);
-		});
-		this.websocket.on("transaction_insertion_failed", (args) => {
-			console.error(args);
-			//todo : do something with this error
 		});
 	}
 }

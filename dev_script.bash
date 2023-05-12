@@ -1,6 +1,6 @@
-node ./export_env_dot_json.js ; 
-source ./.env ;
-vite --host --strictPort --port $frontend_port &
+tsc; 
+( tsc --watch >&1 ) & 
+vite &
 tailwindcss -c ./tailwind.config.cjs -i ./src/input.css -o ./src/output.css --watch=always &
-nodemon ./api/server.js &
+nodemon ./api_dist/api/server.js &
 wait
