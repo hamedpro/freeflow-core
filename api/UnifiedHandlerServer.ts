@@ -4,7 +4,8 @@ import jwt_module from "jsonwebtoken";
 import express from "express";
 import EditorJS from "@editorjs/editorjs";
 //read README file : UnifiedHandlerSystem.md
-import fs from "fs";
+import fs, { mkdirSync } from "fs";
+import os from "os";
 import { fileURLToPath } from "url";
 import rdiff from "recursive-diff";
 var { applyDiff, getDiff } = rdiff;
@@ -24,9 +25,11 @@ import {
 	surface_cache_item,
 	transaction,
 } from "./UnifiedHandler_types.js";
+import { exit } from "process";
 function gen_verification_code() {
 	return Math.floor(100000 + Math.random() * 900000);
 }
+
 export class UnifiedHandlerServer implements UnifiedHandlerType {
 	//todo i tested and there was 2 loop iterations with same result for new Date().getTime()
 	//make sure we can always store everything (including transactions in their exact order )
@@ -39,20 +42,48 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 	jwt_secret: string;
 	websocket_api_port: number;
 	restful_api_port: number;
-	constructor(
-		websocket_api_port: number,
-		restful_api_port: number,
-		jwt_secret: string,
-		frontend_endpoint: string
-	) {
+	frontend_endpoint: string;
+	pink_rose_data_dir_absolute_path: string;
+	store_file_absolute_path: string;
+	constructor() {
+		var pink_rose_data_dir_absolute_path = path.join(os.homedir(), "./.pink_rose_data");
+		this.pink_rose_data_dir_absolute_path = pink_rose_data_dir_absolute_path;
+
+		mkdirSync(path.join(pink_rose_data_dir_absolute_path, "./uploads"), { recursive: true });
+
+		var store_file_absolute_path = path.join(pink_rose_data_dir_absolute_path, "./store.json");
+		this.store_file_absolute_path = store_file_absolute_path;
+		if (fs.existsSync(store_file_absolute_path) !== true) {
+			fs.writeFileSync(store_file_absolute_path, JSON.stringify([]));
+		}
+
+		var env_json_file_absolute_path = path.join(pink_rose_data_dir_absolute_path, "./env.json");
+		this.store_file_absolute_path = env_json_file_absolute_path;
+		if (fs.existsSync(env_json_file_absolute_path) !== true) {
+			console.log(
+				`env.json does not exist here : ${env_json_file_absolute_path}. create it with proper properties then try again`
+			);
+			exit();
+		}
+
+		var {
+			websocket_api_port,
+			restful_api_port,
+			jwt_secret,
+			frontend_endpoint,
+		}: {
+			websocket_api_port: number;
+			restful_api_port: number;
+			jwt_secret: string;
+			frontend_endpoint: string;
+		} = JSON.parse(fs.readFileSync(env_json_file_absolute_path, "utf-8"));
+
+		this.frontend_endpoint = frontend_endpoint;
 		this.jwt_secret = jwt_secret;
 		this.websocket_api_port = websocket_api_port;
 		this.restful_api_port = restful_api_port;
 
-		if (fs.existsSync("./store.json") !== true) {
-			fs.writeFileSync("./store.json", JSON.stringify([]));
-		}
-		this.virtual_transactions = JSON.parse(fs.readFileSync("./store.json", "utf-8"));
+		this.virtual_transactions = JSON.parse(fs.readFileSync(store_file_absolute_path, "utf-8"));
 
 		this.onChange = () => {
 			for (var i of this.authenticated_websocket_clients) {
@@ -457,7 +488,10 @@ export class UnifiedHandlerServer implements UnifiedHandlerType {
 
 		this.virtual_transactions.push(transaction);
 		var tmp = this.db_change_promises.push(
-			fs.promises.writeFile("./store.json", JSON.stringify(this.virtual_transactions))
+			fs.promises.writeFile(
+				this.store_file_absolute_path,
+				JSON.stringify(this.virtual_transactions)
+			)
 		);
 		this.onChange();
 		return tmp;
