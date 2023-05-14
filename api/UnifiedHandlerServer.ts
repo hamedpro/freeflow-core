@@ -22,6 +22,7 @@ import {
 	authenticated_websocket_client,
 	meta_lock,
 	surface_cache_item,
+	thing,
 	transaction,
 } from "./UnifiedHandler_types.js";
 import { exit } from "process";
@@ -33,7 +34,6 @@ export class UnifiedHandlerServer {
 	//todo i tested and there was 2 loop iterations with same result for new Date().getTime()
 	//make sure we can always store everything (including transactions in their exact order )
 	//there must be always just a single unified handler db connected to a single mongo db collection
-	db_change_promises: Promise<void>[] = [];
 	onChange: () => void;
 	virtual_transactions: transaction[];
 	authenticated_websocket_clients: authenticated_websocket_client[] = [];
@@ -197,13 +197,16 @@ export class UnifiedHandlerServer {
 						(i: any) => i.thing.type === "user" && i.thing_id === request.body.user_id
 					)[0];
 					this.new_transaction({
-						diff: getDiff(user_surface_item.thing.current_state, {
-							...user_surface_item.thing.current_state,
-							[filtered_surface_cache[0].thing.current_state.kind + "_is_verified"]:
-								true,
+						new_thing_creator: (thing: any) => ({
+							...thing,
+							current_state: {
+								...thing.current_state,
+								[thing.current_state.kind + "_is_verified"]: true,
+							},
 						}),
+
 						thing_id: user_surface_item.thing_id,
-						type: "user",
+
 						user_id: undefined,
 					});
 					/* todo new transaction must not repeat type = x when trying to update a thing 
@@ -248,26 +251,25 @@ export class UnifiedHandlerServer {
 				if (verf_code_surface_item === undefined) {
 					this.new_transaction({
 						user_id: request.body.user_id,
-						type: "verification_code",
-						diff: getDiff(
-							{},
-							{
-								kind: request.body.kind,
-								user_id: request.body.user_id,
-								value: gen_verification_code(),
-							}
-						),
-						thing_id: Math.max(...this.surface_cache.map((i) => i.thing_id)) + 1,
+						new_thing_creator: (prev_thing: any) => ({
+							kind: request.body.kind,
+							user_id: request.body.user_id,
+							value: gen_verification_code(),
+						}),
+
+						thing_id: undefined,
 					});
 				} else {
 					this.new_transaction({
-						type: "verification_code",
 						user_id: request.body.user_id,
 						thing_id: verf_code_surface_item.thing_id,
-						diff: getDiff(verf_code_surface_item.thing.current_state, {
-							...verf_code_surface_item.thing.current_state,
-							kind: request.body.kind,
-							value: gen_verification_code(),
+						new_thing_creator: (prev_thing: any) => ({
+							...prev_thing,
+							current_state: {
+								...prev_thing.current_state,
+								kind: request.body.kind,
+								value: gen_verification_code(),
+							},
 						}),
 					});
 				}
@@ -347,6 +349,30 @@ export class UnifiedHandlerServer {
 				response.status(500).json(error);
 			}
 		});
+		this.restful_express_app.post("/new_transaction", (request, response) => {
+			if (
+				/* always true condition (just a type guard) */ typeof request.headers.jwt ===
+				"string"
+			) {
+				var decoded_jwt = jwt_module.decode(request.headers.jwt);
+				if (
+					/* always true condition (just a type guard) */ typeof decoded_jwt !== "string"
+				) {
+					try {
+						this.new_transaction({
+							new_thing_creator: (prev_thing: any) =>
+								applyDiff(prev_thing, request.body.diff),
+							thing_id: request.body.thing_id,
+							user_id:
+								decoded_jwt?.user_id /* it always have user_id and ?. is just for ts  */,
+						});
+						response.json("done");
+					} catch (error) {
+						response.status(400).json(error);
+					}
+				}
+			}
+		});
 
 		this.restful_express_app.listen(this.restful_api_port);
 
@@ -360,7 +386,14 @@ export class UnifiedHandlerServer {
 			this.add_socket(socket);
 		});
 	}
-	check_lock({ user_id, thing_id }: { thing_id: number; user_id: number | undefined }): boolean {
+	check_lock({
+		user_id,
+		thing_id,
+	}: {
+		thing_id: number | undefined;
+		user_id: number | undefined;
+	}): boolean {
+		if (typeof thing_id === "undefined") return true;
 		var lock = this.surface_cache.find((i: surface_cache_item) => {
 			return i.thing.type === "meta/lock" && i.thing.current_state.thing_id === thing_id;
 		});
@@ -379,7 +412,12 @@ export class UnifiedHandlerServer {
 		return false;
 	}
 
-	check_privilege(user_id: number | undefined, thing_id: number, job: "write" | "read"): boolean {
+	check_privilege(
+		user_id: number | undefined,
+		thing_id: number | undefined,
+		job: "write" | "read"
+	): boolean {
+		if (typeof thing_id === "undefined") return true;
 		if (user_id === undefined) return true;
 		/* returns whether the user has privilege of doing specified "job" to that thing */
 		var privilege_thing = this.surface_cache.find(
@@ -448,25 +486,28 @@ export class UnifiedHandlerServer {
 			(thing_id: number) => this.calc_thing_state(thing_id)
 		);
 	}
-	new_transaction({
-		diff,
+	new_transaction<ThingType extends thing, ThingId extends number | undefined>({
+		new_thing_creator,
 		thing_id,
-		type,
 		user_id,
 	}: {
-		diff: rdiff.rdiffResult[];
-		thing_id: number;
-		type: string;
+		new_thing_creator: (current_thing: any) => any;
+		thing_id: ThingId;
 		user_id: number | undefined;
 		/* 
 			if user_id is passed undefined
 			privilege checks are ignored and new transaction
 			is done by system itself.
 		*/
-	}): number {
+	}): void {
+		var thing: ThingType | {} =
+			typeof thing_id === "undefined"
+				? {}
+				: this.surface_cache.filter((i) => i.thing_id === thing_id)[0].thing;
+
+		var new_thing = new_thing_creator(thing);
 		//applies transaction to virtual_transactions then
-		//schedules applying that to db (its promise is pushed
-		//to this.db_change_promises and its index is returned)
+		//writes virtual_transactions to correct store.json
 		if (this.check_privilege(user_id, thing_id, "write") !== true) {
 			throw new Error(
 				"access denied. required privileges to insert new transaction were not met"
@@ -479,21 +520,16 @@ export class UnifiedHandlerServer {
 		}
 		var transaction: transaction = {
 			time: new Date().getTime(),
-			diff,
-			thing_id,
-			type,
+			diff: getDiff(thing, new_thing),
+			thing_id: typeof thing_id === "undefined" ? this.surface_cache.length + 1 : thing_id,
 			id: this.virtual_transactions.length + 1,
 		};
 
 		this.virtual_transactions.push(transaction);
-		var tmp = this.db_change_promises.push(
-			fs.promises.writeFile(
-				this.store_file_absolute_path,
-				JSON.stringify(this.virtual_transactions)
-			)
-		);
+
+		fs.writeFileSync(this.store_file_absolute_path, JSON.stringify(this.virtual_transactions));
+
 		this.onChange();
-		return tmp;
 	}
 
 	sorted_transactions_of_thing(thing_id: number) {

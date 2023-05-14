@@ -28,3 +28,7 @@ _id fields in output of mongodb.collection(x).find().toArray() are not string
 take care about comparing that against strings 
 solution : map them to something like this : JSON.parse(JSON.stringify(document))
 this is also the same for other finds like findOne method 
+
+todo : make sure there will not be more than 1
+things writing at once on discoverable transactinos or ... (i know it would happen
+once a thousand years or even may be impossible  ) 

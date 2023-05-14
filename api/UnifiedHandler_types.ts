@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 
-export interface thing {
+export interface thing_base {
 	type: string;
 	current_state: any;
 }
@@ -9,10 +9,9 @@ export type transaction = {
 	thing_id: number;
 	time: number;
 	diff: rdiff.rdiffResult[];
-	type: string;
 	user_id?: number;
 };
-export interface meta_lock extends thing {
+export interface meta_lock extends thing_base {
 	type: "meta/lock";
 	current_state: {
 		is_locked: boolean;
@@ -20,7 +19,7 @@ export interface meta_lock extends thing {
 		user_id?: number;
 	};
 }
-export interface meta_privileges extends thing {
+export interface meta_privileges extends thing_base {
 	type: "meta/privileges";
 	current_state: {
 		collaborators_except_owner: "write/read" | "read";
@@ -29,14 +28,14 @@ export interface meta_privileges extends thing {
 		admin: "read/write" | "read";
 	};
 }
-export interface meta_collaborators extends thing {
+export interface meta_collaborators extends thing_base {
 	type: "meta/collaborators";
 	current_state: {
 		value: { user_id: string; is_owner: boolean }[];
 		for: number /* thing id of assosiated thing  */;
 	};
 }
-export interface unit_pack extends thing {
+export interface unit_pack extends thing_base {
 	type: "unit/pack";
 	current_state: {
 		title: string;
@@ -44,7 +43,7 @@ export interface unit_pack extends thing {
 		pack_id?: number | null;
 	};
 }
-export interface unit_resource extends thing {
+export interface unit_resource extends thing_base {
 	type: "unit/resource";
 	current_state: {
 		pack_id?: number | null;
@@ -53,7 +52,7 @@ export interface unit_resource extends thing {
 		file_id: number;
 	};
 }
-export interface unit_task extends thing {
+export interface unit_task extends thing_base {
 	type: "unit/task";
 	current_state: {
 		linked_notes: number[];
@@ -65,7 +64,7 @@ export interface unit_task extends thing {
 		description: string;
 	};
 }
-export interface unit_event extends thing {
+export interface unit_event extends thing_base {
 	type: "unit/event";
 	current_state: {
 		end_time: number;
@@ -74,7 +73,7 @@ export interface unit_event extends thing {
 		category_id?: number | null;
 	};
 }
-export interface message extends thing {
+export interface message extends thing_base {
 	type: "message";
 	current_state: {
 		text: string;
@@ -82,7 +81,7 @@ export interface message extends thing {
 		unit_id: number;
 	};
 }
-export interface verification_code extends thing {
+export interface verification_code extends thing_base {
 	type: "verification_code";
 	current_state: {
 		kind: "email_address" | "mobile";
@@ -90,7 +89,7 @@ export interface verification_code extends thing {
 		user_id: number;
 	};
 }
-export interface unit_ask extends thing {
+export interface unit_ask extends thing_base {
 	type: "unit/ask";
 	current_state: {
 		question: string;
@@ -100,7 +99,7 @@ export interface unit_ask extends thing {
 		correct_option_index?: number;
 	};
 }
-export interface unit_note extends thing {
+export interface unit_note extends thing_base {
 	type: "unit/note";
 	current_state: {
 		title: string;
@@ -108,7 +107,7 @@ export interface unit_note extends thing {
 		data: EditorJS.OutputData;
 	};
 }
-export interface user extends thing {
+export interface user extends thing_base {
 	type: "user";
 	current_state: {
 		mobile?: string | null;
@@ -132,7 +131,7 @@ export interface user extends thing {
 		full_name?: string;
 	};
 }
-export interface calendar_category extends thing {
+export interface calendar_category extends thing_base {
 	type: "calendar_category";
 	current_state: {
 		name: string;
@@ -140,22 +139,23 @@ export interface calendar_category extends thing {
 		user_id: number;
 	};
 }
+export type thing =
+	| meta_lock
+	| meta_privileges
+	| unit_pack
+	| unit_resource
+	| unit_task
+	| unit_event
+	| unit_ask
+	| unit_note
+	| user
+	| meta_collaborators
+	| verification_code
+	| message
+	| calendar_category;
 export interface surface_cache_item {
 	thing_id: number;
-	thing:
-		| meta_lock
-		| meta_privileges
-		| unit_pack
-		| unit_resource
-		| unit_task
-		| unit_event
-		| unit_ask
-		| unit_note
-		| user
-		| meta_collaborators
-		| verification_code
-		| message
-		| calendar_category;
+	thing: thing;
 }
 export type SurfaceCache = surface_cache_item[];
 export interface authenticated_websocket_client {
