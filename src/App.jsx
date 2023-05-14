@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import "./App.css";
 import "./output.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -40,6 +40,7 @@ import { Asks } from "./components/Asks";
 import { NewAsk } from "./components/NewAsk";
 import { Ask } from "./components/Ask";
 import { io } from "socket.io-client";
+import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
 function TopBar() {
 	var user_id = localStorage.getItem("user_id");
 	return (
@@ -196,6 +197,8 @@ function Wrapper({ last_location_change_timestamp }) {
 	);
 }
 function App() {
+	var { unified_handler_client } = useContext(UnifiedHandlerClientContext);
+	return <pre>{JSON.stringify(unified_handler_client.discoverable_transactions)}</pre>;
 	var loc = useLocation();
 	window.ml = ml;
 	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite during build process

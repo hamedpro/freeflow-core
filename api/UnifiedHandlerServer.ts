@@ -19,7 +19,6 @@ import path from "path";
 import { pink_rose_export, pink_rose_import } from "./pink_rose_io.js";
 import axios from "axios";
 import {
-	UnifiedHandlerType,
 	authenticated_websocket_client,
 	meta_lock,
 	surface_cache_item,
@@ -30,7 +29,7 @@ function gen_verification_code() {
 	return Math.floor(100000 + Math.random() * 900000);
 }
 
-export class UnifiedHandlerServer implements UnifiedHandlerType {
+export class UnifiedHandlerServer {
 	//todo i tested and there was 2 loop iterations with same result for new Date().getTime()
 	//make sure we can always store everything (including transactions in their exact order )
 	//there must be always just a single unified handler db connected to a single mongo db collection

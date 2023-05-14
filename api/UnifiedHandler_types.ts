@@ -163,12 +163,3 @@ export interface authenticated_websocket_client {
 	user_id: number;
 	last_synced_snapshot: number | undefined /*  a transaction_id  */;
 }
-export type UnifiedHandlerType = {
-	virtual_transactions: transaction[];
-	db_change_promises: Promise<void>[];
-	onChange: (transaction: transaction) => void;
-	authenticated_websocket_clients: authenticated_websocket_client[];
-	jwt_secret: string;
-	websocket_api_port: number;
-	restful_api_port: number;
-};
