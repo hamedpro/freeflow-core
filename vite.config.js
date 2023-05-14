@@ -1,8 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import fs from "fs"
+import os from "os";
+import path from "path";
 var { frontend_port, restful_api_port, websocket_api_port } = JSON.parse(
-	fs.readFileSync("./env.json", "utf-8")
+	fs.readFileSync(path.join(os.homedir(), "./.pink_rose_data/env.json"), "utf-8")
 );
 // https://vitejs.dev/config/
 export default defineConfig({

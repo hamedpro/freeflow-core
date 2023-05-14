@@ -23,8 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 common-codes/.git
-pg.js
-pg.cjs
 ./.env
 .env
 tmp.txt

@@ -2,7 +2,10 @@ import express from "express";
 import path from "path";
 import cors from "cors";
 import fs from "fs";
-var { frontend_port } = JSON.parse(fs.readFileSync("env.json", "utf8"));
+import os from "os";
+var { frontend_port } = JSON.parse(
+	fs.readFileSync(path.join(os.homedir(), "./.pink_rose_data/env.json"), "utf8")
+);
 var app = express();
 app.use(express.static("./dist"));
 app.use(cors());
