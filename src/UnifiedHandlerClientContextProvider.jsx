@@ -14,10 +14,10 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 	var [UnifiedHandlerClientContextState, setUnifiedHandlerClientContextState] = useState(tmp);
 
 	unified_handler_client.time_travel_snapshot_onchange = () => {
-		setUnifiedHandlerClientContextState(tmp);
+		JSON.parse(JSON.stringify(setUnifiedHandlerClientContextState(tmp)));
 	};
 	unified_handler_client.discoverable_transactions_onchange = () => {
-		setUnifiedHandlerClientContextState(tmp);
+		JSON.parse(JSON.stringify(setUnifiedHandlerClientContextState(tmp)));
 	};
 	unified_handler_client.auth(
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE2ODM5MjQ3NDd9.X8tkfYzeSRAP9shULs8NmHB9V1ICe2o14IT-LYRJjHc"
