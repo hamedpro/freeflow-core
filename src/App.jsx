@@ -197,8 +197,8 @@ function Wrapper({ last_location_change_timestamp }) {
 	);
 }
 function App() {
-	var { unified_handler_client } = useContext(UnifiedHandlerClientContext);
-	return <pre>{JSON.stringify(unified_handler_client.discoverable_transactions)}</pre>;
+	var { discoverable_transactions } = useContext(UnifiedHandlerClientContext);
+	return <pre>{JSON.stringify(discoverable_transactions)}</pre>;
 	var loc = useLocation();
 	window.ml = ml;
 	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite during build process

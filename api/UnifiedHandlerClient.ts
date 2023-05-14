@@ -31,6 +31,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 	cache of all discoverable_transactions) */
 
 	constructor(websocket_api_endpoint: string, restful_api_endpoint: string) {
+		console.log("a new uhclient is created ");
 		super();
 		this._time_travel_snapshot = undefined;
 		this.configured_axios = axios.create({

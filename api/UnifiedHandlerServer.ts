@@ -567,29 +567,28 @@ export class UnifiedHandlerServer {
 	}
 	sync_websocket_client(websocket_client: authenticated_websocket_client) {
 		if (websocket_client.last_synced_snapshot === undefined) {
-			websocket_client.socket.emit(
-				"syncing_discoverable_transactions",
-				getDiff([], this.calc_discoverable_transactions(websocket_client.user_id))
+			var diff_to_send = getDiff(
+				[],
+				this.calc_discoverable_transactions(websocket_client.user_id)
 			);
+			websocket_client.socket.emit("syncing_discoverable_transactions", diff_to_send);
 		} else {
 			var tmp: number = websocket_client.last_synced_snapshot;
-			websocket_client.socket.emit(
-				"syncing_discoverable_transactions",
-				getDiff(
-					this.calc_discoverable_transactions(websocket_client.user_id).filter(
-						(transaction) => transaction.id <= tmp
-					),
-					this.calc_discoverable_transactions(websocket_client.user_id)
-				)
+			var diff_to_send = getDiff(
+				this.calc_discoverable_transactions(websocket_client.user_id).filter(
+					(transaction) => transaction.id <= tmp
+				),
+				this.calc_discoverable_transactions(websocket_client.user_id)
 			);
+			websocket_client.socket.emit("syncing_discoverable_transactions", diff_to_send);
 		}
 	}
 	add_socket(socket: Socket) {
 		//adding event listener of to listen to incoming
 		//transaction insertion requests from this client
-		socket.on("auth", (args: { jwt: string }) => {
+		socket.on("jwt", (jwt: string) => {
 			try {
-				var decoded_jwt = jwt_module.verify(args.jwt, this.jwt_secret);
+				var decoded_jwt = jwt_module.verify(jwt, this.jwt_secret);
 				if (typeof decoded_jwt !== "string" /* this bool is always true */) {
 					var { user_id } = decoded_jwt;
 					var new_websocket_client: authenticated_websocket_client = {
@@ -601,7 +600,9 @@ export class UnifiedHandlerServer {
 					//sending all discoverable transactions to that user (in diff format)
 					this.sync_websocket_client(new_websocket_client);
 				}
-			} catch (error) {}
+			} catch (error) {
+				console.error(error);
+			}
 		});
 	}
 }
