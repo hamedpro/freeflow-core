@@ -20,24 +20,24 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 		...tmp(),
 		unified_handler_client: unified_handler_client,
 	});
-
-	unified_handler_client.time_travel_snapshot_onchange = () => {
-		setUnifiedHandlerClientContextState({
-			...JSON.parse(JSON.stringify(tmp())),
-			unified_handler_client: unified_handler_client,
-		});
-	};
-
-	unified_handler_client.discoverable_transactions_onchange = () => {
-		setUnifiedHandlerClientContextState({
-			...JSON.parse(JSON.stringify(tmp())),
-			unified_handler_client: unified_handler_client,
-		});
-	};
 	useEffect(() => {
-		unified_handler_client.auth(
-			"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpYXQiOjE2ODM5MjQ3NDd9.X8tkfYzeSRAP9shULs8NmHB9V1ICe2o14IT-LYRJjHc"
-		);
+		unified_handler_client.time_travel_snapshot_onchange = () => {
+			setUnifiedHandlerClientContextState((prev_state) => ({
+				...JSON.parse(JSON.stringify(tmp())),
+				...prev_state,
+			}));
+		};
+
+		unified_handler_client.discoverable_transactions_onchange = () => {
+			setUnifiedHandlerClientContextState((prev_state) => ({
+				...JSON.parse(JSON.stringify(tmp())),
+				...prev_state,
+			}));
+			console.log(tmp());
+		};
+		if (window.localStorage.getItem("jwt") !== null) {
+			unified_handler_client.auth(window.localStorage.getItem("jwt"));
+		}
 	}, []);
 
 	return (

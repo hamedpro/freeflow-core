@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Select from "react-select";
 import { new_document, new_note } from "../../api/client";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { StyledDiv } from "./styled_elements";
 import { Section } from "./section";
 export const NewAsk = () => {

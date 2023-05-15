@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { get_collection, update_document } from "../../api/client";
 import { Section } from "./section.jsx";
 import Select from "react-select";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 function OptionsSection({ collaborators, id, context }) {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);
 	var all_users = global_data.all.users;

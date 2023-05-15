@@ -14,7 +14,7 @@ import {
 } from "../../api/client";
 import ObjectBox from "./ObjectBox";
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 import { MessagesBox } from "./MessagesBox";

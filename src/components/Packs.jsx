@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useContext } from "react";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import ObjectBox from "../components/ObjectBox";
 export const Packs = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);

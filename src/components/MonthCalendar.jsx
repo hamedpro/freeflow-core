@@ -4,7 +4,7 @@ import { custom_get_collection } from "../../api/client";
 import { custom_range } from "../../common_helpers.js";
 import "./MonthCalendarStyles.css";
 import { month_names, day_names ,get_months_days_count} from "../../common_helpers.js";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 export const MonthCalendar = ({ }) => {
 	var {global_data,get_global_data} = useContext(GlobalDataContext)
 	var nav = useNavigate()

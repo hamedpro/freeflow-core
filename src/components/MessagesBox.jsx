@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { update_document, new_document, delete_document } from "../../api/client";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 import { Item, Menu, useContextMenu } from "react-contexify";

@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { Section } from "./section";
 import ObjectBox from "./ObjectBox";
 import { useContext } from "react";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { MessagesBox } from "./MessagesBox";
 import { AskAttending } from "./AskAttending";

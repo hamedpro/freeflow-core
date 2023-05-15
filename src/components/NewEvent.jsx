@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { get_calendar_categories, new_calendar_category } from "../../api/client";
 import Select from "react-select";
 import { NewCalendarCategorySection } from "./NewCalendarCategorySection";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { StyledDiv } from "./styled_elements";
 import { useNavigate } from "react-router-dom";
 

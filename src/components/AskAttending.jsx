@@ -3,7 +3,7 @@
 //its related component from here
 
 import { useContext, useState } from "react";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { new_document } from "../../api/client";
 
 export function AskAttending({ ask_id }) {

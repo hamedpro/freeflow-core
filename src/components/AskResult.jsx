@@ -3,7 +3,7 @@
 //render related component from here
 
 import { Fragment, useContext } from "react";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { delete_document } from "../../api/client";
 
 export function AskResult({ ask_id }) {

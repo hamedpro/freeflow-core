@@ -6,6 +6,7 @@ import path from "path";
 var { frontend_port, restful_api_port, websocket_api_port } = JSON.parse(
 	fs.readFileSync(path.join(os.homedir(), "./.pink_rose_data/env.json"), "utf-8")
 );
+//console.log({ frontend_port });
 // https://vitejs.dev/config/
 export default defineConfig({
 	plugins: [react()],

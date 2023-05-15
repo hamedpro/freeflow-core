@@ -12,7 +12,7 @@ import {
 	new_task,
 } from "../../api/client";
 import Select from "react-select";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { StyledDiv } from "./styled_elements";
 import { NewCalendarCategorySection } from "./NewCalendarCategorySection";
 //TODO: component re-renders

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { get_users, new_pack } from "../../api/client";
 import Select from "react-select";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { StyledDiv } from "./styled_elements";
 export const NewPack = () => {
 	var [all_users, set_all_users] = useState(null);

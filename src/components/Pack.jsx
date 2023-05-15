@@ -6,7 +6,7 @@ import {
 	leave_here,
 	update_document,
 } from "../../api/client";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import { MessagesBox } from "./MessagesBox";
 import { Section } from "./section";

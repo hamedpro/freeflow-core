@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { get_users, new_note } from "../../api/client";
 import Select from "react-select";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { StyledDiv } from "./styled_elements";
 export const NewNote = () => {
 	var { global_data, get_global_data } = useContext(GlobalDataContext);

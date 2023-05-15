@@ -1,5 +1,5 @@
 import React, { Fragment, useContext, useRef, useState, useEffect } from "react";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { Section } from "./section";
 import { useNavigate, useParams } from "react-router-dom";
 import { Item, Menu, useContextMenu } from "react-contexify";

@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { custom_get_collection, get_users } from "../../api/client";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import ObjectBox from "./ObjectBox";
 
 const UserProfile = () => {

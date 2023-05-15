@@ -8,16 +8,11 @@ import { SubscribtionPage } from "./components/subscribtionPage";
 import { Terms } from "./components/Terms";
 import { Root } from "./components/Root.jsx";
 import UserProfile from "./components/UserProfile";
-import { RegisterStep1 } from "./components/RegisterStep1";
-import { RegisterStep2 } from "./components/RegisterStep2";
-import { LoginFindUser } from "./components/LoginFindUser";
-import { LoginMethodChoosing } from "./components/LoginMethodChoosing";
-import { LoginPasswordBased } from "./components/LoginPasswordBased";
-import { LoginVerificationBased } from "./components/LoginVerificationBased";
-import { RegisterStep3 } from "./components/RegisterStep3";
+import { Register } from "./components/Register";
 import "react-contexify/ReactContexify.css";
 import { Dashboard } from "./Dashboard";
 import { UnifiedHandlerClientContextProvider } from "./UnifiedHandlerClientContextProvider";
+import { Login } from "./components/Login";
 
 function App() {
 	window.ml = ml;
@@ -28,16 +23,8 @@ function App() {
 			<BrowserRouter>
 				<Routes>
 					<Route path="/" element={<Root />} />
-					<Route path="/login/find_user" element={<LoginFindUser />} />
-					<Route path="/login/method_choosing" element={<LoginMethodChoosing />} />
-					<Route path="/login/verification_based" element={<LoginVerificationBased />} />
-
-					<Route path="/login/password_based" element={<LoginPasswordBased />} />
-					<Route path="/register/step1" element={<RegisterStep1 />} />
-
-					<Route path="/register/step2" element={<RegisterStep2 />} />
-					<Route path="/register/step3" element={<RegisterStep3 />} />
-
+					<Route path="/register" element={<Register />} />
+					<Route path="/login" element={<Login />} />
 					<Route path="/terms" element={<Terms />} />
 					<Route path="/subscribtion" element={<SubscribtionPage />} />
 

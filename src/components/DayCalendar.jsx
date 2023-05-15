@@ -11,7 +11,7 @@ import {
 import { Section } from "./section";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { DayCalendarTimeBar } from "./DayCalendarTimeBar";
 ChartJS.register(ArcElement, Tooltip, Legend);
 function Analytics({ calendar_categories, day_tasks, day_events }) {

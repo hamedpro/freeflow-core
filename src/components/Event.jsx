@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
 import ObjectBox from "./ObjectBox";
 import { MessagesBox } from "./MessagesBox";

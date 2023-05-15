@@ -3,6 +3,7 @@ import { surface_cache_item, transaction } from "./UnifiedHandler_types";
 import axios from "axios";
 import rdiff from "recursive-diff";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore";
+import { unique_items_of_array } from "../common_helpers";
 var { applyDiff } = rdiff;
 
 export class UnifiedHandlerClient extends UnifiedHandlerCore {
@@ -24,6 +25,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 	get current_surface_cache(): surface_cache_item[] {
 		return this.calc_surface_cache(this.time_travel_snapshot);
 	}
+
 	/* it is prefixed with current because unlike discoverable_transactions
 	this doesnt necessarily contain latest data. it tracks time_travel_snapshot
 	and also contains surface_cache of data up to that 

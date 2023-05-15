@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 

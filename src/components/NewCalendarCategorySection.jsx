@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { new_calendar_category } from "../../api/client";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 

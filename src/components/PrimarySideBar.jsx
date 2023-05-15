@@ -2,7 +2,8 @@ import React, { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
 import { check_being_collaborator, custom_find_unique } from "../../common_helpers";
-import { GlobalDataContext } from "../GlobalDataContext";
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
+
 function AddNewOptionRow() {
 	var nav = useNavigate();
 	var { global_data } = useContext(GlobalDataContext);
@@ -114,7 +115,7 @@ function Option({ text, indent_level, url, access_denied, context }) {
 	);
 }
 export const PrimarySideBar = () => {
-	var { global_data, get_global_data } = useContext(GlobalDataContext);
+	var { current_surface_cache } = useContext(UnifiedHandlerClientContext);
 	var [options, set_options] = useState();
 	var loc = useLocation();
 	function censor_tree(tree) {

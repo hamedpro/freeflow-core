@@ -1,7 +1,7 @@
 import cors from "cors";
 import formidable from "formidable";
 import jwt_module from "jsonwebtoken";
-import express from "express";
+import express, { response } from "express";
 import EditorJS from "@editorjs/editorjs";
 //read README file : UnifiedHandlerSystem.md
 import fs, { mkdirSync } from "fs";
@@ -24,6 +24,7 @@ import {
 	surface_cache_item,
 	thing,
 	transaction,
+	user,
 } from "./UnifiedHandler_types.js";
 import { exit } from "process";
 function gen_verification_code() {
@@ -44,6 +45,7 @@ export class UnifiedHandlerServer {
 	frontend_endpoint: string;
 	pink_rose_data_dir_absolute_path: string;
 	store_file_absolute_path: string;
+	env_json_file_absolute_path: string;
 	constructor() {
 		var pink_rose_data_dir_absolute_path = path.join(os.homedir(), "./.pink_rose_data");
 		this.pink_rose_data_dir_absolute_path = pink_rose_data_dir_absolute_path;
@@ -57,7 +59,7 @@ export class UnifiedHandlerServer {
 		}
 
 		var env_json_file_absolute_path = path.join(pink_rose_data_dir_absolute_path, "./env.json");
-		this.store_file_absolute_path = env_json_file_absolute_path;
+		this.env_json_file_absolute_path = env_json_file_absolute_path;
 		if (fs.existsSync(env_json_file_absolute_path) !== true) {
 			console.log(
 				`env.json does not exist here : ${env_json_file_absolute_path}. create it with proper properties then try again`
@@ -93,109 +95,53 @@ export class UnifiedHandlerServer {
 		this.restful_express_app.use(cors());
 		this.restful_express_app.use(express.json());
 		this.restful_express_app.post(
-			"flexible_user_finder",
-			async (request: any, response: any) => {
-				var tmp: any = this.surface_cache.filter(
-					(item: surface_cache_item) => item.thing.type === "user"
-				);
-				var all_values: string[] = [];
-				tmp.forEach((item: any) => {
-					all_values.push(
-						...[
-							item.thing.current_state.username,
-							item.thing.current_state.mobile,
-							item.thing.current_state.email_address,
-							item.thing_id,
-						]
-							.filter((i) => i !== undefined)
-							.map((i) => String(i))
-					);
-				});
-				var matches_count = all_values.filter(
-					(value) => value == String(request.body.value)
-				).length;
-				if (matches_count === 0) {
-					response.status(400).json({
-						status: 2,
-						info: "there is more not any match in valid search resources",
-					});
-				} else if (matches_count === 1) {
-					var matched_users = tmp.filter((item: any) => {
-						return [
-							item.thing.current_state.username,
-							item.thing.current_state.mobile,
-							item.thing.current_state.email_address,
-							item.thing_id,
-						]
-							.filter((i) => i !== undefined)
-							.map((i) => String(i))
-							.includes(String(request.body.value));
-					});
-					response.json(matched_users[0]);
-				} else {
-					response.status(400).json({
-						status: 3,
-						info: "there is more than one match in valid search resources",
-					});
-				}
-			}
-		);
-		this.restful_express_app.post(
-			"/auth/password_verification",
-			async (request: any, response: any) => {
-				var filtered_user_things: any = this.surface_cache.filter(
-					(item) => item.thing_id === request.body.user_id
-				);
-				if (filtered_user_things.length === 0) {
-					response.status(404).json("user you are looking for doesnt exist");
-					return;
-				}
-
+			"/register",
+			async (
+				request: Express.Request & { body: { username: string; password: string } },
+				response: any
+			) => {
 				if (
-					request.body.password === filtered_user_things[0].thing.current_state.password
+					this.surface_cache
+						.filter((item: surface_cache_item) => item.thing.type === "user")
+						.map((item: any) => item.thing.current_state.username)
+						.includes(request.body.username)
 				) {
-					response.json({
-						verified: true,
-						jwt: jwt_module.sign(
-							{
-								user_id: filtered_user_things[0].thing.current_state.user_id,
-							},
-							this.jwt_secret
-						),
-					});
-					return;
+					response.status(400).json("username is taken");
 				} else {
-					response.json({
-						verified: false,
+					var new_user_id = this.new_transaction<user, undefined>({
+						new_thing_creator: () => ({
+							type: "user",
+							current_state: {
+								username: request.body.username,
+								password: request.body.password,
+							},
+						}),
+						thing_id: undefined,
+						user_id: undefined,
 					});
-					return;
+					response.json({ jwt: jwt_module.sign({ user_id: new_user_id }, jwt_secret) });
 				}
 			}
 		);
-		this.restful_express_app.post(
-			"/auth/verification_code_verification",
-			async (request: any, response: any) => {
+		this.restful_express_app.post("/login", async (request: any, response: any) => {
+			var user_id = this.flexible_user_finder(request.body.identifier);
+			if (user_id === undefined) {
+				response.status(400).json("sent combination was not valid");
+				return;
+			}
+			if (request.body.login_mode === "verf_code_mode") {
 				var filtered_surface_cache: any = this.surface_cache.filter((i: any) => {
 					return (
 						i.thing.type === "verification_code" &&
-						i.thing.current_state.user_id === request.body.user_id
+						i.thing.current_state.user_id === user_id
 					);
 				});
 
 				if (filtered_surface_cache.length === 0) {
-					response
-						.status(400)
-						.json(
-							"there is not any verification code sending request was done for this uesr please request a verification code first"
-						);
+					response.status(400).json("sent combination was not valid");
 					return;
 				}
-				if (
-					filtered_surface_cache[0].thing.current_state.value === request.body.verf_code
-				) {
-					var user_surface_item = this.surface_cache.filter(
-						(i: any) => i.thing.type === "user" && i.thing_id === request.body.user_id
-					)[0];
+				if (filtered_surface_cache[0].thing.current_state.value === request.body.value) {
 					this.new_transaction({
 						new_thing_creator: (thing: any) => ({
 							...thing,
@@ -205,7 +151,7 @@ export class UnifiedHandlerServer {
 							},
 						}),
 
-						thing_id: user_surface_item.thing_id,
+						thing_id: user_id,
 
 						user_id: undefined,
 					});
@@ -213,67 +159,84 @@ export class UnifiedHandlerServer {
 					maybe type must be inside current value
 					*/
 					response.json({
-						verified: true,
 						jwt: jwt_module.sign(
 							{
 								user_id: request.body.user_id,
-								exp: Math.round(new Date().getTime() / 1000 + 24 * 3600 * 3),
+								//exp: Math.round(new Date().getTime() / 1000 + 24 * 3600 * 3),
 							},
 							this.jwt_secret
 						),
 					});
 				} else {
+					response.status(400).json("sent combination was not valid.");
+				}
+			} else if (request.body.login_mode === "password_mode") {
+				var filtered_user_things: any = this.surface_cache.filter(
+					(item) => item.thing_id === user_id
+				);
+
+				if (request.body.value === filtered_user_things[0].thing.current_state.password) {
 					response.json({
-						verified: false,
+						jwt: jwt_module.sign(
+							{
+								user_id: filtered_user_things[0].thing.current_state.user_id,
+							},
+							this.jwt_secret
+						),
 					});
+					return;
+				} else {
+					response.status(400).json("sent combination was not valid.");
+					return;
 				}
 			}
-		);
-		this.restful_express_app.post(
-			"/auth/send_verification_code",
-			async (request: any, response: any) => {
-				// body :{ kind : "mobile"  || "email_address" , user_id : string}
-				/* response
-				.status(503)
-				.json(
-					"email sending is broken or sms sending service is broken. you can try again later ..."
-				);
-			return; */
+		});
 
-				var verf_code = gen_verification_code();
+		this.restful_express_app.post(
+			"/send_verification_code",
+			async (request: any, response: any) => {
+				var user_id = this.flexible_user_finder(request.body.identifier);
+				if (user_id === undefined) {
+					response.json({});
+					return;
+				}
 
 				//todo here i must send verf_code to the user through api request to sms web service
+				response.status(503).json("couldnt able to send verification code ");
+				return;
+
 				var verf_code_surface_item = this.surface_cache.filter(
 					(item: any) =>
 						item.thing.type === "verification_code" &&
-						item.thing.current_state.user_id === request.body.user_id
+						item.thing.current_state.user_id === user_id
 				)[0];
 				if (verf_code_surface_item === undefined) {
 					this.new_transaction({
-						user_id: request.body.user_id,
+						user_id,
 						new_thing_creator: (prev_thing: any) => ({
-							kind: request.body.kind,
-							user_id: request.body.user_id,
-							value: gen_verification_code(),
+							type: "verification_code",
+							current_state: {
+								user_id,
+								value: gen_verification_code(),
+							},
 						}),
-
 						thing_id: undefined,
 					});
 				} else {
 					this.new_transaction({
-						user_id: request.body.user_id,
+						user_id,
 						thing_id: verf_code_surface_item.thing_id,
 						new_thing_creator: (prev_thing: any) => ({
 							...prev_thing,
 							current_state: {
 								...prev_thing.current_state,
-								kind: request.body.kind,
 								value: gen_verification_code(),
 							},
 						}),
 					});
 				}
 				response.json("verification_code was sent");
+				return;
 			}
 		);
 		this.restful_express_app.get("/files/:file_id", async (request: any, response: any) => {
@@ -385,6 +348,44 @@ export class UnifiedHandlerServer {
 		io.on("connection", (socket) => {
 			this.add_socket(socket);
 		});
+	}
+	flexible_user_finder(identifier: string): number | undefined /* no match */ {
+		var tmp: any = this.surface_cache.filter(
+			(item: surface_cache_item) => item.thing.type === "user"
+		);
+		var all_values: string[] = [];
+		tmp.forEach((item: any) => {
+			all_values.push(
+				...[
+					item.thing.current_state.username,
+					item.thing.current_state.mobile,
+					item.thing.current_state.email_address,
+					item.thing_id,
+				]
+					.filter((i) => i !== undefined)
+					.map((i) => String(i))
+			);
+		});
+		var matches_count = all_values.filter((value) => value === identifier).length;
+		if (matches_count === 0) {
+			return undefined;
+		} else if (matches_count === 1) {
+			
+			var matched_users = tmp.filter((item: any) => {
+				return [
+					item.thing.current_state.username,
+					item.thing.current_state.mobile,
+					item.thing.current_state.email_address,
+					item.thing_id,
+				]
+					.filter((i) => i !== undefined)
+					.map((i) => String(i))
+					.includes(identifier);
+			});
+			return matched_users[0].thing_id;
+		} else {
+			throw "there is more than one match in valid search resources";
+		}
 	}
 	check_lock({
 		user_id,
@@ -499,7 +500,7 @@ export class UnifiedHandlerServer {
 			privilege checks are ignored and new transaction
 			is done by system itself.
 		*/
-	}): void {
+	}): number {
 		var thing: ThingType | {} =
 			typeof thing_id === "undefined"
 				? {}
@@ -530,6 +531,7 @@ export class UnifiedHandlerServer {
 		fs.writeFileSync(this.store_file_absolute_path, JSON.stringify(this.virtual_transactions));
 
 		this.onChange();
+		return transaction.thing_id;
 	}
 
 	sorted_transactions_of_thing(thing_id: number) {

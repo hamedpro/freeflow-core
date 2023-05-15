@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import ObjectBox from "./ObjectBox";
 
 export const Asks = () => {

@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { custom_axios, get_users, update_document } from "../../api/client";
 import { Section } from "./section";
 import Select from "react-select";
-import { GlobalDataContext } from "../GlobalDataContext";
+
 import { StyledDiv } from "./styled_elements";
 import axios from "axios";
 export const UserSettings = () => {
