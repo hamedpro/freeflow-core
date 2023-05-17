@@ -64,13 +64,29 @@ export const Login = () => {
 				enter an identifier. it can be one of these : your email address , mobile phone ,
 				username , user_id{" "}
 			</h1>
-			<input id="identifier_input" disabled={login_mode !== undefined} />
+
+			<input
+				className="border border-blue-400"
+				id="identifier_input"
+				disabled={login_mode !== undefined}
+			/>
+			<br />
 			{login_mode === undefined ? (
 				<>
-					<button onClick={() => go_step_2("verf_code_mode")}>
+					<br />
+					<button
+						className="border border-blue-500"
+						onClick={() => go_step_2("verf_code_mode")}
+					>
 						login using verfication code
 					</button>
-					<button onClick={() => go_step_2("password_mode")}>login with password</button>
+					<br />
+					<button
+						className="border border-blue-500"
+						onClick={() => go_step_2("password_mode")}
+					>
+						login with password
+					</button>
 				</>
 			) : (
 				<>
@@ -82,8 +98,11 @@ export const Login = () => {
 						{login_mode === "password_mode" &&
 							"enter your password and hit the button "}
 					</b>
-					<input id="value_input" />
-					<button onClick={login}>login </button>
+					<input className="border border-blue-400" id="value_input" />
+					<br />{" "}
+					<button className="border border-blue-500" onClick={login}>
+						login{" "}
+					</button>
 				</>
 			)}
 		</>

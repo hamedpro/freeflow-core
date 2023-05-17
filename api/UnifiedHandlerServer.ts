@@ -55,7 +55,7 @@ export class UnifiedHandlerServer {
 		var store_file_absolute_path = path.join(pink_rose_data_dir_absolute_path, "./store.json");
 		this.store_file_absolute_path = store_file_absolute_path;
 		if (fs.existsSync(store_file_absolute_path) !== true) {
-			fs.writeFileSync(store_file_absolute_path, JSON.stringify([]));
+			fs.writeFileSync(store_file_absolute_path, JSON.stringify([], undefined, 4));
 		}
 
 		var env_json_file_absolute_path = path.join(pink_rose_data_dir_absolute_path, "./env.json");
@@ -161,7 +161,7 @@ export class UnifiedHandlerServer {
 					response.json({
 						jwt: jwt_module.sign(
 							{
-								user_id: request.body.user_id,
+								user_id,
 								//exp: Math.round(new Date().getTime() / 1000 + 24 * 3600 * 3),
 							},
 							this.jwt_secret
@@ -179,7 +179,7 @@ export class UnifiedHandlerServer {
 					response.json({
 						jwt: jwt_module.sign(
 							{
-								user_id: filtered_user_things[0].thing.current_state.user_id,
+								user_id,
 							},
 							this.jwt_secret
 						),
@@ -528,7 +528,10 @@ export class UnifiedHandlerServer {
 
 		this.virtual_transactions.push(transaction);
 
-		fs.writeFileSync(this.store_file_absolute_path, JSON.stringify(this.virtual_transactions));
+		fs.writeFileSync(
+			this.store_file_absolute_path,
+			JSON.stringify(this.virtual_transactions, undefined, 4)
+		);
 
 		this.onChange();
 		return transaction.thing_id;
