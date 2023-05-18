@@ -32,3 +32,5 @@ this is also the same for other finds like findOne method
 todo : make sure there will not be more than 1
 things writing at once on discoverable transactinos or ... (i know it would happen
 once a thousand years or even may be impossible  ) 
+
+in unified handler server if auth is done twice nothing must go wrong

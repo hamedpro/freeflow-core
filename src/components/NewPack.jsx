@@ -1,30 +1,33 @@
 import React, { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { get_users, new_pack } from "../../api/client";
 import Select from "react-select";
-
 import { StyledDiv } from "./styled_elements";
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
+import jwtDecode from "jwt-decode";
 export const NewPack = () => {
-	var [all_users, set_all_users] = useState(null);
 	var [selected_collaborators, set_selected_collaborators] = useState([]);
-	var { global_data, get_global_data } = useContext(GlobalDataContext);
+	var { current_surface_cache, unified_handler_client } = useContext(UnifiedHandlerClientContext);
+	//console.log(current_surface_cache);
 	var [search_params, set_search_params] = useSearchParams();
 	/* if pack_id is present in url query we set default option of parent pack select to that  */
-	var pack_id = search_params.get("pack_id");
+	var pack_id = Number(search_params.get("pack_id"));
 	if (pack_id) {
-		let pack = global_data.all.packs.find((pack) => pack._id === pack_id);
+		var tmp = current_surface_cache.find(
+			(i) => i.thing.type === "unit/pack" && i.thing_id === pack_id
+		);
 		var default_selected_parent_pack = {
-			value: pack._id,
-			label: pack.title,
+			value: pack_id,
+			label: tmp.thing.current_state.title,
 		};
 	} else {
 		var default_selected_parent_pack = { value: null, label: "without a parent pack" };
 	}
 	var [selected_parent_pack, set_selected_parent_pack] = useState(default_selected_parent_pack);
 
-	var user_id = localStorage.getItem("user_id");
+	var { user_id } = jwtDecode(localStorage.getItem("jwt"));
 	var nav = useNavigate();
+
 	async function submit_new_pack() {
 		var title = document.getElementById("title").value;
 		var description = document.getElementById("description").value;
@@ -39,23 +42,17 @@ export const NewPack = () => {
 				collaborators,
 				pack_id: selected_parent_pack.value,
 			};
-			var id_of_new_pack = await new_pack(tmp);
+			var id_of_new_pack = await unified_handler_client.request_new_transaction({
+				new_thing_creator: (thing) => ({ current_state: tmp, type: "unit/pack" }),
+			});
 			alert("all done!. navigating to newly created pack's page ...");
 			nav(`/dashboard/packs/${id_of_new_pack}`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
 		}
-		get_global_data();
 	}
 
-	async function get_data() {
-		set_all_users(await get_users({ filters: {}, global_data }));
-	}
-	useEffect(() => {
-		get_data();
-	}, []);
-	if (all_users === null) return <h1>loading users list... </h1>;
 	return (
 		<div className="p-2">
 			<h1>New Pack</h1>
@@ -74,12 +71,18 @@ export const NewPack = () => {
 				onChange={set_selected_collaborators}
 				value={selected_collaborators}
 				options={[
-					...all_users
-						.filter((user) => user._id !== user_id)
-						.map((user) => {
+					...current_surface_cache
+						.map((i) => {
+							console.log(i);
+							return i;
+						})
+						.filter((i) => i.thing.type === "user")
+
+						.filter((i) => i.thing_id !== user_id)
+						.map((i) => {
 							return {
-								value: user._id,
-								label: `@${user.username}`,
+								value: i.thing_id,
+								label: i.thing.current_state.username,
 							};
 						}),
 				]}
@@ -92,16 +95,18 @@ export const NewPack = () => {
 				value={selected_parent_pack}
 				options={[
 					{ label: "without a parent", value: null },
-					...global_data.user.packs.map((pack) => {
-						return {
-							value: pack._id,
-							label: pack.title,
-						};
-					}),
+					...current_surface_cache
+						.filter((i) => i.thing.type === "unit/pack")
+						.map((i) => {
+							return {
+								value: i.thing_id,
+								label: i.thing.current_state.title,
+							};
+						}),
 				]}
 			/>
 			<StyledDiv onClick={submit_new_pack} className="w-fit mt-2">
-				create pack{" "}
+				create pack
 			</StyledDiv>
 		</div>
 	);

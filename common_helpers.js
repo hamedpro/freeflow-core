@@ -362,3 +362,8 @@ export function find_unit_parents(surface_cache, thing_id) {
 	}
 	return parents;
 }
+export function slice_object(object, ...fields) {
+	var tmp = {};
+	fields.forEach((field) => (tmp[field] = object[field]));
+	return tmp;
+}

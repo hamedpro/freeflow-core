@@ -12,34 +12,28 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 	var [unified_handler_client, set_unified_handler_client] = useState(
 		new UnifiedHandlerClient("http://localhost:4001", "http://localhost:4000")
 	);
-	var tmp = () => ({
+	var [UnifiedHandlerClientContextState, setUnifiedHandlerClientContextState] = useState({
 		discoverable_transactions: unified_handler_client.discoverable_transactions,
 		current_surface_cache: unified_handler_client.current_surface_cache,
-	});
-	var [UnifiedHandlerClientContextState, setUnifiedHandlerClientContextState] = useState({
-		...tmp(),
-		unified_handler_client: unified_handler_client,
+		unified_handler_client,
 	});
 	useEffect(() => {
-		unified_handler_client.time_travel_snapshot_onchange = () => {
-			setUnifiedHandlerClientContextState((prev_state) => ({
-				...JSON.parse(JSON.stringify(tmp())),
-				...prev_state,
-			}));
-		};
-
-		unified_handler_client.discoverable_transactions_onchange = () => {
-			setUnifiedHandlerClientContextState((prev_state) => ({
-				...JSON.parse(JSON.stringify(tmp())),
-				...prev_state,
-			}));
-			console.log(tmp());
-		};
+		unified_handler_client.time_travel_snapshot_onchange =
+			unified_handler_client.discoverable_transactions_onchange = () => {
+				setUnifiedHandlerClientContextState({
+					discoverable_transactions: unified_handler_client.discoverable_transactions,
+					current_surface_cache: unified_handler_client.current_surface_cache,
+					unified_handler_client,
+				});
+			};
 		if (window.localStorage.getItem("jwt") !== null) {
-			unified_handler_client.auth(window.localStorage.getItem("jwt"));
+			unified_handler_client.auth();
 		}
+		window.uhc = unified_handler_client;
 	}, []);
-
+	/* useEffect(() => {
+		
+	}, [UnifiedHandlerClientContextState]); */
 	return (
 		<UnifiedHandlerClientContext.Provider value={UnifiedHandlerClientContextState}>
 			{children}

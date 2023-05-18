@@ -39,6 +39,7 @@
 		"html-react-parser": "^3.0.11",
 		"http-server": "^14.1.1",
 		"jsonwebtoken": "^8.5.1",
+		"jwt-decode": "^3.1.2",
 		"mongodb": "^4.11.0",
 		"mysql": "^2.18.1",
 		"nodemailer": "^6.7.7",

@@ -27,7 +27,8 @@ function AddNewOptionRow() {
 					(pack_id ? `?pack_id=${pack_id}` : "")
 			);
 		} else {
-			nav(`/dashboard/${type}/new`);
+			
+			nav(`/dashboard/${type.split("/")[1] + "s"}/new`);
 		}
 	}
 	return (

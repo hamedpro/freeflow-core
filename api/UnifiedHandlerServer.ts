@@ -322,14 +322,19 @@ export class UnifiedHandlerServer {
 					/* always true condition (just a type guard) */ typeof decoded_jwt !== "string"
 				) {
 					try {
-						this.new_transaction({
-							new_thing_creator: (prev_thing: any) =>
-								applyDiff(prev_thing, request.body.diff),
-							thing_id: request.body.thing_id,
-							user_id:
-								decoded_jwt?.user_id /* it always have user_id and ?. is just for ts  */,
-						});
-						response.json("done");
+						response.json(
+							this.new_transaction({
+								new_thing_creator: (prev_thing: any) => {
+									var clone = JSON.parse(JSON.stringify(prev_thing));
+									applyDiff(clone, request.body.diff);
+									return clone;
+								},
+
+								thing_id: request.body.thing_id,
+								user_id:
+									decoded_jwt?.user_id /* it always have user_id and ?. is just for ts  */,
+							})
+						);
 					} catch (error) {
 						response.status(400).json(error);
 					}
