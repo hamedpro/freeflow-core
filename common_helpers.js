@@ -337,3 +337,28 @@ export function makeid(length) {
 	}
 	return result;
 }
+export function gen_thing_link(surface_cache, thing_id) {
+	//for example you wanna that absolute link
+	//which point to a unit/pack with thing_id = 2
+	var thing_type = surface_cache.find((i) => i.thing_id === thing_id).thing.type;
+	if (!thing_type.startsWith("unit/") && !thing_type === "user") {
+		throw new Error("we couldnt generate thing link for this thing_id");
+	} else {
+		if (thing_type.startsWith("unit/")) {
+			return `/dashboard/${thing_type.split("/")[1] + "s"}/${thing_id}`;
+		} else {
+			return `/dashboard/users/${thing_id}`;
+		}
+	}
+}
+export function find_unit_parents(surface_cache, thing_id) {
+	var parents = []; // it is sorted from nearest parent to farthest
+	var search_cursor = thing_id;
+	while (
+		(search_cursor = surface_cache.find((i) => i.thing_id === search_cursor).thing.current_state
+			.pack_id)
+	) {
+		parents.push(search_cursor);
+	}
+	return parents;
+}

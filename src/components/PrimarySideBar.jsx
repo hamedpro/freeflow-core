@@ -1,76 +1,60 @@
 import React, { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
-import { check_being_collaborator, custom_find_unique } from "../../common_helpers";
+import {
+	check_being_collaborator,
+	custom_find_unique,
+	find_unit_parents,
+	gen_thing_link,
+} from "../../common_helpers";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 
 function AddNewOptionRow() {
 	var nav = useNavigate();
-	var { global_data } = useContext(GlobalDataContext);
+	var { current_surface_cache } = useContext(UnifiedHandlerClientContext);
 	function onclick_handler(type) {
-		/* 
-		possible values for type : any unit 
-		if type === "packs" it means create a new pack and the same for others
-		*/
-		if (type === "events") {
-			//events cant be included in a pack
-			nav(`/dashboard/events/new`);
-			return;
-		}
-
 		var { pathname } = window.location;
-		var my_regex = /(?:\/)*dashboard\/packs\/(?<pack_id>[0-9A-Fa-f]{24})(?:\/)*$/g;
+		var my_regex =
+			/(?:\/)*dashboard\/(?<thing_context>asks|resources|notes|tasks|events|packs)\/(?<thing_id>[0-9]+).*$/g;
 		var tmp = my_regex.exec(pathname);
 		if (tmp) {
-			nav(`/dashboard/${type}/new?pack_id=${tmp.groups.pack_id}`);
+			var pack_id =
+				tmp.groups.thing_context === "packs"
+					? tmp.groups.thing_id
+					: find_unit_parents(current_surface_cache, tmp.groups.thing_id)[0];
+			nav(
+				`/dashboard/${type.split("/")[1] + "s"}/new` +
+					(pack_id ? `?pack_id=${pack_id}` : "")
+			);
 		} else {
-			//current active items is not a pack to create new note or ... inside it but
-			//we check if this item has a parent we create this new note or ... inside that
-
-			//todo this method of checking whether path matches pattern or not is not complete
-			var my_regex =
-				/(?:\/)*dashboard\/(?<thing_context>notes|resources|tasks|asks)\/(?<thing_id>[0-9A-Fa-f]{24})(?:\/)*$/g;
-
-			var tmp = my_regex.exec(pathname);
-			if (tmp) {
-				var thing = global_data.all[tmp.groups.thing_context].find(
-					(i) => i._id === tmp.groups.thing_id
-				);
-				if (thing.pack_id) {
-					nav(`/dashboard/${type}/new?pack_id=${thing.pack_id}`);
-				} else {
-					nav(`/dashboard/${type}/new`);
-				}
-			} else {
-				nav(`/dashboard/${type}/new`);
-			}
+			nav(`/dashboard/${type}/new`);
 		}
 	}
 	return (
 		<div className="flex justify-around  p-1 border-b border-black">
 			{[
 				{
-					type: "packs",
+					type: "unit/pack",
 					icon: <i className="bi-box-fill text-white"></i>,
 				},
 				{
-					type: "tasks",
+					type: "unit/task",
 					icon: <i className="bi-clipboard-fill text-white"></i>,
 				},
 				{
-					type: "resources",
+					type: "unit/resource",
 					icon: <i className="bi-cloud-upload-fill text-white"></i>,
 				},
 				{
-					type: "notes",
+					type: "unit/note",
 					icon: <i className="bi-card-text text-white"></i>,
 				},
 				{
-					type: "events",
+					type: "unit/event",
 					icon: <i className="bi-calendar4-event text-white"></i>,
 				},
 				{
-					type: "asks",
+					type: "unit/ask",
 					icon: <i className="bi-patch-question-fill text-white"></i>,
 				},
 			].map((i) => (
@@ -85,7 +69,7 @@ function AddNewOptionRow() {
 		</div>
 	);
 }
-function Option({ text, indent_level, url, access_denied, context }) {
+function Option({ text, indent_level, url, type }) {
 	var nav = useNavigate();
 	var is_selected = useMatch(url);
 	return (
@@ -98,17 +82,14 @@ function Option({ text, indent_level, url, access_denied, context }) {
 			onClick={() => nav(url)}
 		>
 			<div className="text-white">
-				{access_denied === true ? (
-					<i className="bi-lock-fill" />
-				) : (
-					<>
-						{context === "packs" && <i className="bi-box-fill" />}
-						{context === "notes" && <i className="bi-card-text" />}
-						{context === "tasks" && <i className="bi-clipboard-fill" />}
-						{context === "resources" && <i className="bi-cloud-download-fill" />}
-						{context === "asks" && <i className="bi-patch-question-fill" />}
-					</>
-				)}
+				<>
+					{type === "unit/pack" && <i className="bi-box-fill" />}
+					{type === "unit/note" && <i className="bi-card-text" />}
+					{type === "unit/task" && <i className="bi-clipboard-fill" />}
+					{type === "unit/resource" && <i className="bi-cloud-download-fill" />}
+					{type === "unit/ask" && <i className="bi-patch-question-fill" />}
+					{type === "unit/event" && <i className="bi-calendar4-event" />}
+				</>
 			</div>
 			<span>{text}</span>
 		</div>
@@ -116,139 +97,65 @@ function Option({ text, indent_level, url, access_denied, context }) {
 }
 export const PrimarySideBar = () => {
 	var { current_surface_cache } = useContext(UnifiedHandlerClientContext);
-	var [options, set_options] = useState();
 	var loc = useLocation();
-	function censor_tree(tree) {
-		//it checks each option and censors it if this user is not a collaborator of
-		//censor means that option is disabled and nothing about that option is visible
 
-		return JSON.parse(JSON.stringify(tree)).map((option) => {
-			if (
-				check_being_collaborator(
-					global_data.all[option.context].find((row) => row._id === option.id),
-					window.localStorage.getItem("user_id")
-				)
-			) {
-				return option;
-			} else {
-				/* console.log(
-					"row is",
-					global_data.all[option.context].find((row) => row._id === option.id),
-					`${window.localStorage.getItem("user_id")}`,
-					"is not a collaborator of"
-				); */
-				return {
-					...option,
-					text: `access denied ! (${option.context.slice(0, option.context.length - 1)})`,
-					access_denied: true,
-				};
-			}
-		});
-	}
-	function create_downside_tree({ context, id, pack_id, indent_level }) {
-		//possible values for context : any unit
+	function create_downside_tree({ thing_id, indent_level }) {
 		//it returns an array of options (with correct order and indentation and ready to be rendered )
-
-		if (["tasks", "notes", "resources", "asks"].includes(context)) {
+		var assosiated_surface_cache_item = current_surface_cache.find(
+			(i) => i.thing_id === thing_id
+		);
+		if (assosiated_surface_cache_item.thing.type !== "unit/pack") {
 			return [
 				{
 					text: `${
-						global_data.all[context].find((item) => item._id === id)[
-							context === "asks" ? "question" : "title"
+						assosiated_surface_cache_item[
+							assosiated_surface_cache_item.thing.type === "unit/ask"
+								? "question"
+								: "title"
 						]
 					}`,
 
-					url: `/dashboard/${context}/${id}`,
-					context,
-					id,
-					pack_id,
+					url: gen_thing_link(current_surface_cache, thing_id),
+					type: assosiated_surface_cache_item.thing.type,
 					indent_level,
 				},
 			];
-		} else if (context === "packs") {
+		} else {
 			var tmp = [
 				{
-					text: `${global_data.all.packs.find((pack) => pack._id === id).title}`,
-					url: `/dashboard/packs/${id}`,
-					context: "packs",
-					id,
-					pack_id,
+					text: `${assosiated_surface_cache_item.thing.current_state.title}`,
+					url: `/dashboard/packs/${thing_id}`,
+
+					type: assosiated_surface_cache_item.thing.type,
 					indent_level,
 				},
-			];
-			tmp = tmp.concat(
-				global_data.all.tasks
-					.filter((task) => task.pack_id === id)
-					.map((task) => {
-						return {
-							text: `${
-								global_data.all.tasks.find((task) => task._id === task._id).title
-							}`,
-							url: `/dashboard/tasks/${task._id}`,
-							context: "tasks",
-							id: task._id,
-							pack_id,
+			]; //here
+
+			current_surface_cache
+				.filter(
+					(i) =>
+						i.thing.type !== "unit/pack" &&
+						i.thing.type.startsWith("unit/") &&
+						i.thing.current_state.pack_id === thing_id
+				)
+				.forEach((i) => {
+					tmp.push(
+						...create_downside_tree({
+							thing_id: i.thing_id,
 							indent_level: indent_level + 1,
-						};
-					})
-			);
-			tmp = tmp.concat(
-				global_data.all.resources
-					.filter((resource) => resource.pack_id === id)
-					.map((resource) => {
-						return {
-							text: `${
-								global_data.all.resources.find((item) => item._id === resource._id)
-									.title
-							}`,
-							url: `/dashboard/resources/${resource._id}`,
-							context: "resources",
-							id: resource._id,
-							pack_id,
-							indent_level: indent_level + 1,
-						};
-					})
-			);
-			tmp = tmp.concat(
-				global_data.all.notes
-					.filter((note) => note.pack_id === id)
-					.map((note) => {
-						return {
-							text: `${
-								global_data.all.notes.find((item) => item._id === note._id).title
-							}`,
-							url: `/dashboard/notes/${note._id}`,
-							context: "notes",
-							id: note._id,
-							pack_id,
-							indent_level: indent_level + 1,
-						};
-					})
-			);
-			tmp = tmp.concat(
-				global_data.all.asks
-					.filter((ask) => ask.pack_id === id)
-					.map((ask) => {
-						return {
-							text: `${
-								global_data.all.asks.find((item) => item._id === ask._id).question
-							}`,
-							url: `/dashboard/asks/${ask._id}`,
-							context: "asks",
-							id: ask._id,
-							pack_id,
-							indent_level: indent_level + 1,
-						};
-					})
-			);
-			global_data.all.packs
-				.filter((pack) => pack.pack_id === id)
+						})
+					);
+				});
+
+			current_surface_cache
+				.filter(
+					(i) =>
+						i.thing.type === "unit/pack" && i.thing.current_state.pack_id === thing_id
+				)
 				.forEach((pack) => {
-					tmp = tmp.concat(
-						create_downside_tree({
-							context: "packs",
-							id: pack._id,
-							pack_id: pack.pack_id,
+					tmp.push(
+						...create_downside_tree({
+							thing_id: pack.thing_id,
 							indent_level: indent_level + 1,
 						})
 					);
@@ -256,27 +163,33 @@ export const PrimarySideBar = () => {
 			return tmp;
 		}
 	}
-	function create_full_tree(context, id) {
-		//possible values for context : any unit
-		if (global_data.all[context].find((i) => i._id === id).pack_id) {
-			var latest_found_parent = global_data.all[context].find((i) => i._id === id).pack_id;
-			while (global_data.all.packs.find((pack) => pack._id === latest_found_parent).pack_id) {
-				latest_found_parent = global_data.all.packs.find(
-					(pack) => pack._id === latest_found_parent
-				).pack_id;
+	function create_full_tree(thing_id) {
+		//thing_type must start with "unit/"
+
+		//finds and returns full tree containing
+		// that thing and anything discoverable above or below it
+		//(parent, parent of parent and just like this for children )
+
+		if (
+			current_surface_cache.find((i) => i.thing_id === thing_id).thing.current_state.pack_id
+		) {
+			var latest_visible_parent = current_surface_cache.find((i) => i.thing_id === thing_id)
+				.thing.current_state.pack_id;
+			while (
+				current_surface_cache.find((i) => i.thing_id === latest_visible_parent).thing
+					.current_state.pack_id
+			) {
+				latest_visible_parent = current_surface_cache.find(
+					(i) => i.thing_id === latest_visible_parent
+				).thing.current_state.pack_id;
 			}
 			return create_downside_tree({
-				context: "packs",
-				id: latest_found_parent,
-				pack_id: global_data.all.packs.find((pack) => pack._id === latest_found_parent)
-					.pack_id,
+				thing_id: latest_visible_parent,
 				indent_level: 0,
 			});
 		} else {
 			return create_downside_tree({
-				context,
-				id,
-				pack_id: global_data.all[context].find((item) => item._id === id).pack_id,
+				thing_id,
 				indent_level: 0,
 			});
 		}
@@ -295,31 +208,17 @@ export const PrimarySideBar = () => {
 		}
 		return true;
 	}
-	async function get_data() {
-		var trees = [];
-		global_data.user.tasks.forEach((task) => {
-			trees.push(create_full_tree("tasks", task._id));
-		});
 
-		global_data.user.notes.forEach((note) => {
-			trees.push(create_full_tree("notes", note._id));
+	var trees = [];
+	current_surface_cache
+		.filter((i) => i.thing.type.startsWith("unit/"))
+		.forEach((i) => {
+			trees.push(create_full_tree(i.thing.type, i.thing_id));
 		});
+	//create trees here
+	//current_surface_cache.
 
-		global_data.user.resources.forEach((resource) => {
-			trees.push(create_full_tree("resources", resource._id));
-		});
-
-		global_data.user.packs.forEach((pack) => {
-			trees.push(create_full_tree("packs", pack._id));
-		});
-		global_data.user.asks.forEach((ask) => {
-			trees.push(create_full_tree("asks", ask._id));
-		});
-		set_options(censor_tree(custom_find_unique(trees, compare_custom_trees).flat()));
-	}
-	useEffect(() => {
-		get_data();
-	}, [global_data, loc]);
+	var options = custom_find_unique(trees, compare_custom_trees).flat();
 	if (options == null) {
 		return "loading options ...";
 	}
