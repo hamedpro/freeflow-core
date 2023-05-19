@@ -1,8 +1,7 @@
-import React, { useContext, useEffect } from "react";
-import { useState } from "react";
+import React, { useContext } from "react";
 import { useLocation, useMatch, useNavigate } from "react-router-dom";
 import {
-	check_being_collaborator,
+	calc_discoverable_pack_chains,
 	custom_find_unique,
 	find_unit_parents,
 	gen_thing_link,
@@ -27,7 +26,6 @@ function AddNewOptionRow() {
 					(pack_id ? `?pack_id=${pack_id}` : "")
 			);
 		} else {
-			
 			nav(`/dashboard/${type.split("/")[1] + "s"}/new`);
 		}
 	}
@@ -98,128 +96,57 @@ function Option({ text, indent_level, url, type }) {
 }
 export const PrimarySideBar = () => {
 	var { current_surface_cache } = useContext(UnifiedHandlerClientContext);
-	var loc = useLocation();
-
-	function create_downside_tree({ thing_id, indent_level }) {
-		//it returns an array of options (with correct order and indentation and ready to be rendered )
-		var assosiated_surface_cache_item = current_surface_cache.find(
-			(i) => i.thing_id === thing_id
-		);
-		if (assosiated_surface_cache_item.thing.type !== "unit/pack") {
-			return [
-				{
-					text: `${
-						assosiated_surface_cache_item[
-							assosiated_surface_cache_item.thing.type === "unit/ask"
-								? "question"
-								: "title"
-						]
-					}`,
-
-					url: gen_thing_link(current_surface_cache, thing_id),
-					type: assosiated_surface_cache_item.thing.type,
-					indent_level,
-				},
-			];
-		} else {
-			var tmp = [
-				{
-					text: `${assosiated_surface_cache_item.thing.current_state.title}`,
-					url: `/dashboard/packs/${thing_id}`,
-
-					type: assosiated_surface_cache_item.thing.type,
-					indent_level,
-				},
-			]; //here
-
-			current_surface_cache
-				.filter(
-					(i) =>
-						i.thing.type !== "unit/pack" &&
-						i.thing.type.startsWith("unit/") &&
-						i.thing.current_state.pack_id === thing_id
-				)
-				.forEach((i) => {
-					tmp.push(
-						...create_downside_tree({
-							thing_id: i.thing_id,
-							indent_level: indent_level + 1,
-						})
-					);
-				});
-
-			current_surface_cache
-				.filter(
-					(i) =>
-						i.thing.type === "unit/pack" && i.thing.current_state.pack_id === thing_id
-				)
-				.forEach((pack) => {
-					tmp.push(
-						...create_downside_tree({
-							thing_id: pack.thing_id,
-							indent_level: indent_level + 1,
-						})
-					);
-				});
-			return tmp;
-		}
-	}
-	function create_full_tree(thing_id) {
-		//thing_type must start with "unit/"
-
-		//finds and returns full tree containing
-		// that thing and anything discoverable above or below it
-		//(parent, parent of parent and just like this for children )
-
-		if (
-			current_surface_cache.find((i) => i.thing_id === thing_id).thing.current_state.pack_id
-		) {
-			var latest_visible_parent = current_surface_cache.find((i) => i.thing_id === thing_id)
-				.thing.current_state.pack_id;
-			while (
-				current_surface_cache.find((i) => i.thing_id === latest_visible_parent).thing
-					.current_state.pack_id
-			) {
-				latest_visible_parent = current_surface_cache.find(
-					(i) => i.thing_id === latest_visible_parent
-				).thing.current_state.pack_id;
-			}
-			return create_downside_tree({
-				thing_id: latest_visible_parent,
-				indent_level: 0,
+	var options = [];
+	function add_option(thing_id, indent_level) {
+		var i = current_surface_cache.find((i) => i.thing_id === thing_id);
+		if (i.thing.type === "unit/pack") {
+			options.push({
+				url: `/dashboard/packs/${i.thing_id}`,
+				type: "unit/pack",
+				indent_level,
+				text: i.thing.current_state.title,
 			});
+			current_surface_cache
+				.filter((j) => j.thing.current_state.pack_id === i.thing_id)
+				.forEach((j) => {
+					add_option(j, indent_level + 1);
+				});
 		} else {
-			return create_downside_tree({
-				thing_id,
-				indent_level: 0,
+			options.push({
+				url: `/dashboard/${i.thing.type.split("/")[1] + "s"}/${i.thing_id}`,
+				type: i.thing.type,
+				indent_level,
+				text:
+					i.thing.type === "unit/ask"
+						? i.thing.current_state.question
+						: i.thing.current_state.title,
 			});
 		}
 	}
-	function compare_custom_trees(tree1, tree2) {
-		if (tree1.length !== tree2.length) {
-			return false;
-		}
-		for (var i = 0; i < tree1.length; i++) {
-			for (var prop of ["text", "url"]) {
-				//todo add indent_level in props list
-				if (tree1[i][prop] !== tree2[i][prop]) {
-					return false;
+
+	var discoverable_pack_chains = calc_discoverable_pack_chains(current_surface_cache);
+	discoverable_pack_chains.forEach((chain) => {
+		add_option(chain[0], 0);
+	});
+	//console.log(discoverable_pack_chains);
+	current_surface_cache
+		.filter((i) => {
+			if (i.thing.type.startsWith("unit/") && i.thing.type !== "unit/pack") {
+				if (i.thing.current_state.pack_id != true) {
+					return true;
+				} else if (
+					discoverable_pack_chains.flat().includes(i.thing.current_state.pack_id) !== true
+				) {
+					return true;
 				}
 			}
-		}
-		return true;
-	}
-
-	var trees = [];
-	current_surface_cache
-		.filter((i) => i.thing.type.startsWith("unit/"))
+			return false;
+		})
 		.forEach((i) => {
-			trees.push(create_full_tree(i.thing.type, i.thing_id));
+			//console.log(i);
+			add_option(i.thing_id, 0);
 		});
-	//create trees here
-	//current_surface_cache.
 
-	var options = custom_find_unique(trees, compare_custom_trees).flat();
 	if (options == null) {
 		return "loading options ...";
 	}

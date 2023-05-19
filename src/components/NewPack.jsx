@@ -73,7 +73,6 @@ export const NewPack = () => {
 				options={[
 					...current_surface_cache
 						.map((i) => {
-							console.log(i);
 							return i;
 						})
 						.filter((i) => i.thing.type === "user")

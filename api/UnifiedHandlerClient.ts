@@ -3,7 +3,6 @@ import { surface_cache_item, transaction } from "./UnifiedHandler_types";
 import axios from "axios";
 import rdiff from "recursive-diff";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore";
-import { unique_items_of_array } from "../common_helpers";
 var { applyDiff } = rdiff;
 
 export class UnifiedHandlerClient extends UnifiedHandlerCore {

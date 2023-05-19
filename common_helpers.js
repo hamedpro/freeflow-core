@@ -367,3 +367,32 @@ export function slice_object(object, ...fields) {
 	fields.forEach((field) => (tmp[field] = object[field]));
 	return tmp;
 }
+export function calc_discoverable_pack_chains(surface_cache) {
+	return custom_find_unique(
+		surface_cache
+			.filter((i) => i.thing.type === "unit/pack")
+			.map((i) => {
+				var chain = [i.thing_id];
+				var tmp;
+				while (
+					(tmp = surface_cache.find(
+						(i) => i.thing.current_state.pack_id === i.thing_id
+					)?.pack_id)
+				) {
+					chain.push(tmp);
+				}
+				return chain;
+			}),
+		(array1, array2) => {
+			if (array1.length !== array2.length) {
+				return false;
+			}
+			for (var i = 0; i < array1.length; i++) {
+				if (array1[i] !== array2[i]) {
+					return false;
+				}
+			}
+			return true;
+		}
+	);
+}
