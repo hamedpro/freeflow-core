@@ -1,5 +1,4 @@
 import { io } from "socket.io-client";
-import { cache_item, transaction } from "./UnifiedHandler_types";
 import axios from "axios";
 import rdiff from "recursive-diff";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore";

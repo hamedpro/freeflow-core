@@ -1,22 +1,15 @@
 import cors from "cors";
 import formidable from "formidable";
 import jwt_module from "jsonwebtoken";
-import express, { response } from "express";
-import EditorJS from "@editorjs/editorjs";
+import express from "express";
 //read README file : UnifiedHandlerSystem.md
 import fs, { mkdirSync } from "fs";
 import os from "os";
-import { fileURLToPath } from "url";
 import rdiff from "recursive-diff";
 var { applyDiff, getDiff } = rdiff;
-var unique_items_of_array = (array: (string | number)[]) =>
-	array.filter((i, index) => array.indexOf(i) === index) as any;
 
 import { Server, Socket } from "socket.io";
-import { io } from "socket.io-client";
 import path from "path";
-import { pink_rose_export, pink_rose_import } from "./pink_rose_io.js";
-import axios from "axios";
 import {
 	authenticated_websocket_client,
 	cache_item,
@@ -27,8 +20,6 @@ import {
 import { exit } from "process";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
 import {
-	check_lock,
-	new_transaction_privileges_check,
 	rdiff_path_to_lock_path_format,
 } from "./utils.js";
 function gen_verification_code() {
@@ -220,7 +211,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				if (verf_code_surface_item === undefined) {
 					this.new_transaction({
 						user_id,
-						new_thing_creator: (prev_thing: any) => ({
+						new_thing_creator: () => ({
 							type: "verification_code",
 							current_state: {
 								user_id,

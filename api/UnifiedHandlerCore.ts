@@ -1,9 +1,4 @@
 //read README file : UnifiedHandlerSystem.md
-import rdiff from "recursive-diff";
-var { applyDiff, getDiff } = rdiff;
-var unique_items_of_array = (
-	array: (string | number)[] //todo : it may not work for array containing anything other than numbers or string
-) => array.filter((i, index) => array.indexOf(i) === index) as any;
 
 import { cache_item, transaction } from "./UnifiedHandler_types.js";
 import {

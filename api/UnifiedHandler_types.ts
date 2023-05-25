@@ -1,3 +1,4 @@
+import EditorJS from "@editorjs/editorjs";
 import { Socket } from "socket.io";
 
 export interface thing_base {
