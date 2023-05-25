@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 
 export interface thing_base {
 	type: string;
-	current_state: any;
+	value: any;
 }
 export type transaction = {
 	id: number;
@@ -11,33 +11,27 @@ export type transaction = {
 	diff: rdiff.rdiffResult[];
 	user_id?: number;
 };
-export interface meta_lock extends thing_base {
-	type: "meta/lock";
-	current_state: {
-		is_locked: boolean;
+export type paths = string[];
+export type locks = {
+	path: string[];
+	value: number | undefined;
+}[];
+export type thing_privileges = {
+	read: number[] | "*";
+	write: number[] | "*";
+};
+export interface meta extends thing_base {
+	type: "meta";
+	value: {
+		thing_privileges: thing_privileges;
+		locks: locks;
+		modify_thing_privileges: number /* user_id */;
 		thing_id: number;
-		user_id?: number;
-	};
-}
-export interface meta_privileges extends thing_base {
-	type: "meta/privileges";
-	current_state: {
-		collaborators_except_owner: "write/read" | "read";
-		others: "write/read" | "read";
-		for: number /* thing_id of assosiated thing */;
-		admin: "read/write" | "read";
-	};
-}
-export interface meta_collaborators extends thing_base {
-	type: "meta/collaborators";
-	current_state: {
-		value: { user_id: string; is_owner: boolean }[];
-		for: number /* thing id of assosiated thing  */;
 	};
 }
 export interface unit_pack extends thing_base {
 	type: "unit/pack";
-	current_state: {
+	value: {
 		title: string;
 		description: string;
 		pack_id?: number | null;
@@ -45,7 +39,7 @@ export interface unit_pack extends thing_base {
 }
 export interface unit_resource extends thing_base {
 	type: "unit/resource";
-	current_state: {
+	value: {
 		pack_id?: number | null;
 		description: string;
 		title: string;
@@ -54,7 +48,7 @@ export interface unit_resource extends thing_base {
 }
 export interface unit_task extends thing_base {
 	type: "unit/task";
-	current_state: {
+	value: {
 		linked_notes: number[];
 		end_time: number;
 		pack_id?: number | null;
@@ -66,7 +60,7 @@ export interface unit_task extends thing_base {
 }
 export interface unit_event extends thing_base {
 	type: "unit/event";
-	current_state: {
+	value: {
 		end_time: number;
 		start_time: number;
 		title: string;
@@ -75,7 +69,7 @@ export interface unit_event extends thing_base {
 }
 export interface message extends thing_base {
 	type: "message";
-	current_state: {
+	value: {
 		text: string;
 		unit_context: "packs" | "resources" | "events" | "notes" | "tasks" | "asks";
 		unit_id: number;
@@ -83,7 +77,7 @@ export interface message extends thing_base {
 }
 export interface verification_code extends thing_base {
 	type: "verification_code";
-	current_state: {
+	value: {
 		kind: "email_address" | "mobile";
 		value: number;
 		user_id: number;
@@ -91,7 +85,7 @@ export interface verification_code extends thing_base {
 }
 export interface unit_ask extends thing_base {
 	type: "unit/ask";
-	current_state: {
+	value: {
 		question: string;
 		pack_id?: null | number;
 		mode: "poll" | "multiple_choice" | "text_answer";
@@ -101,7 +95,7 @@ export interface unit_ask extends thing_base {
 }
 export interface unit_note extends thing_base {
 	type: "unit/note";
-	current_state: {
+	value: {
 		title: string;
 		pack_id?: null | number;
 		data: EditorJS.OutputData;
@@ -109,7 +103,7 @@ export interface unit_note extends thing_base {
 }
 export interface user extends thing_base {
 	type: "user";
-	current_state: {
+	value: {
 		mobile?: string | null;
 		email_address?: string | null;
 		password?: string | null;
@@ -133,15 +127,14 @@ export interface user extends thing_base {
 }
 export interface calendar_category extends thing_base {
 	type: "calendar_category";
-	current_state: {
+	value: {
 		name: string;
 		color: string;
 		user_id: number;
 	};
 }
 export type thing =
-	| meta_lock
-	| meta_privileges
+	| meta
 	| unit_pack
 	| unit_resource
 	| unit_task
@@ -149,15 +142,14 @@ export type thing =
 	| unit_ask
 	| unit_note
 	| user
-	| meta_collaborators
 	| verification_code
 	| message
 	| calendar_category;
-export interface surface_cache_item {
+export interface cache_item {
 	thing_id: number;
 	thing: thing;
 }
-export type SurfaceCache = surface_cache_item[];
+export type cache = cache_item[];
 export interface authenticated_websocket_client {
 	socket: Socket;
 	user_id: number;

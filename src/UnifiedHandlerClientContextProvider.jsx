@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
 import { UnifiedHandlerClient } from "../api_dist/api/UnifiedHandlerClient";
 export const UnifiedHandlerClientContextProvider = ({ children }) => {
@@ -13,27 +13,24 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 		new UnifiedHandlerClient("http://localhost:4001", "http://localhost:4000")
 	);
 	var [UnifiedHandlerClientContextState, setUnifiedHandlerClientContextState] = useState({
-		discoverable_transactions: unified_handler_client.discoverable_transactions,
-		current_surface_cache: unified_handler_client.current_surface_cache,
+		transactions: unified_handler_client.transactions,
+		cache: unified_handler_client.cache,
 		unified_handler_client,
 	});
 	useEffect(() => {
-		unified_handler_client.time_travel_snapshot_onchange =
-			unified_handler_client.discoverable_transactions_onchange = () => {
-				setUnifiedHandlerClientContextState({
-					discoverable_transactions: unified_handler_client.discoverable_transactions,
-					current_surface_cache: unified_handler_client.current_surface_cache,
-					unified_handler_client,
-				});
+		unified_handler_client.onChanges.transactions = unified_handler_client.onChanges.cache =
+			() => {
+				setUnifiedHandlerClientContextState((prev) => ({
+					...prev,
+					transactions: unified_handler_client.transactions,
+					cache: unified_handler_client.cache,
+				}));
 			};
 		if (window.localStorage.getItem("jwt") !== null) {
 			unified_handler_client.auth();
 		}
 		window.uhc = unified_handler_client;
 	}, []);
-	/* useEffect(() => {
-		
-	}, [UnifiedHandlerClientContextState]); */
 	return (
 		<UnifiedHandlerClientContext.Provider value={UnifiedHandlerClientContextState}>
 			{children}
