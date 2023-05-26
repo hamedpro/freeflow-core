@@ -19,9 +19,7 @@ import {
 } from "./UnifiedHandler_types.js";
 import { exit } from "process";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
-import {
-	rdiff_path_to_lock_path_format,
-} from "./utils.js";
+import { custom_express_jwt_middleware, rdiff_path_to_lock_path_format } from "./utils.js";
 function gen_verification_code() {
 	return Math.floor(100000 + Math.random() * 900000);
 }
@@ -92,6 +90,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		this.restful_express_app = express();
 		this.restful_express_app.use(cors());
 		this.restful_express_app.use(express.json());
+		this.restful_express_app.use(custom_express_jwt_middleware(this.jwt_secret));
 		this.restful_express_app.post(
 			"/register",
 			async (
@@ -238,64 +237,107 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			}
 		);
 		this.restful_express_app.get("/files/:file_id", async (request: any, response: any) => {
-			response.sendFile(
-				path.resolve(
-					`./uploads/${fs
-						.readdirSync("./uploads")
-						.find((i) => i.startsWith(request.params.file_id))}`
-				)
+			var assosiated_meta = this.cache.find(
+				(i) =>
+					i.thing.type === "meta" &&
+					"file_id" in i.thing.value &&
+					i.thing.value.file_id === Number(request.params.file_id)
 			);
+			if (
+				assosiated_meta !== undefined &&
+				"file_id" in assosiated_meta.thing.value &&
+				"file_privileges" in assosiated_meta.thing.value
+			) {
+				if (
+					assosiated_meta.thing.value.file_privileges.read === "*" ||
+					assosiated_meta.thing.value.file_privileges.read.includes(
+						response.locals.user_id
+					)
+				) {
+					response.sendFile(
+						path.resolve(
+							`./uploads/${fs
+								.readdirSync("./uploads")
+								.find((i) => i.startsWith(request.params.file_id))}`
+						)
+					);
+				} else {
+					response.status(403).json("you have not access to that file ");
+				}
+			} else {
+				response.status(400).json("couldnt find assosiated meta for this file_id");
+			}
 		});
 		this.restful_express_app.post("/files", async (request, response) => {
 			//saves the file with key = "file" inside sent form inside ./uploads directory
 			//returns json : {file_id : string }
 			//saved file name + extension is {file_id}-{original file name with extension }
-			var file_id = await new Promise((resolve, reject) => {
+
+			if (response.locals.user_id === undefined) {
+				response.status(403).json("jwt is not provided in request's headers");
+				return;
+			}
+			var new_file_id = await new Promise((resolve, reject) => {
 				var f = formidable({ uploadDir: "./uploads" });
 				f.parse(request, (err: any, fields: any, files: any) => {
 					if (err) {
 						reject(err);
 						return;
 					}
-					var file_id = `${new Date().getTime()}${Math.round(Math.random() * 10000)}`;
+					var tmp =
+						this.cache.filter(
+							(i) => i.thing.type === "meta" && "locks" in i.thing.value
+						).length + 1;
 					var new_file_path = path.resolve(
 						"./uploads",
-						`${file_id}-${files["file"].originalFilename}`
+						`${tmp}-${files["file"].originalFilename}`
 					);
 
 					fs.renameSync(files["file"].filepath, new_file_path);
-					resolve(file_id);
+					resolve(tmp);
 					return;
 				});
 			});
-			response.json({ file_id });
+			this.new_transaction({
+				new_thing_creator: (prev) => ({
+					type: "meta",
+					value: {
+						file_id: new_file_id,
+						file_privileges: {
+							read: response.locals.user_id,
+						},
+						modify_privileges: response.locals.user_id,
+					},
+				}),
+				user_id: undefined,
+				thing_id: undefined,
+			});
+			response.json({ new_file_id });
 		});
 		this.restful_express_app.post("/new_transaction", (request, response) => {
-			if (
-				/* always true condition (just a type guard) */ typeof request.headers.jwt ===
-				"string"
-			) {
-				var decoded_jwt = jwt_module.decode(request.headers.jwt);
-				if (
-					/* always true condition (just a type guard) */ typeof decoded_jwt !== "string"
-				) {
-					try {
-						response.json(
-							this.new_transaction({
-								new_thing_creator: (prev_thing: any) => {
-									var clone = JSON.parse(JSON.stringify(prev_thing));
-									applyDiff(clone, request.body.diff);
-									return clone;
-								},
+			if (!("user_id" in response.locals) || response.locals.user_id === undefined) {
+				response
+					.status(403)
+					.json("submitting a new transaction need a jwt provided in request's headers");
+				return;
+			} else {
+				try {
+					response.json(
+						this.new_transaction({
+							new_thing_creator: (prev_thing: any) => {
+								var clone = JSON.parse(JSON.stringify(prev_thing));
+								applyDiff(clone, request.body.diff);
+								return clone;
+							},
 
-								thing_id: request.body.thing_id,
-								user_id:
-									decoded_jwt?.user_id /* it always have user_id and ?. is just for ts  */,
-							})
-						);
-					} catch (error) {
-						response.status(400).json(error);
-					}
+							thing_id: request.body.thing_id,
+							user_id:
+								response.locals
+									.user_id /* it always have user_id and ?. is just for ts  */,
+						})
+					);
+				} catch (error) {
+					response.status(400).json(error);
 				}
 			}
 		});

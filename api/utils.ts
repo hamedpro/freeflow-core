@@ -1,6 +1,7 @@
 import rdiff, { applyDiff } from "recursive-diff";
 import { unique_items_of_array } from "../common_helpers";
 import { cache, cache_item, locks, meta, thing, transaction } from "./UnifiedHandler_types";
+import { verify } from "jsonwebtoken";
 
 export function all_paths(object: object) {
 	var results: string[][] = [];
@@ -91,7 +92,10 @@ export function check_lock({
 		return true;
 	} else {
 		var meta = cache.find(
-			(i: cache_item) => i.thing.type === "meta" && i.thing.value.thing_id === thing_id
+			(i: cache_item) =>
+				i.thing.type === "meta" &&
+				"locks" in i.thing.value &&
+				i.thing.value.thing_id === thing_id
 		);
 		if (meta === undefined) {
 			throw "meta was not found for this this. create it first.";
@@ -117,7 +121,11 @@ export function calc_user_discoverable_things(cache: cache, user_id: number): nu
 				return true;
 			} else {
 				var meta = cache.filter((j) => {
-					return j.thing.type === "meta" && j.thing.value.thing_id === i.thing_id;
+					return (
+						j.thing.type === "meta" &&
+						"locks" in j.thing.value &&
+						j.thing.value.thing_id === i.thing_id
+					);
 				})[0];
 				function is_meta(
 					cache_item: cache_item
@@ -125,10 +133,12 @@ export function calc_user_discoverable_things(cache: cache, user_id: number): nu
 					return cache_item.thing.type === "meta";
 				}
 				if (is_meta(meta)) {
-					/* just a typeguard */ return (
-						meta.thing.value.thing_privileges.read === "*" ||
-						meta.thing.value.thing_privileges.read.includes(user_id)
-					);
+					if ("locks" in meta.thing.value) {
+						/* just a typeguard */ return (
+							meta.thing.value.thing_privileges.read === "*" ||
+							meta.thing.value.thing_privileges.read.includes(user_id)
+						);
+					}
 				}
 			}
 		})
@@ -151,12 +161,18 @@ export function new_transaction_privileges_check(
 			return "type" in thing && thing.type === "meta";
 		}
 		if (is_thing_meta(tmp)) {
-			var thing_first_transaction = transactions.filter((i) => {
-				if (is_thing_meta(tmp)) {
-					i.thing_id === tmp.value.thing_id;
-				}
-			})[0];
-			return thing_first_transaction.user_id === user_id;
+			if ("locks" in tmp.value) {
+				//its a thing lock
+				var thing_first_transaction = transactions.filter((i) => {
+					if (is_thing_meta(tmp) && "locks" in tmp.value) {
+						return i.thing_id === tmp.value.thing_id;
+					}
+				})[0];
+				return thing_first_transaction.user_id === user_id;
+			} else {
+				//its a file_lock
+				return user_id === undefined;
+			}
 		} else {
 			return true;
 		}
@@ -172,33 +188,69 @@ export function new_transaction_privileges_check(
 		if (is_cache_item_meta(targeted_thing_cache_item)) {
 			//a request wants to modify a meta
 			var modified_fields: { [key: string]: boolean } = {};
-			for (var key in ["thing_privileges", "locks", "modify_thing_privileges", "thing_id"]) {
+			for (var key in [
+				"thing_privileges",
+				"locks",
+				"modify_thing_privileges",
+				"thing_id",
+				"file_id",
+				"file_privileges",
+				"modify_privileges",
+			]) {
 				modified_fields[key] = transaction_diff.some(
 					(i) => i.path[0] === "value" && i.path[1] === key
 				);
 			}
-			if (modified_fields.thing_id === true) return false;
-			if (modified_fields.locks === true) {
+			if ("locks" in targeted_thing_cache_item.thing.value) {
+				if (modified_fields.thing_id === true) return false;
+				if (modified_fields.locks === true) {
+					if (
+						targeted_thing_cache_item.thing.value.thing_privileges.write !== "*" &&
+						!targeted_thing_cache_item.thing.value.thing_privileges.write.includes(
+							user_id
+						)
+					)
+						return false;
+				}
 				if (
-					targeted_thing_cache_item.thing.value.thing_privileges.write !== "*" &&
-					!targeted_thing_cache_item.thing.value.thing_privileges.write.includes(user_id)
-				)
+					modified_fields.modify_thing_privileges === true ||
+					modified_fields.thing_privileges === true
+				) {
+					if (targeted_thing_cache_item.thing.value.modify_thing_privileges !== user_id)
+						return false;
+				}
+			} else {
+				if (modified_fields.file_id) {
 					return false;
-			}
-			if (
-				modified_fields.modify_thing_privileges === true ||
-				modified_fields.thing_privileges === true
-			) {
-				if (targeted_thing_cache_item.thing.value.modify_thing_privileges !== user_id)
+				}
+				if (
+					modified_fields.file_privileges &&
+					targeted_thing_cache_item.thing.value.modify_privileges !== user_id
+				) {
 					return false;
+				}
+				if (
+					modified_fields.modify_privileges &&
+					targeted_thing_cache_item.thing.value.modify_privileges !== user_id
+				) {
+					return false;
+				}
 			}
+
 			return true;
 		} else {
 			var assosiated_meta = cache.find(
-				(i) => i.thing.type === "meta" && i.thing.value.thing_id === thing_id
+				(i) =>
+					i.thing.type === "meta" &&
+					"locks" in i.thing.value &&
+					i.thing.value.thing_id === thing_id
 			);
 
-			if (assosiated_meta !== undefined && is_cache_item_meta(assosiated_meta)) {
+			if (
+				assosiated_meta !== undefined &&
+				is_cache_item_meta(assosiated_meta) &&
+				"locks" in assosiated_meta.thing.value
+			) {
 				return (
 					assosiated_meta.thing.value.thing_privileges.write === "*" ||
 					assosiated_meta.thing.value.thing_privileges.write.includes(user_id)
@@ -267,6 +319,7 @@ export function calc_thing(
 	return cache_item;
 }
 export function rdiff_path_to_lock_path_format(rdiff_path: rdiff.rdiffResult["path"]) {
+	//todo make sure numbers only are used as array indexes
 	var result = [];
 	for (var item of rdiff_path) {
 		if (typeof item === "number") {
@@ -276,4 +329,24 @@ export function rdiff_path_to_lock_path_format(rdiff_path: rdiff.rdiffResult["pa
 		}
 	}
 	return result;
+}
+export function custom_express_jwt_middleware(jwt_secret: string) {
+	return (request: any, response: any, next: any) => {
+		if ("headers" in request && "jwt" in request.headers) {
+			try {
+				var payload = verify(request.headers.jwt, jwt_secret);
+				if (typeof payload !== "string") {
+					response.locals.user_id = payload.user_id;
+					//todo disconnect websocket when jwt expires
+					next();
+				}
+			} catch (error) {
+				response
+					.status(400)
+					.json(
+						"you have provided a jwt (json web token) in request's headers but it was not valid. it was not even required to pass a jwt "
+					);
+			}
+		}
+	};
 }

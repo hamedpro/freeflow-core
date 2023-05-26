@@ -27,7 +27,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 		return axios.create({
 			baseURL: this.restful_api_endpoint,
 			headers: {
-				jwt: this.jwt,
+				...(this.jwt === undefined ? {} : { jwt: this.jwt }),
 			},
 		});
 	}

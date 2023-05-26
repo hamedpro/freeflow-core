@@ -21,15 +21,21 @@ export type thing_privileges = {
 	read: number[] | "*";
 	write: number[] | "*";
 };
-export interface meta extends thing_base {
+export type meta = {
 	type: "meta";
-	value: {
-		thing_privileges: thing_privileges;
-		locks: locks;
-		modify_thing_privileges: number /* user_id */;
-		thing_id: number;
-	};
-}
+	value:
+		| {
+				thing_privileges: thing_privileges;
+				locks: locks;
+				modify_thing_privileges: number /* user_id */;
+				thing_id: number;
+		  }
+		| {
+				file_privileges: { read: number[] | "*" };
+				modify_privileges: number;
+				file_id: number;
+		  };
+};
 export interface unit_pack extends thing_base {
 	type: "unit/pack";
 	value: {
