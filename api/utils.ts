@@ -3,7 +3,7 @@ import { unique_items_of_array } from "../common_helpers";
 import { cache, cache_item, locks, meta, thing, transaction } from "./UnifiedHandler_types";
 import { verify } from "jsonwebtoken";
 
-export function all_paths(object: object) {
+export function calc_all_paths(object: object) {
 	var results: string[][] = [];
 	function make_path(object: any, base: string[]) {
 		for (var key in object) {
@@ -24,7 +24,7 @@ export function all_paths(object: object) {
 }
 var test1 = () =>
 	console.log(
-		all_paths({
+		calc_all_paths({
 			name: "hamed",
 			interests: {
 				coding: 90,
@@ -64,6 +64,23 @@ export function validate_lock_structure(locks: locks) {
 		})) {
 			if (lock2.value !== lock.value) {
 				return false;
+			}
+		}
+	}
+	return true;
+}
+export function validate_refs_values(thing: thing) {
+	var all_paths = calc_all_paths(thing);
+	for (var path of all_paths) {
+		for (var i = 0; i < path.length; i++) {
+			if (/^\$(.*)$/.exec(path[i])) {
+				if (
+					/^\$\$ref:(?<snapshot>[0-9]*):(?<thing_id>[0-9]*)$/.exec(
+						resolve_path(thing, path.slice(0, i + 1))
+					) === null
+				) {
+					return false;
+				}
 			}
 		}
 	}
@@ -268,23 +285,26 @@ export function resolve_thing(
 	var result: cache = JSON.parse(JSON.stringify(calc_cache(transactions, snapshot)));
 	var thing = result.filter((i) => i.thing_id === thing_id)[0].thing;
 
-	for (var path of all_paths(thing)) {
-		path.forEach((path_part, index, array) => {
-			var regex_result = /^\$\$ref:(?<snapshot>[0-9]*):(?<thing_id>[0-9]*)$/.exec(path_part);
-			if (regex_result) {
-				if (
-					regex_result.groups !== undefined &&
-					"thing_id" in regex_result.groups &&
-					"snapshot" in regex_result.groups
-				) {
-					resolve_path(thing, array.slice(0, index - 1))[path_part] = resolve_thing(
-						transactions,
-						Number(regex_result.groups.thing_id),
-						Number(regex_result.groups.snapshot)
-					);
-				}
+	for (var path of calc_all_paths(thing)) {
+		var last_path_part = path.at(-1);
+
+		if (last_path_part !== undefined && /^\$(.*)$/.exec(last_path_part)) {
+			var regex_result = /^\$\$ref:(?<snapshot>[0-9]*):(?<thing_id>[0-9]*)$/.exec(
+				resolve_path(thing, path)
+			);
+			if (
+				regex_result &&
+				regex_result.groups !== undefined &&
+				"thing_id" in regex_result.groups &&
+				"snapshot" in regex_result.groups
+			) {
+				resolve_path(thing, path.slice(0, -1))[last_path_part] = resolve_thing(
+					transactions,
+					Number(regex_result.groups.thing_id),
+					Number(regex_result.groups.snapshot)
+				);
 			}
-		});
+		}
 	}
 
 	return thing;

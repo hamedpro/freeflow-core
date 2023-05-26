@@ -19,7 +19,12 @@ import {
 } from "./UnifiedHandler_types.js";
 import { exit } from "process";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
-import { custom_express_jwt_middleware, rdiff_path_to_lock_path_format } from "./utils.js";
+import {
+	custom_express_jwt_middleware,
+	rdiff_path_to_lock_path_format,
+	validate_lock_structure,
+	validate_refs_values,
+} from "./utils.js";
 function gen_verification_code() {
 	return Math.floor(100000 + Math.random() * 900000);
 }
@@ -421,6 +426,19 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			throw new Error(
 				"access denied. required privileges to insert new transaction were not met"
 			);
+		}
+
+		if (validate_refs_values(new_thing) === false) {
+			throw new Error(
+				"this transaction will make the thing invalid when being tested against refs validation rules"
+			);
+		}
+		if (new_thing.type === "meta" && "locks" in new_thing.value) {
+			if (validate_lock_structure(new_thing.value.locks) === false) {
+				throw new Error(
+					"applying this transaction will make this thing (which is a thing meta) invalid. its locks will not follow locks standard format."
+				);
+			}
 		}
 
 		if (
