@@ -1,24 +1,9 @@
+import { readFileSync } from "fs";
+import { UnifiedHandlerServer } from "./UnifiedHandlerServer.js";
 import { transaction } from "./UnifiedHandler_types.js";
-import rdiff from "recursive-diff";
-import { resolve_thing, calc_cache, calc_unresolved_cache } from "./utils.js";
-var transactions: transaction[] = [];
-transactions.push(
-	{
-		id: 1,
-		thing_id: 1,
-		diff: rdiff.getDiff(
-			{},
-			{ type: "user", value: { username: "hamedpro", $password: "$$ref::2" } }
-		),
-		user_id: undefined,
-		time: new Date().getTime(),
-	},
-	{
-		id: 2,
-		thing_id: 2,
-		diff: rdiff.getDiff({}, { type: "user_credentials", value: { password: "hamed" } }),
-		user_id: undefined,
-		time: new Date().getTime(),
-	}
+import { calc_cache } from "./utils.js";
+import path from "path";
+var trs: transaction[] = JSON.parse(
+	readFileSync("/Users/hamedpro/.pink_rose_data/store.json", "utf-8")
 );
-console.log(JSON.stringify(calc_cache(transactions, undefined), undefined, 4));
+console.log(JSON.stringify(calc_cache(trs, 4), undefined, 4));

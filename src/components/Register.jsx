@@ -36,7 +36,7 @@ export const Register = () => {
 		return (
 			cache
 				.filter((i) => i.thing.type === "user")
-				.map((i) => i.thing.current_state.username)
+				.map((i) => i.thing.value.username)
 				.includes(username_input_value) !== true
 		);
 	}

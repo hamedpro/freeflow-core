@@ -118,8 +118,11 @@ export function check_lock({
 		} else {
 			if ("locks" in meta.thing.value) {
 				for (var path of paths) {
-					var tmp = resolve_path(meta.thing.value.locks, path);
-					if (tmp !== undefined && tmp !== user_id) {
+					var tmp = meta.thing.value.locks.find((i) =>
+						simple_arrays_are_identical(i.path, path)
+					);
+
+					if (tmp !== undefined && tmp.value !== undefined && tmp.value !== user_id) {
 						return false;
 					}
 				}
@@ -130,31 +133,39 @@ export function check_lock({
 
 	return false;
 }
-export function calc_user_discoverable_things(cache: cache, user_id: number): number[] {
+export function calc_user_discoverable_things(
+	transactions: transaction[],
+	cache: cache,
+	user_id: number
+): number[] {
 	//returns an array of thing_ids
 	return cache
 		.filter((i) => {
 			if (i.thing.type === "meta") {
 				return true;
 			} else {
-				var meta = cache.filter((j) => {
+				var meta = cache.find((j) => {
 					return (
 						j.thing.type === "meta" &&
 						"locks" in j.thing.value &&
 						j.thing.value.thing_id === i.thing_id
 					);
-				})[0];
-				function is_meta(
-					cache_item: cache_item
-				): cache_item is { thing_id: number; thing: meta } {
-					return cache_item.thing.type === "meta";
-				}
-				if (is_meta(meta)) {
-					if ("locks" in meta.thing.value) {
-						/* just a typeguard */ return (
-							meta.thing.value.thing_privileges.read === "*" ||
-							meta.thing.value.thing_privileges.read.includes(user_id)
-						);
+				});
+				if (meta === undefined) {
+					return user_id === thing_transactions(transactions, i.thing_id)[0].user_id;
+				} else {
+					function is_meta(
+						cache_item: cache_item
+					): cache_item is { thing_id: number; thing: meta } {
+						return cache_item.thing.type === "meta";
+					}
+					if (is_meta(meta)) {
+						if ("locks" in meta.thing.value) {
+							/* just a typeguard */ return (
+								meta.thing.value.thing_privileges.read === "*" ||
+								meta.thing.value.thing_privileges.read.includes(user_id)
+							);
+						}
 					}
 				}
 			}
@@ -358,4 +369,18 @@ export function rdiff_path_to_lock_path_format(rdiff_path: rdiff.rdiffResult["pa
 		}
 	}
 	return result;
+}
+export function simple_arrays_are_identical(
+	array1: (string | number)[],
+	array2: (string | number)[]
+) {
+	if (array1.length !== array2.length) {
+		return false;
+	}
+	for (var i = 0; i < array2.length; i++) {
+		if (array1[i] !== array2[i]) {
+			return false;
+		}
+	}
+	return true;
 }

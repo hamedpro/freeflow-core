@@ -20,6 +20,7 @@ import {
 import { exit } from "process";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
 import {
+	calc_all_paths,
 	rdiff_path_to_lock_path_format,
 	validate_lock_structure,
 	validate_refs_values,
@@ -126,22 +127,13 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				if (
 					this.cache
 						.filter((item: cache_item) => item.thing.type === "user")
-						.map((item: any) => item.thing.current_state.username)
+						.map((item: any) => item.thing.value.username)
 						.includes(request.body.username)
 				) {
 					response.status(400).json("username is taken");
 				} else {
-					var new_user_id = this.new_transaction<user, undefined>({
-						new_thing_creator: () => ({
-							type: "user",
-							current_state: {
-								username: request.body.username,
-								password: request.body.password,
-							},
-						}),
-						thing_id: undefined,
-						user_id: undefined,
-					});
+					var new_user_id = this.new_user(request.body.username, request.body.password);
+
 					response.json({ jwt: jwt_module.sign({ user_id: new_user_id }, jwt_secret) });
 				}
 			}
@@ -155,8 +147,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			if (request.body.login_mode === "verf_code_mode") {
 				var filtered_surface_cache: any = this.cache.filter((i: any) => {
 					return (
-						i.thing.type === "verification_code" &&
-						i.thing.current_state.user_id === user_id
+						i.thing.type === "verification_code" && i.thing.value.user_id === user_id
 					);
 				});
 
@@ -164,19 +155,19 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					response.status(400).json("sent combination was not valid");
 					return;
 				}
-				if (filtered_surface_cache[0].thing.current_state.value === request.body.value) {
+				if (filtered_surface_cache[0].thing.value.value === request.body.value) {
 					this.new_transaction({
 						new_thing_creator: (thing: any) => ({
 							...thing,
-							current_state: {
-								...thing.current_state,
-								[thing.current_state.kind + "_is_verified"]: true,
+							value: {
+								...thing.value,
+								[thing.value.kind + "_is_verified"]: true,
 							},
 						}),
 
 						thing_id: user_id,
 
-						user_id: undefined,
+						user_id: user_id,
 					});
 					/* todo new transaction must not repeat type = x when trying to update a thing 
 					maybe type must be inside current value
@@ -197,8 +188,10 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				var filtered_user_things: any = this.cache.filter(
 					(item) => item.thing_id === user_id
 				);
-
-				if (request.body.value === filtered_user_things[0].thing.current_state.password) {
+				if (
+					request.body.value ===
+					filtered_user_things[0].thing.value.$user_private_data.value.password
+				) {
 					response.json({
 						jwt: jwt_module.sign(
 							{
@@ -231,14 +224,14 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				var verf_code_surface_item = this.cache.filter(
 					(item: any) =>
 						item.thing.type === "verification_code" &&
-						item.thing.current_state.user_id === user_id
+						item.thing.value.user_id === user_id
 				)[0];
 				if (verf_code_surface_item === undefined) {
 					this.new_transaction({
 						user_id,
 						new_thing_creator: () => ({
 							type: "verification_code",
-							current_state: {
+							value: {
 								user_id,
 								value: gen_verification_code(),
 							},
@@ -251,8 +244,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 						thing_id: verf_code_surface_item.thing_id,
 						new_thing_creator: (prev_thing: any) => ({
 							...prev_thing,
-							current_state: {
-								...prev_thing.current_state,
+							value: {
+								...prev_thing.value,
 								value: gen_verification_code(),
 							},
 						}),
@@ -380,15 +373,82 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			this.add_socket(socket);
 		});
 	}
+	new_user(username: string, password: string) {
+		var new_user_id = this.new_transaction<user, undefined>({
+			new_thing_creator: () => ({
+				type: "user",
+				value: {
+					username,
+				},
+			}),
+			thing_id: undefined,
+			user_id: undefined,
+		});
+		this.new_transaction({
+			new_thing_creator: () => ({
+				type: "meta",
+				value: {
+					thing_privileges: {
+						read: "*",
+						write: [new_user_id],
+					},
+					modify_thing_privileges: new_user_id,
+					locks: [],
+					thing_id: new_user_id,
+				},
+			}),
+			user_id: undefined,
+			thing_id: undefined,
+		});
+		var user_private_data_thing_id = this.new_transaction({
+			new_thing_creator: () => ({
+				type: "user_private_data",
+				value: {
+					password,
+				},
+			}),
+			thing_id: undefined,
+			user_id: new_user_id,
+		});
+		var user_private_data_meta = this.new_transaction({
+			new_thing_creator: () => ({
+				type: "meta",
+				value: {
+					locks: [],
+
+					modify_thing_privileges: new_user_id,
+					thing_privileges: {
+						read: [new_user_id],
+						write: [new_user_id],
+					},
+					thing_id: user_private_data_thing_id,
+				},
+			}),
+			thing_id: undefined,
+			user_id: new_user_id,
+		});
+		this.new_transaction({
+			new_thing_creator: (prev_user) => ({
+				type: "user",
+				value: {
+					...prev_user.value,
+					$user_private_data: `$$ref::${user_private_data_thing_id}`,
+				},
+			}),
+			thing_id: new_user_id,
+			user_id: new_user_id,
+		});
+		return new_user_id;
+	}
 	flexible_user_finder(identifier: string): number | undefined /* (no match) */ {
 		var tmp: any = this.cache.filter((item: cache_item) => item.thing.type === "user");
 		var all_values: string[] = [];
 		tmp.forEach((item: any) => {
 			all_values.push(
 				...[
-					item.thing.current_state.username,
-					item.thing.current_state.mobile,
-					item.thing.current_state.email_address,
+					item.thing.value.username,
+					item.thing.value.$user_private_data.value.mobile,
+					item.thing.value.$user_private_data.value.email_address,
 					item.thing_id,
 				].filter((i) => i !== undefined && i !== null)
 			);
@@ -397,18 +457,18 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		if (matches_count === 0) {
 			return undefined;
 		} else if (matches_count === 1) {
-			var matched_users = tmp.find((item: any) => {
+			var matched_user = tmp.find((item: any) => {
 				return (
 					[
-						item.thing.current_state.username,
-						item.thing.current_state.mobile,
-						item.thing.current_state.email_address,
+						item.thing.value.username,
+						item.thing.value.$user_private_data.value.mobile,
+						item.thing.value.$user_private_data.value.email_address,
 						item.thing_id,
 					].find((i) => i == identifier) !== undefined
 				);
 			});
 
-			return matched_users[0].thing_id;
+			return matched_user.thing_id;
 		} else {
 			throw "there is more than one match in valid search resources";
 		}
@@ -480,6 +540,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			diff: transaction_diff,
 			thing_id: typeof thing_id === "undefined" ? this.cache.length + 1 : thing_id,
 			id: this.transactions.length + 1,
+			user_id,
 		};
 
 		this.transactions.push(transaction);

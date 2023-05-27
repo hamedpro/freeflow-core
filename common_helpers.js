@@ -355,7 +355,7 @@ export function find_unit_parents(surface_cache, thing_id) {
 	var parents = []; // it is sorted from nearest parent to farthest
 	var search_cursor = thing_id;
 	while (
-		(search_cursor = surface_cache.find((i) => i.thing_id === search_cursor).thing.current_state
+		(search_cursor = surface_cache.find((i) => i.thing_id === search_cursor).thing.value
 			.pack_id)
 	) {
 		parents.push(search_cursor);
@@ -375,9 +375,7 @@ export function calc_discoverable_pack_chains(surface_cache) {
 				var chain = [i.thing_id];
 				var tmp;
 				while (
-					(tmp = surface_cache.find(
-						(i) => i.thing.current_state.pack_id === i.thing_id
-					)?.pack_id)
+					(tmp = surface_cache.find((i) => i.thing.value.pack_id === i.thing_id)?.pack_id)
 				) {
 					chain.push(tmp);
 				}

@@ -14,7 +14,7 @@ export class UnifiedHandlerCore {
 	thing_transactions = (thing_id: number) => thing_transactions(this.transactions, thing_id);
 
 	calc_user_discoverable_things = (user_id: number) =>
-		calc_user_discoverable_things(this.cache, user_id);
+		calc_user_discoverable_things(this.transactions, this.cache, user_id);
 
 	calc_user_discoverable_transactions = (user_id: number) =>
 		this.calc_user_discoverable_things(user_id)

@@ -1,16 +1,11 @@
 import React, { useContext } from "react";
-import { useLocation, useMatch, useNavigate } from "react-router-dom";
-import {
-	calc_discoverable_pack_chains,
-	custom_find_unique,
-	find_unit_parents,
-	gen_thing_link,
-} from "../../common_helpers";
+import { useMatch, useNavigate } from "react-router-dom";
+import { calc_discoverable_pack_chains, find_unit_parents } from "../../common_helpers";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 
 function AddNewOptionRow() {
 	var nav = useNavigate();
-	var { current_surface_cache } = useContext(UnifiedHandlerClientContext);
+	var { cache } = useContext(UnifiedHandlerClientContext);
 	function onclick_handler(type) {
 		var { pathname } = window.location;
 		var my_regex =
@@ -20,7 +15,7 @@ function AddNewOptionRow() {
 			var pack_id =
 				tmp.groups.thing_context === "packs"
 					? tmp.groups.thing_id
-					: find_unit_parents(current_surface_cache, tmp.groups.thing_id)[0];
+					: find_unit_parents(cache, tmp.groups.thing_id)[0];
 			nav(
 				`/dashboard/${type.split("/")[1] + "s"}/new` +
 					(pack_id ? `?pack_id=${pack_id}` : "")
@@ -95,19 +90,19 @@ function Option({ text, indent_level, url, type }) {
 	);
 }
 export const PrimarySideBar = () => {
-	var { current_surface_cache } = useContext(UnifiedHandlerClientContext);
+	var { cache } = useContext(UnifiedHandlerClientContext);
 	var options = [];
 	function add_option(thing_id, indent_level) {
-		var i = current_surface_cache.find((i) => i.thing_id === thing_id);
+		var i = cache.find((i) => i.thing_id === thing_id);
 		if (i.thing.type === "unit/pack") {
 			options.push({
 				url: `/dashboard/packs/${i.thing_id}`,
 				type: "unit/pack",
 				indent_level,
-				text: i.thing.current_state.title,
+				text: i.thing.value.title,
 			});
-			current_surface_cache
-				.filter((j) => j.thing.current_state.pack_id === i.thing_id)
+			cache
+				.filter((j) => j.thing.value.pack_id === i.thing_id)
 				.forEach((j) => {
 					add_option(j, indent_level + 1);
 				});
@@ -116,27 +111,22 @@ export const PrimarySideBar = () => {
 				url: `/dashboard/${i.thing.type.split("/")[1] + "s"}/${i.thing_id}`,
 				type: i.thing.type,
 				indent_level,
-				text:
-					i.thing.type === "unit/ask"
-						? i.thing.current_state.question
-						: i.thing.current_state.title,
+				text: i.thing.type === "unit/ask" ? i.thing.value.question : i.thing.value.title,
 			});
 		}
 	}
 
-	var discoverable_pack_chains = calc_discoverable_pack_chains(current_surface_cache);
+	var discoverable_pack_chains = calc_discoverable_pack_chains(cache);
 	discoverable_pack_chains.forEach((chain) => {
 		add_option(chain[0], 0);
 	});
 	//console.log(discoverable_pack_chains);
-	current_surface_cache
+	cache
 		.filter((i) => {
 			if (i.thing.type.startsWith("unit/") && i.thing.type !== "unit/pack") {
-				if (i.thing.current_state.pack_id != true) {
+				if (i.thing.value.pack_id != true) {
 					return true;
-				} else if (
-					discoverable_pack_chains.flat().includes(i.thing.current_state.pack_id) !== true
-				) {
+				} else if (discoverable_pack_chains.flat().includes(i.thing.value.pack_id) !== true) {
 					return true;
 				}
 			}

@@ -16,7 +16,7 @@ export type paths = string[];
 export type locks = {
 	path: string[];
 	value: number | undefined;
-}[];
+}[]; /* it stores only existing locks */
 export type thing_privileges = {
 	read: number[] | "*";
 	write: number[] | "*";
@@ -108,8 +108,8 @@ export interface unit_note extends thing_base {
 		data: EditorJS.OutputData;
 	};
 }
-export interface user extends thing_base {
-	type: "user";
+export interface user_private_data extends thing_base {
+	type: "user_private_data";
 	value: {
 		mobile?: string | null;
 		email_address?: string | null;
@@ -126,10 +126,16 @@ export interface user extends thing_base {
 			| "friday"
 			| null;
 		language?: "english" | "persian";
-		username?: string;
 		email_is_verified?: boolean;
 		mobile_is_verified?: boolean;
 		full_name?: string;
+	};
+}
+export interface user extends thing_base {
+	type: "user";
+	value: {
+		$user_private_date: user_private_data;
+		username?: string;
 	};
 }
 export interface calendar_category extends thing_base {

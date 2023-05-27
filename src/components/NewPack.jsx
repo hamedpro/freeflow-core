@@ -18,7 +18,7 @@ export const NewPack = () => {
 		);
 		var default_selected_parent_pack = {
 			value: pack_id,
-			label: tmp.thing.current_state.title,
+			label: tmp.thing.value.title,
 		};
 	} else {
 		var default_selected_parent_pack = { value: null, label: "without a parent pack" };
@@ -43,7 +43,7 @@ export const NewPack = () => {
 				pack_id: selected_parent_pack.value,
 			};
 			var id_of_new_pack = await unified_handler_client.request_new_transaction({
-				new_thing_creator: (thing) => ({ current_state: tmp, type: "unit/pack" }),
+				new_thing_creator: (thing) => ({ value: tmp, type: "unit/pack" }),
 			});
 			alert("all done!. navigating to newly created pack's page ...");
 			nav(`/dashboard/packs/${id_of_new_pack}`);
@@ -81,7 +81,7 @@ export const NewPack = () => {
 						.map((i) => {
 							return {
 								value: i.thing_id,
-								label: i.thing.current_state.username,
+								label: i.thing.value.username,
 							};
 						}),
 				]}
@@ -99,7 +99,7 @@ export const NewPack = () => {
 						.map((i) => {
 							return {
 								value: i.thing_id,
-								label: i.thing.current_state.title,
+								label: i.thing.value.title,
 							};
 						}),
 				]}
