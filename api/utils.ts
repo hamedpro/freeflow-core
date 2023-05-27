@@ -1,7 +1,6 @@
-import rdiff, { applyDiff } from "recursive-diff";
-import { unique_items_of_array } from "../common_helpers";
-import { cache, cache_item, locks, meta, thing, transaction } from "./UnifiedHandler_types";
-import { verify } from "jsonwebtoken";
+import rdiff from "recursive-diff";
+import { unique_items_of_array } from "../common_helpers.js";
+import { cache, cache_item, locks, meta, thing, transaction } from "./UnifiedHandler_types.js";
 
 export function calc_all_paths(object: object) {
 	var results: string[][] = [];
@@ -132,6 +131,7 @@ export function check_lock({
 	return false;
 }
 export function calc_user_discoverable_things(cache: cache, user_id: number): number[] {
+	//returns an array of thing_ids
 	return cache
 		.filter((i) => {
 			if (i.thing.type === "meta") {
@@ -282,8 +282,10 @@ export function resolve_thing(
 	thing_id: number,
 	snapshot: number | undefined
 ): thing {
-	var result: cache = JSON.parse(JSON.stringify(calc_cache(transactions, snapshot)));
-	var thing = result.filter((i) => i.thing_id === thing_id)[0].thing;
+	var unresolved_cache: cache = JSON.parse(
+		JSON.stringify(calc_unresolved_cache(transactions, snapshot))
+	);
+	var thing = unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
 
 	for (var path of calc_all_paths(thing)) {
 		var last_path_part = path.at(-1);
@@ -301,7 +303,9 @@ export function resolve_thing(
 				resolve_path(thing, path.slice(0, -1))[last_path_part] = resolve_thing(
 					transactions,
 					Number(regex_result.groups.thing_id),
-					Number(regex_result.groups.snapshot)
+					regex_result.groups.snapshot === ""
+						? undefined
+						: Number(regex_result.groups.snapshot)
 				);
 			}
 		}
@@ -309,32 +313,37 @@ export function resolve_thing(
 
 	return thing;
 }
-export function calc_cache(transactions: transaction[], snapshot: number | undefined): cache {
+export function calc_cache(transactions: transaction[], snapshot: undefined | number) {
+	var unresolved_cache = calc_unresolved_cache(transactions, snapshot);
+	var resolved_cache: cache = JSON.parse(JSON.stringify(unresolved_cache));
+	/* resolving refs  */
+	for (var cache_item of resolved_cache) {
+		cache_item.thing = resolve_thing(transactions, cache_item.thing_id, snapshot);
+	}
+	return resolved_cache;
+}
+export function calc_unresolved_cache(
+	transactions: transaction[],
+	snapshot: number | undefined
+): cache {
 	/* calculating unresolved cache  */
-	var cache = unique_items_of_array(
+	return unique_items_of_array(
 		transactions
 			.filter((i) => (snapshot === undefined ? true : i.id <= snapshot))
 			.map((i) => i.thing_id)
-	).map((thing_id: number) => calc_thing(transactions, thing_id, snapshot));
-
-	//maybe need to deep clone cache  here
-
-	/* resolving refs  */
-	for (var cache_item of cache) {
-		cache_item.thing = resolve_thing(transactions, cache_item.thing_id, snapshot);
-	}
-	return cache;
+	).map((thing_id: number) => calc_unresolved_thing(transactions, thing_id, snapshot));
 }
-export function calc_thing(
+export function calc_unresolved_thing(
 	transactions: transaction[],
 	thing_id: number,
 	snapshot: number | undefined
 ) {
+	//todo check here if that thing even exists
 	var cache_item = { thing_id, thing: {} };
 	for (var transaction of transactions.filter(
 		(i) => i.thing_id === thing_id && (snapshot === undefined ? true : i.id <= snapshot)
 	)) {
-		applyDiff(cache_item.thing, transaction.diff);
+		rdiff.applyDiff(cache_item.thing, transaction.diff);
 	}
 	return cache_item;
 }
@@ -349,24 +358,4 @@ export function rdiff_path_to_lock_path_format(rdiff_path: rdiff.rdiffResult["pa
 		}
 	}
 	return result;
-}
-export function custom_express_jwt_middleware(jwt_secret: string) {
-	return (request: any, response: any, next: any) => {
-		if ("headers" in request && "jwt" in request.headers) {
-			try {
-				var payload = verify(request.headers.jwt, jwt_secret);
-				if (typeof payload !== "string") {
-					response.locals.user_id = payload.user_id;
-					//todo disconnect websocket when jwt expires
-					next();
-				}
-			} catch (error) {
-				response
-					.status(400)
-					.json(
-						"you have provided a jwt (json web token) in request's headers but it was not valid. it was not even required to pass a jwt "
-					);
-			}
-		}
-	};
 }

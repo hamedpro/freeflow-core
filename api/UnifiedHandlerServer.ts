@@ -20,11 +20,32 @@ import {
 import { exit } from "process";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
 import {
-	custom_express_jwt_middleware,
 	rdiff_path_to_lock_path_format,
 	validate_lock_structure,
 	validate_refs_values,
 } from "./utils.js";
+function custom_express_jwt_middleware(jwt_secret: string) {
+	return (request: any, response: any, next: any) => {
+		if ("headers" in request && "jwt" in request.headers) {
+			try {
+				var payload = jwt_module.verify(request.headers.jwt, jwt_secret);
+				if (typeof payload !== "string") {
+					response.locals.user_id = payload.user_id;
+					//todo disconnect websocket when jwt expires
+					next();
+				}
+			} catch (error) {
+				response
+					.status(400)
+					.json(
+						"you have provided a jwt (json web token) in request's headers but it was not valid. it was not even required to pass a jwt "
+					);
+			}
+		} else {
+			next();
+		}
+	};
+}
 function gen_verification_code() {
 	return Math.floor(100000 + Math.random() * 900000);
 }
@@ -410,7 +431,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		var thing: ThingType | {} =
 			typeof thing_id === "undefined"
 				? {}
-				: this.cache.filter((i) => i.thing_id === thing_id)[0].thing;
+				: this.unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
 
 		var new_thing = new_thing_creator(thing);
 		var transaction_diff = getDiff(thing, new_thing);

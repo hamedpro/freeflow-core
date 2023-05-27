@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export const Register = () => {
 	var nav = useNavigate();
-	var { current_surface_cache, unified_handler_client } = useContext(UnifiedHandlerClientContext);
+	var { cache, unified_handler_client } = useContext(UnifiedHandlerClientContext);
 	var [username_input_value, set_username_input_value] = useState("");
 	var [password_input_value, set_password_input_value] = useState("");
 	async function create_new_account() {
@@ -34,7 +34,7 @@ export const Register = () => {
 	}
 	function selected_username_is_available() {
 		return (
-			current_surface_cache
+			cache
 				.filter((i) => i.thing.type === "user")
 				.map((i) => i.thing.current_state.username)
 				.includes(username_input_value) !== true

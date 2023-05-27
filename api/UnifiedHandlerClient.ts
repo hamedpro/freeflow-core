@@ -50,7 +50,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 		var thing =
 			thing_id === undefined
 				? {}
-				: this.cache.filter((i) => i.thing_id === thing_id)[0].thing;
+				: this.unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
 		var response = await this.configured_axios({
 			data: {
 				diff: rdiff.getDiff(thing, new_thing_creator(thing)),

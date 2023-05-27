@@ -3,7 +3,7 @@
 import { cache_item, transaction } from "./UnifiedHandler_types.js";
 import {
 	calc_cache,
-	calc_thing,
+	calc_unresolved_cache,
 	calc_user_discoverable_things,
 	check_lock,
 	new_transaction_privileges_check,
@@ -40,12 +40,9 @@ export class UnifiedHandlerCore {
 	transactions: transaction[] = [];
 
 	get cache(): cache_item[] {
-		return this.calc_cache(undefined);
+		return calc_cache(this.transactions, undefined);
 	}
-	calc_cache(snapshot: number | undefined) {
-		return calc_cache(this.transactions, snapshot);
-	}
-	calc_thing(thing_id: number, snapshot: number | undefined) {
-		return calc_thing(this.transactions, thing_id, snapshot);
+	get unresolved_cache() {
+		return calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
 	}
 }
