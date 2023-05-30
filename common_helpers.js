@@ -337,10 +337,10 @@ export function makeid(length) {
 	}
 	return result;
 }
-export function gen_thing_link(surface_cache, thing_id) {
+export function gen_thing_link(cache, thing_id) {
 	//for example you wanna that absolute link
 	//which point to a unit/pack with thing_id = 2
-	var thing_type = surface_cache.find((i) => i.thing_id === thing_id).thing.type;
+	var thing_type = cache.find((i) => i.thing_id === thing_id).thing.type;
 	if (!thing_type.startsWith("unit/") && !thing_type === "user") {
 		throw new Error("we couldnt generate thing link for this thing_id");
 	} else {
@@ -351,13 +351,10 @@ export function gen_thing_link(surface_cache, thing_id) {
 		}
 	}
 }
-export function find_unit_parents(surface_cache, thing_id) {
+export function find_unit_parents(cache, thing_id) {
 	var parents = []; // it is sorted from nearest parent to farthest
 	var search_cursor = thing_id;
-	while (
-		(search_cursor = surface_cache.find((i) => i.thing_id === search_cursor).thing.value
-			.pack_id)
-	) {
+	while ((search_cursor = cache.find((i) => i.thing_id === search_cursor).thing.value.pack_id)) {
 		parents.push(search_cursor);
 	}
 	return parents;
@@ -367,30 +364,47 @@ export function slice_object(object, ...fields) {
 	fields.forEach((field) => (tmp[field] = object[field]));
 	return tmp;
 }
-export function calc_discoverable_pack_chains(surface_cache) {
-	return custom_find_unique(
-		surface_cache
-			.filter((i) => i.thing.type === "unit/pack")
-			.map((i) => {
-				var chain = [i.thing_id];
-				var tmp;
-				while (
-					(tmp = surface_cache.find((i) => i.thing.value.pack_id === i.thing_id)?.pack_id)
-				) {
-					chain.push(tmp);
+export function calc_units_tree(cache, pack_id) {
+	if (pack_id === undefined) {
+		var tree = {};
+		cache
+			.filter((i) => i.thing.type.startsWith("unit/"))
+			.filter((i) => {
+				var meta = cache.find(
+					(j) => j.thing.type === "meta" && j.thing.value.thing_id === i.thing_id
+				);
+				if (meta === undefined || !meta.thing.value.pack_id) {
+					return true;
 				}
-				return chain;
-			}),
-		(array1, array2) => {
-			if (array1.length !== array2.length) {
-				return false;
-			}
-			for (var i = 0; i < array1.length; i++) {
-				if (array1[i] !== array2[i]) {
-					return false;
+			})
+			.forEach((i) => {
+				if (i.thing.type === "unit/pack") {
+					tree[i.thing_id] = calc_units_tree(cache, i.thing_id);
+				} else {
+					tree[i.thing_id] = undefined;
 				}
-			}
-			return true;
-		}
-	);
+			});
+
+		return tree;
+	} else {
+		var tree = {};
+		cache
+			.filter((i) => {
+				if (i.thing.type.startsWith("unit/") !== true) return false;
+				var meta = cache.find(
+					(j) => j.thing.type === "meta" && j.thing.value.thing_id === i.thing_id
+				);
+				if (meta !== undefined && meta.thing.value.pack_id === pack_id) {
+					return true;
+				}
+			})
+			.forEach((i) => {
+				if (i.thing.type === "unit/pack") {
+					tree[i.thing_id] = calc_units_tree(cache, i.thing_id);
+				} else {
+					tree[i.thing_id] = undefined;
+				}
+			});
+		return tree;
+	}
 }

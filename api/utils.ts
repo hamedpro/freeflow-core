@@ -311,13 +311,24 @@ export function resolve_thing(
 				"thing_id" in regex_result.groups &&
 				"snapshot" in regex_result.groups
 			) {
-				resolve_path(thing, path.slice(0, -1))[last_path_part] = resolve_thing(
-					transactions,
-					Number(regex_result.groups.thing_id),
-					regex_result.groups.snapshot === ""
-						? undefined
-						: Number(regex_result.groups.snapshot)
-				);
+				var user_has_access_to_ref = transactions.some((i) => {
+					if (
+						regex_result?.groups?.thing_id !== undefined &&
+						i.thing_id === Number(regex_result.groups.thing_id)
+					) {
+						return true;
+					}
+				});
+
+				resolve_path(thing, path.slice(0, -1))[last_path_part] = user_has_access_to_ref
+					? resolve_thing(
+							transactions,
+							Number(regex_result.groups.thing_id),
+							regex_result.groups.snapshot === ""
+								? undefined
+								: Number(regex_result.groups.snapshot)
+					  )
+					: undefined;
 			}
 		}
 	}

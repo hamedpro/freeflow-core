@@ -29,6 +29,7 @@ export type meta = {
 				locks: locks;
 				modify_thing_privileges: number /* user_id */;
 				thing_id: number;
+				pack_id: null | number;
 		  }
 		| {
 				file_privileges: { read: number[] | "*" };

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { useMatch, useNavigate } from "react-router-dom";
-import { calc_discoverable_pack_chains, find_unit_parents } from "../../common_helpers";
+import { calc_units_tree, find_unit_parents } from "../../common_helpers";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 
 function AddNewOptionRow() {
@@ -92,54 +92,35 @@ function Option({ text, indent_level, url, type }) {
 export const PrimarySideBar = () => {
 	var { cache } = useContext(UnifiedHandlerClientContext);
 	var options = [];
-	function add_option(thing_id, indent_level) {
-		var i = cache.find((i) => i.thing_id === thing_id);
-		if (i.thing.type === "unit/pack") {
-			options.push({
-				url: `/dashboard/packs/${i.thing_id}`,
-				type: "unit/pack",
-				indent_level,
-				text: i.thing.value.title,
-			});
-			cache
-				.filter((j) => j.thing.value.pack_id === i.thing_id)
-				.forEach((j) => {
-					add_option(j, indent_level + 1);
+	function render_tree(tree, indent_level) {
+		for (var child_id in tree) {
+			var i = cache.find((i) => i.thing_id === Number(child_id));
+			if (i.thing.type === "unit/pack") {
+				options.push({
+					url: `/dashboard/packs/${i.thing_id}`,
+					type: "unit/pack",
+					indent_level,
+					text: i.thing.value.title,
+					thing_id: i.thing_id,
 				});
-		} else {
-			options.push({
-				url: `/dashboard/${i.thing.type.split("/")[1] + "s"}/${i.thing_id}`,
-				type: i.thing.type,
-				indent_level,
-				text: i.thing.type === "unit/ask" ? i.thing.value.question : i.thing.value.title,
-			});
+				render_tree(tree[Number(child_id)], indent_level + 1);
+			} else {
+				options.push({
+					url: `/dashboard/${i.thing.type.split("/")[1] + "s"}/${i.thing_id}`,
+					type: i.thing.type,
+					indent_level,
+					text:
+						i.thing.type === "unit/ask" ? i.thing.value.question : i.thing.value.title,
+					thing_id: i.thing_id,
+				});
+			}
 		}
 	}
 
-	var discoverable_pack_chains = calc_discoverable_pack_chains(cache);
-	discoverable_pack_chains.forEach((chain) => {
-		add_option(chain[0], 0);
-	});
-	//console.log(discoverable_pack_chains);
-	cache
-		.filter((i) => {
-			if (i.thing.type.startsWith("unit/") && i.thing.type !== "unit/pack") {
-				if (i.thing.value.pack_id != true) {
-					return true;
-				} else if (discoverable_pack_chains.flat().includes(i.thing.value.pack_id) !== true) {
-					return true;
-				}
-			}
-			return false;
-		})
-		.forEach((i) => {
-			//console.log(i);
-			add_option(i.thing_id, 0);
-		});
+	var units_tree = calc_units_tree(cache, undefined);
 
-	if (options == null) {
-		return "loading options ...";
-	}
+	render_tree(units_tree, 0);
+
 	return (
 		<>
 			<AddNewOptionRow />
