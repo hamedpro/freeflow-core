@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
 import { UnifiedHandlerClient } from "../api_dist/api/UnifiedHandlerClient";
 export const UnifiedHandlerClientContextProvider = ({ children }) => {
@@ -9,27 +9,33 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 	//it also happens when just having any single set state inside useeffect
 	//near line 38
 
-	var [unified_handler_client, set_unified_handler_client] = useState(
-		new UnifiedHandlerClient("http://localhost:4001", "http://localhost:4000")
+	var uhc = useRef(
+		new UnifiedHandlerClient("http://localhost:4001", "http://localhost:4000", {
+			cache: () => {
+				setUnifiedHandlerClientContextState((prev) => ({
+					transactions: uhc.current.transactions,
+					cache: uhc.current.cache,
+				}));
+			},
+			transactions: () => {
+				setUnifiedHandlerClientContextState((prev) => ({
+					transactions: uhc.current.transactions,
+					cache: uhc.current.cache,
+				}));
+			},
+		})
 	);
 	var [UnifiedHandlerClientContextState, setUnifiedHandlerClientContextState] = useState({
-		transactions: unified_handler_client.transactions,
-		cache: unified_handler_client.cache,
-		unified_handler_client,
+		transactions: uhc.current.transactions,
+		cache: uhc.current.cache,
 	});
+	if (window.uhc === undefined) {
+		window.uhc = uhc.current;
+	}
 	useEffect(() => {
-		unified_handler_client.onChanges.transactions = unified_handler_client.onChanges.cache =
-			() => {
-				setUnifiedHandlerClientContextState((prev) => ({
-					...prev,
-					transactions: unified_handler_client.transactions,
-					cache: unified_handler_client.cache,
-				}));
-			};
 		if (window.localStorage.getItem("jwt") !== null) {
-			unified_handler_client.auth();
+			uhc.current.auth();
 		}
-		window.uhc = unified_handler_client;
 	}, []);
 	return (
 		<UnifiedHandlerClientContext.Provider value={UnifiedHandlerClientContextState}>

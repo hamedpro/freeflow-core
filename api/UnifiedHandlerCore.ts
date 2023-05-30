@@ -1,6 +1,6 @@
 //read README file : UnifiedHandlerSystem.md
 
-import { cache_item, transaction } from "./UnifiedHandler_types.js";
+import { cache_item, meta, transaction } from "./UnifiedHandler_types.js";
 import {
 	calc_cache,
 	calc_unresolved_cache,
@@ -12,6 +12,7 @@ import {
 
 export class UnifiedHandlerCore {
 	thing_transactions = (thing_id: number) => thing_transactions(this.transactions, thing_id);
+	find_first_transaction = (thing_id: number) => this.thing_transactions(thing_id)[0];
 
 	calc_user_discoverable_things = (user_id: number) =>
 		calc_user_discoverable_things(this.transactions, this.cache, user_id);
@@ -20,7 +21,14 @@ export class UnifiedHandlerCore {
 		this.calc_user_discoverable_things(user_id)
 			.map((thing_id) => this.thing_transactions(thing_id))
 			.flat();
-
+	find_thing_meta(thing_id: number) {
+		return this.cache.find(
+			(i) =>
+				i.thing.type === "meta" &&
+				"thing_id" in i.thing.value &&
+				i.thing.value.thing_id === thing_id
+		);
+	}
 	new_transaction_privileges_check = new_transaction_privileges_check;
 
 	check_lock = check_lock;

@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 export const Login = () => {
 	var nav = useNavigate();
 	var [login_mode, set_login_mode] = useState(); // verf_code_mode or password_mode
-	var { unified_handler_client } = useContext(UnifiedHandlerClientContext);
 	async function login() {
 		var input_value = document.getElementById("value_input").value;
 		if (!input_value) {
@@ -14,7 +13,7 @@ export const Login = () => {
 		}
 		try {
 			var { jwt } = (
-				await unified_handler_client.configured_axios({
+				await window.uhc.configured_axios({
 					url: "login",
 					data: {
 						value: input_value,
@@ -39,7 +38,7 @@ export const Login = () => {
 			alert("identifier input can not be empty.");
 			return;
 		}
-		await unified_handler_client.configured_axios({
+		await window.uhc.configured_axios({
 			url: "/send_verification_code",
 			data: {
 				identifier,

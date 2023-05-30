@@ -1,36 +1,19 @@
-import React, { Fragment, useContext, useRef, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 
 import { Section } from "./section";
-import { useNavigate, useParams } from "react-router-dom";
-import { Item, Menu, useContextMenu } from "react-contexify";
+import { useNavigate } from "react-router-dom";
 import { custom_editorjs_to_jsx } from "../../jsx_helpers.jsx";
-function PackViewNote({ note }) {
+function PackViewNote({ cache_item }) {
 	var nav = useNavigate();
-
-	var { global_data } = useContext(GlobalDataContext);
-
-	var latest_note_commit = global_data.all.note_commits
-		.filter((i) => i.note_id === note._id)
-		.sort((i1, i2) => i1.time - i2.time)
-		.at(-1);
-	var [last_note_commit_as_jsx, set_last_note_commit_as_jsx] = useState();
-	useEffect(() => {
-		var async_tmp = async () => {
-			if (latest_note_commit !== undefined) {
-				set_last_note_commit_as_jsx(await custom_editorjs_to_jsx(latest_note_commit.data));
-			}
-		};
-		async_tmp();
-	}, [global_data]);
 
 	return (
 		<Section
-			title={`note ${note._id}`}
-			onClick={() => nav(`/dashboard/notes/${note._id}`)}
+			title={`note ${cache_item.thing_id}`}
+			onClick={() => nav(`/dashboard/${cache_item.thing_id}`)}
 			className="cursor-pointer "
 		>
-			<p>title : {note.title}</p>
-			<p>collaborators :</p>
+			<p>title : {cache_item.thing.value.title}</p>
+			{/* <p>collaborators :</p>
 			<ol>
 				{note.collaborators.map((c) => (
 					<li
@@ -43,27 +26,27 @@ function PackViewNote({ note }) {
 						user #{c.user_id}
 					</li>
 				))}
-			</ol>
+			</ol> */}
 
 			<hr />
-			{latest_note_commit ? (
-				last_note_commit_as_jsx || "loading latest note commit ..."
+			{cache_item.thing.value.data ? (
+				custom_editorjs_to_jsx(cache_item.thing.value.data)
 			) : (
-				<h1>showing note {note._id} : there is not any note commit for this note </h1>
+				<h1>showing note {cache_item.thing_id} : there is not any data inside this note</h1>
 			)}
 		</Section>
 	);
 }
-function PackViewResource({ resource }) {
+function PackViewResource({ cache_item }) {
 	var nav = useNavigate();
 	return (
 		<Section
-			title={`Resource #${resource._id}`}
-			onClick={() => nav(`/dashboard/resources/${resource._id}`)}
+			title={`Resource #${cache_item.thing_id}`}
+			onClick={() => nav(`/dashboard/${cache_item.thing_id}`)}
 			className="cursor-pointer "
 		>
-			<p>title : {resource.title}</p>
-			<p>collaborators :</p>
+			<p>title : {cache_item.thing.value.title}</p>
+			{/* <p>collaborators :</p>
 			<ol>
 				{resource.collaborators.map((c) => (
 					<li
@@ -76,21 +59,21 @@ function PackViewResource({ resource }) {
 						user #{c.user_id}
 					</li>
 				))}
-			</ol>
-			<p>description : {resource.description}</p>
+			</ol> */}
+			<p>description : {cache_item.thing.value.description}</p>
 		</Section>
 	);
 }
-function PackViewTask({ task }) {
+function PackViewTask({ cache_item }) {
 	var nav = useNavigate();
 	return (
 		<Section
-			title={`task #${task._id}`}
-			onClick={() => nav(`/dashboard/tasks/${task._id}`)}
+			title={`task #${cache_item.thing_id}`}
+			onClick={() => nav(`/dashboard/${cache_item.thing_id}`)}
 			className="cursor-pointer "
 		>
-			<p>title : {task.title}</p>
-			<p>collaborators :</p>
+			<p>title : {cache_item.thing.value.title}</p>
+			{/* <p>collaborators :</p>
 			<ol>
 				{task.collaborators.map((c) => (
 					<li
@@ -103,23 +86,22 @@ function PackViewTask({ task }) {
 						user #{c.user_id}
 					</li>
 				))}
-			</ol>
-			<p>description : {task.description}</p>
+			</ol> */}
+			<p>description : {cache_item.thing.value.description}</p>
 		</Section>
 	);
 }
-function PackViewPack({ pack }) {
+function PackViewPack({ cache_item }) {
 	//its used to show an overview of a pack inside another pack
-	var { global_data } = useContext(GlobalDataContext);
 	var nav = useNavigate();
 	return (
 		<Section
-			title={`pack #${pack._id}`}
-			onClick={() => nav(`/dashboard/packs/${pack._id}`)}
+			title={`pack #${cache_item.thing_id}`}
+			onClick={() => nav(`/dashboard/${cache_item.thing_id}`)}
 			className="cursor-pointer "
 		>
-			<p>title : {pack.title}</p>
-			<p>collaborators :</p>
+			<p>title : {cache_item.thing.value.title}</p>
+			{/* <p>collaborators :</p>
 			<ol>
 				{pack.collaborators.map((c) => (
 					<li
@@ -132,12 +114,12 @@ function PackViewPack({ pack }) {
 						user #{c.user_id}
 					</li>
 				))}
-			</ol>
-			<p>description : {pack.description}</p>
+			</ol> */}
+			<p>description : {cache_item.thing.value.description}</p>
 
-			<ol>
+			{/* <ol>
 				<li>
-					it contains {global_data.all.packs.filter((i) => i.pack_id === pack._id).length}{" "}
+					it contains {}{" "}
 					direct packs
 				</li>
 				<li>
@@ -153,82 +135,100 @@ function PackViewPack({ pack }) {
 					it contains {global_data.all.tasks.filter((i) => i.pack_id === pack._id).length}{" "}
 					direct tasks
 				</li>
-			</ol>
+			</ol> */}
 		</Section>
 	);
 }
-export function PackViewItem({ thing, context }) {
-	if (context === "packs") {
-		return <PackViewPack pack={thing} />;
-	} else if (context === "tasks") {
-		return <PackViewTask task={thing} />;
-	} else if (context === "resources") {
-		return <PackViewResource resource={thing} />;
-	} else if (context === "notes") {
-		return <PackViewNote note={thing} />;
+function PackViewItem({ cache_item }) {
+	if (cache_item.thing.type === "unit/pack") {
+		return <PackViewPack cache_item={cache_item} />;
+	} else if (cache_item.thing.type === "unit/task") {
+		return <PackViewTask cache_item={cache_item} />;
+	} else if (cache_item.thing.type === "unit/resource") {
+		return <PackViewResource cache_item={cache_item} />;
+	} else if (cache_item.thing.type === "unit/note") {
+		return <PackViewNote cache_item={cache_item} />;
+	} else {
+		return <pre>{JSON.stringify(cache_item)}</pre>;
 	}
 }
-function GroupedPackView({ pack_children }) {
+function GroupedPackView({ cache_items }) {
 	return (
 		<>
 			<Section title="packs">
-				{pack_children.filter((child) => child.context === "packs").length === 0 && (
+				{cache_items.filter((i) => i.thing.type === "unit/pack").length === 0 && (
 					<h1>there is not any pack here to show </h1>
 				)}
-				{pack_children
-					.filter((child) => child.context === "packs")
+				{cache_items
+					.filter((i) => i.thing.type === "unit/pack")
 					.map((i) => (
-						<PackViewPack pack={i.child} key={i.child._id} />
+						<PackViewItem cache_item={i} key={i.thing_id} />
 					))}
 			</Section>
 			<Section title="tasks">
-				{pack_children.filter((child) => child.context === "tasks").length === 0 && (
-					<h1>there is not any task here to show </h1>
+				{cache_items.filter((i) => i.thing.type === "unit/task").length === 0 && (
+					<h1>there is not any task to show </h1>
 				)}
-				{pack_children
-					.filter((child) => child.context === "tasks")
+				{cache_items
+					.filter((i) => i.thing.type === "unit/task")
 					.map((i) => (
-						<PackViewTask task={i.child} key={i.child._id} />
+						<PackViewItem cache_item={i} key={i.thing_id} />
 					))}
 			</Section>
 			<Section title="notes">
-				{pack_children.filter((child) => child.context === "notes").length === 0 && (
+				{cache_items.filter((i) => i.thing.type === "unit/note").length === 0 && (
 					<h1>there is not any note here to show </h1>
 				)}
-				{pack_children
-					.filter((child) => child.context === "notes")
+				{cache_items
+					.filter((i) => i.thing.type === "unit/note")
 					.map((i) => (
-						<PackViewNote note={i.child} key={i.child._id} />
+						<PackViewItem cache_item={i} key={i.thing_id} />
 					))}
 			</Section>
 			<Section title="resources">
-				{pack_children.filter((child) => child.context === "resources").length === 0 && (
+				{cache_items.filter((i) => i.thing.type === "unit/resource").length === 0 && (
 					<h1>there is not any resource here to show </h1>
 				)}
-				{pack_children
-					.filter((child) => child.context === "resources")
+				{cache_items
+					.filter((i) => i.thing.type === "unit/resource")
 					.map((i) => (
-						<PackViewResource resource={i.child} key={i.child._id} />
+						<PackViewItem cache_item={i} key={i.thing_id} />
+					))}
+			</Section>
+			<Section title="events">
+				{cache_items.filter((i) => i.thing.type === "unit/evnet").length === 0 && (
+					<h1>there is not any event here to show </h1>
+				)}
+				{cache_items
+					.filter((i) => i.thing.type === "unit/evnet")
+					.map((i) => (
+						<PackViewItem cache_item={i} key={i.thing_id} />
+					))}
+			</Section>
+			<Section title="asks">
+				{cache_items.filter((i) => i.thing.type === "unit/ask").length === 0 && (
+					<h1>there is not any ask here to show </h1>
+				)}
+				{cache_items
+					.filter((i) => i.thing.type === "unit/ask")
+					.map((i) => (
+						<PackViewItem cache_item={i} key={i.thing_id} />
 					))}
 			</Section>
 		</>
 	);
 }
-function CustomPackView({ pack_children }) {
-	return pack_children.map(({ context, child }) => {
-		return <PackViewItem key={context + child._id} thing={child} context={context} />;
+function CustomPackView({ cache_items }) {
+	return cache_items.map((cache_item) => {
+		return <PackViewItem key={cache_item.thing_id} cache_item={cache_item} />;
 	});
 }
-export const PackView = ({ pack_children, view_as_groups = false, sort }) => {
-	//schema of pack_views collection : {_id  ,name : string , pack_id : string , order :[{id : string , unit_context : string }]}
-
-	var nav = useNavigate();
-	/* var { pack_id } = useParams(); */
+export const PackView = ({ pack_children, view_as_groups = false, sort, cache }) => {
 	var sorted_pack_children = pack_children.sort((i1, i2) => {
 		if (sort === "timestamp_desc") {
-			return i1.child.creation_time - i2.child.creation_time;
+			return uhc.find_first_transaction(i1).time - uhc.find_first_transaction(i2).time;
 		} else if (sort === "timestamp_asce") {
-			return -(i1.child.creation_time - i2.child.creation_time);
+			return -uhc.find_first_transaction(i1).time - uhc.find_first_transaction(i2).time;
 		}
 	});
 	return (
@@ -247,9 +247,17 @@ export const PackView = ({ pack_children, view_as_groups = false, sort }) => {
 			</div>
 
 			{view_as_groups !== true ? (
-				<CustomPackView pack_children={sorted_pack_children} />
+				<CustomPackView
+					cache_items={sorted_pack_children.map((i) =>
+						cache.find((j) => j.thing_id === i)
+					)}
+				/>
 			) : (
-				<GroupedPackView pack_children={sorted_pack_children} />
+				<GroupedPackView
+					cache_items={sorted_pack_children.map((i) =>
+						cache.find((j) => j.thing_id === i)
+					)}
+				/>
 			)}
 		</div>
 	);

@@ -7,7 +7,7 @@ import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import jwtDecode from "jwt-decode";
 import { PrivilegesEditor } from "./PrivilegesEditor";
 export const NewPack = () => {
-	var { cache, unified_handler_client } = useContext(UnifiedHandlerClientContext);
+	var { cache } = useContext(UnifiedHandlerClientContext);
 	var [search_params] = useSearchParams();
 	var [privileges, set_privileges] = useState();
 	/* if pack_id is present in url query we set default option of parent pack select to that  */
@@ -35,10 +35,10 @@ export const NewPack = () => {
 				description,
 			};
 
-			var id_of_new_pack = await unified_handler_client.request_new_transaction({
+			var id_of_new_pack = await window.uhc.request_new_transaction({
 				new_thing_creator: (thing) => ({ value: tmp, type: "unit/pack" }),
 			});
-			var corrosponding_meta = await unified_handler_client.request_new_transaction({
+			var corrosponding_meta = await window.uhc.request_new_transaction({
 				new_thing_creator: (thing) => ({
 					type: "meta",
 					value: {

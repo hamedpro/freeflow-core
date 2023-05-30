@@ -25,6 +25,7 @@ import "react-contexify/ReactContexify.css";
 import { Asks } from "./components/Asks";
 import { NewAsk } from "./components/NewAsk";
 import { Ask } from "./components/Ask";
+import { Stage } from "./components/Stage";
 
 export function Dashboard() {
 	var user_id = localStorage.getItem("user_id");
@@ -82,30 +83,21 @@ export function Dashboard() {
 					style={{ width: "calc(100% - 13rem)" }}
 				>
 					<Routes>
-						<Route path="packs" element={<Packs />} />
-						<Route path="packs/:pack_id" element={<Pack />} />
+						<Route path="/:thing_id/*" element={<Stage />} />
 
 						<Route path="packs/new" element={<NewPack />} />
 
 						<Route path="settings" element={<UserSettings />} />
 
 						<Route path="resources/new" element={<NewResource />} />
-						<Route path="resources/:resource_id" element={<Resource />} />
 
 						<Route path="notes/new" element={<NewNote />} />
-						<Route path="notes/:note_id" element={<Note />} />
-						<Route path="notes/:note_id/commits" element={<NoteCommits />} />
+
 						<Route path="tasks/new" element={<NewTask />} />
-						<Route path="tasks/:task_id" element={<Task />} />
-						<Route path="events" element={<Events />} />
+
 						<Route path="events/new" element={<NewEvent />} />
 
-						<Route path="events/:event_id" element={<Event />} />
-
-						<Route path="asks" element={<Asks />} />
 						<Route path="asks/new" element={<NewAsk />} />
-
-						<Route path="asks/:ask_id" element={<Ask />} />
 
 						<Route path="calendar">
 							<Route path="month" element={<MonthCalendar />} />

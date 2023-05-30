@@ -43,6 +43,7 @@ export interface unit_pack extends thing_base {
 		title: string;
 		description: string;
 		pack_id?: number | null;
+		default_pack_view_id?: null | number;
 	};
 }
 export interface unit_resource extends thing_base {

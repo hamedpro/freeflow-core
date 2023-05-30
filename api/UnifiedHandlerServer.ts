@@ -495,7 +495,13 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
 		var new_thing = new_thing_creator(thing);
 		var transaction_diff = getDiff(thing, new_thing);
-
+		if (
+			new_thing.type === "meta" &&
+			!this.unresolved_cache.some((i) => i.thing_id === new_thing.value.thing_id) &&
+			thing_id === undefined
+		) {
+			throw "rejected : a new meta is going to be created for something that doesnt even exist!";
+		} 
 		if (
 			this.new_transaction_privileges_check(
 				user_id,

@@ -1,3 +1,5 @@
+import jwtDecode from "jwt-decode";
+import { transaction } from "./UnifiedHandler_types";
 import { io } from "socket.io-client";
 import axios from "axios";
 import rdiff from "recursive-diff";
@@ -8,8 +10,13 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 	websocket: ReturnType<typeof io>;
 	websocket_api_endpoint: string;
 	restful_api_endpoint: string;
-	constructor(websocket_api_endpoint: string, restful_api_endpoint: string) {
+	constructor(
+		websocket_api_endpoint: string,
+		restful_api_endpoint: string,
+		onChanges_functions: { transactions: () => void; cache: () => void }
+	) {
 		super();
+		this.onChanges = onChanges_functions;
 		this.websocket_api_endpoint = websocket_api_endpoint;
 		this.restful_api_endpoint = restful_api_endpoint;
 		//console.log("a new uhclient is created ");
@@ -22,6 +29,19 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 	}
 	get jwt() {
 		return window.localStorage.getItem("jwt") ?? undefined;
+	}
+	get user_id(): number | undefined {
+		if (this.jwt === undefined) {
+			return undefined;
+		}
+		var decoded_jwt = jwtDecode(this.jwt);
+		if (decoded_jwt !== null && typeof decoded_jwt === "object" && "user_id" in decoded_jwt) {
+			if (typeof decoded_jwt.user_id === "number") {
+				return decoded_jwt.user_id;
+			}
+		} else {
+			throw "failed to get user_id from jwt token";
+		}
 	}
 	get configured_axios(): ReturnType<typeof axios.create> {
 		return axios.create({

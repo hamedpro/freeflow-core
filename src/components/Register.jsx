@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export const Register = () => {
 	var nav = useNavigate();
-	var { cache, unified_handler_client } = useContext(UnifiedHandlerClientContext);
+	var { cache } = useContext(UnifiedHandlerClientContext);
 	var [username_input_value, set_username_input_value] = useState("");
 	var [password_input_value, set_password_input_value] = useState("");
 	async function create_new_account() {
@@ -14,7 +14,7 @@ export const Register = () => {
 		}
 		try {
 			var { jwt } = (
-				await unified_handler_client.configured_axios({
+				await window.uhc.configured_axios({
 					url: "/register",
 					data: {
 						username: username_input_value,

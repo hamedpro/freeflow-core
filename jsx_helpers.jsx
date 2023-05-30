@@ -1,14 +1,13 @@
 //this file exists because using
 //jsx inside common_helpers.js causes SyntaxError when being used by node
 import { renderToString } from "react-dom/server";
-
-export var custom_editorjs_to_jsx = async (exported_data) => {
+import html_react_parser from "html-react-parser";
+import editorjs_to_html from "editorjs-html";
+export var custom_editorjs_to_jsx = (exported_data) => {
 	//todo : using this function may have security vulnerability because it uses renderToString
 	//typeof exported_data : complete return value of .save method of editor js
-	var html_react_parser = await import("html-react-parser");
-	var editorjs_to_html = await import("editorjs-html");
 
-	var custom_editorjs_to_html = editorjs_to_html.default({
+	var custom_editorjs_to_html = editorjs_to_html({
 		table: (block) => {
 			if (block.data.content.length === 0) return <b>[empty table]</b>;
 			return renderToString(
@@ -50,7 +49,7 @@ export var custom_editorjs_to_jsx = async (exported_data) => {
 		},
 	});
 
-	return html_react_parser.default(
+	return html_react_parser(
 		custom_editorjs_to_html
 			.parse(exported_data)
 			.map((i) => {
