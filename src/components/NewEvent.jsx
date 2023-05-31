@@ -25,7 +25,7 @@ export const NewEvent = () => {
 		if (pack_id) {
 			let tmp = cache.find((i) => i.thing_id === pack_id);
 			return {
-				value: tmp.thing.id,
+				value: tmp.thing_id,
 				label: tmp.thing.value.title,
 			};
 		} else {
