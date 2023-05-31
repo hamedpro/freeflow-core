@@ -49,7 +49,6 @@ export interface unit_pack extends thing_base {
 export interface unit_resource extends thing_base {
 	type: "unit/resource";
 	value: {
-		pack_id?: number | null;
 		description: string;
 		title: string;
 		file_id: number;

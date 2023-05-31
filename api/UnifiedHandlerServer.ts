@@ -20,7 +20,6 @@ import {
 import { exit } from "process";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
 import {
-	calc_all_paths,
 	rdiff_path_to_lock_path_format,
 	validate_lock_structure,
 	validate_refs_values,
@@ -275,9 +274,14 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				) {
 					response.sendFile(
 						path.resolve(
-							`./uploads/${fs
-								.readdirSync("./uploads")
-								.find((i) => i.startsWith(request.params.file_id))}`
+							path.join(
+								pink_rose_data_dir_absolute_path,
+								`./uploads/${fs
+									.readdirSync(
+										path.join(pink_rose_data_dir_absolute_path, "./uploads")
+									)
+									.find((i) => i.startsWith(request.params.file_id))}`
+							)
 						)
 					);
 				} else {
@@ -297,7 +301,9 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				return;
 			}
 			var new_file_id = await new Promise((resolve, reject) => {
-				var f = formidable({ uploadDir: "./uploads" });
+				var f = formidable({
+					uploadDir: path.join(pink_rose_data_dir_absolute_path, "./uploads"),
+				});
 				f.parse(request, (err: any, fields: any, files: any) => {
 					if (err) {
 						reject(err);
@@ -308,7 +314,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 							(i) => i.thing.type === "meta" && "locks" in i.thing.value
 						).length + 1;
 					var new_file_path = path.resolve(
-						"./uploads",
+						path.join(pink_rose_data_dir_absolute_path, "./uploads"),
 						`${tmp}-${files["file"].originalFilename}`
 					);
 
@@ -331,7 +337,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				user_id: undefined,
 				thing_id: undefined,
 			});
-			response.json({ new_file_id });
+			response.json(new_file_id);
 		});
 		this.restful_express_app.post("/new_transaction", (request, response) => {
 			if (!("user_id" in response.locals) || response.locals.user_id === undefined) {
@@ -498,11 +504,12 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		var transaction_diff = getDiff(thing, new_thing);
 		if (
 			new_thing.type === "meta" &&
+			!("file_id" in new_thing.value) &&
 			!this.unresolved_cache.some((i) => i.thing_id === new_thing.value.thing_id) &&
 			thing_id === undefined
 		) {
 			throw "rejected : a new meta is going to be created for something that doesnt even exist!";
-		} 
+		}
 		if (
 			this.new_transaction_privileges_check(
 				user_id,
