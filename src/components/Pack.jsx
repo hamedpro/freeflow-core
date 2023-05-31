@@ -183,7 +183,9 @@ export const Pack = ({ thing_id, cache }) => {
 					</p>
 				</Section>
 				<PackView
-					pack_children={Object.keys(calc_units_tree(cache, cache_item.thing_id))}
+					pack_children={Object.keys(calc_units_tree(cache, cache_item.thing_id)).map(
+						(i) => Number(i)
+					)}
 					view_as_groups={pack_view_filters.view_as_groups}
 					sort={pack_view_filters.sort}
 					cache={cache}

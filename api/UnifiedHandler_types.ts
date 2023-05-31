@@ -74,6 +74,7 @@ export interface unit_event extends thing_base {
 		start_time: number;
 		title: string;
 		category_id?: number | null;
+		description?: string | null;
 	};
 }
 export interface message extends thing_base {
@@ -145,7 +146,6 @@ export interface calendar_category extends thing_base {
 	value: {
 		name: string;
 		color: string;
-		user_id: number;
 	};
 }
 export type thing =

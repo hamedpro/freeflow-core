@@ -1,61 +1,75 @@
 import React, { useContext, useState } from "react";
-import { new_event } from "../../api/client";
 import { TextField } from "@mui/material";
 //import AdapterMoment from "@date-io/jalaali";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { useEffect } from "react";
-import { get_calendar_categories, new_calendar_category } from "../../api/client";
 import Select from "react-select";
 import { NewCalendarCategorySection } from "./NewCalendarCategorySection";
-
 import { StyledDiv } from "./styled_elements";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
+import { PrivilegesEditor } from "./PrivilegesEditor";
 
 export const NewEvent = () => {
-	var user_id = localStorage.getItem("user_id");
-	var { global_data, get_global_data } = useContext(GlobalDataContext);
-	var [selected_calendar_category, select_calendar_category] = useState(null);
-	var [calendar_categories, set_calendar_categories] = useState(null);
-	var [selected_dates, set_selected_dates] = useState({ end: null, start: null });
-	var [selected_collaborators, set_selected_collaborators] = useState([]);
 	var nav = useNavigate();
+	var { cache } = useContext(UnifiedHandlerClientContext);
+
+	var [selected_calendar_category, select_calendar_category] = useState(null);
+	var calendar_categories = cache.filter((i) => i.thing.type === "calendar_category");
+	var [selected_dates, set_selected_dates] = useState({ end: null, start: null });
+	var [privileges, set_privileges] = useState();
+	var [search_params] = useSearchParams();
+	var [selected_parent_pack, set_selected_parent_pack] = useState(() => {
+		var pack_id = Number(search_params.get("pack_id"));
+		if (pack_id) {
+			let tmp = cache.find((i) => i.thing_id === pack_id);
+			return {
+				value: tmp.thing.id,
+				label: tmp.thing.value.title,
+			};
+		} else {
+			return { value: null, label: "without a parent pack" };
+		}
+	});
 	var submit_new_event = async () => {
 		try {
-			var tmp = {
-				end_date: selected_dates.end,
-				start_date: selected_dates.start,
-				category_id: selected_calendar_category.value._id,
-				title: document.getElementById("title_input").value,
-				description: document.getElementById("description_input").value,
-				user_id,
-				collaborators: [
-					...selected_collaborators.map((i) => {
-						return { is_owner: false, user_id: i.value };
-					}),
-					{ user_id, is_owner: true },
-				],
+			var new_event = {
+				type: "unit/event",
+				value: {
+					end_date: selected_dates.end,
+					start_date: selected_dates.start,
+					category_id: selected_calendar_category.value,
+					title: document.getElementById("title_input").value,
+					description: document.getElementById("description_input").value,
+				},
 			};
 
-			tmp = await new_event(tmp);
-			nav(`/dashboard/events/${tmp}`);
+			var new_event_id = await uhc.request_new_transaction({
+				new_thing_creator: () => new_event,
+				thing_id: undefined,
+			});
+			var new_meta = {
+				type: "meta",
+				value: {
+					thing_privileges: privileges,
+					modify_thing_privileges: uhc.user_id,
+					locks: [],
+					pack_id: selected_parent_pack.value,
+					thing_id: new_event_id,
+				},
+			};
+			var meta_id = await uhc.request_new_transaction({
+				new_thing_creator: () => new_meta,
+				thing_id: undefined,
+			});
+			nav(`/dashboard/${new_event_id}`);
 			alert("done");
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in dev console.");
 		}
 	};
-
-	async function get_data() {
-		set_calendar_categories(await get_calendar_categories({ user_id, global_data }));
-	}
-	useEffect(() => {
-		get_data();
-	}, [global_data]);
-
-	if (calendar_categories === null) return <h1>still loading data ...</h1>;
-
 	return (
 		<div className="p-2">
 			<h1>NewEvent</h1>
@@ -70,8 +84,8 @@ export const NewEvent = () => {
 				options={[
 					...calendar_categories.map((cat) => {
 						return {
-							value: cat,
-							label: `${cat.name} (${cat.color})`,
+							value: cat.thing_id,
+							label: `${cat.thing.value.name} (${cat.thing.value.color})`,
 						};
 					}),
 				]}
@@ -100,21 +114,22 @@ export const NewEvent = () => {
 					</div>
 				);
 			})}
-			<h1>add collaborators to this new task :</h1>
+			<PrivilegesEditor onChange={set_privileges} />
+			<h1 className="mt-2">select a parent pack for this ask if you want :</h1>
 			<Select
-				onChange={set_selected_collaborators}
-				value={selected_collaborators}
+				onChange={set_selected_parent_pack}
+				value={selected_parent_pack}
 				options={[
-					...global_data.all.users
-						.filter((user) => user._id !== user_id)
-						.map((user) => {
+					{ value: null, label: "without a parent pack " },
+					...cache
+						.filter((i) => i.thing.type === "unit/pack")
+						.map((cache_item) => {
 							return {
-								value: user._id,
-								label: `@${user.username}`,
+								value: cache_item.thing_id,
+								label: cache_item.thing.value.title,
 							};
 						}),
 				]}
-				isMulti
 				isSearchable
 			/>
 			<StyledDiv onClick={submit_new_event} className="w-fit mt-2">

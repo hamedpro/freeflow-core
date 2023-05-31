@@ -3,10 +3,10 @@ import { new_calendar_category } from "../../api/client";
 
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 
 export const NewCalendarCategorySection = () => {
-	var { global_data, get_global_data } = useContext(GlobalDataContext);
-	var user_id = window.localStorage.getItem("user_id");
+	var { cache } = useContext(UnifiedHandlerClientContext);
 	return (
 		<Section
 			className="mt-2"
@@ -23,15 +23,32 @@ export const NewCalendarCategorySection = () => {
 			<StyledDiv
 				className="w-fit mt-2"
 				onClick={async () => {
-					await new_calendar_category({
-						user_id,
-						name: document.getElementById("new_calendar_category_name_input").value,
-						color: document.getElementById("new_calendar_category_color_input").value,
+					var new_cc_id = await uhc.request_new_transaction({
+						new_thing_creator: () => ({
+							type: "calendar_category",
+							value: {
+								name: document.getElementById("new_calendar_category_name_input")
+									.value,
+								color: document.getElementById("new_calendar_category_color_input")
+									.value,
+							},
+						}),
+						thing_id: undefined,
 					});
-					alert(
-						"new calendar category was added to your profile successfuly.above options will be updated. please select it"
-					);
-					get_global_data();
+					var new_meta_id = await uhc.request_new_transaction({
+						new_thing_creator: () => ({
+							type: "meta",
+							value: {
+								thing_privileges: { read: "*", write: "*" },
+								modify_thing_privileges: uhc.user_id,
+								locks: [],
+								thing_id: new_cc_id,
+							},
+						}),
+						thing_id: undefined,
+					});
+
+					alert("done! new calendar category was added");
 				}}
 			>
 				create category

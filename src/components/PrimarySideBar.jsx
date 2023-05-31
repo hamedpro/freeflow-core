@@ -8,14 +8,14 @@ function AddNewOptionRow() {
 	var { cache } = useContext(UnifiedHandlerClientContext);
 	function onclick_handler(type) {
 		var { pathname } = window.location;
-		var my_regex =
-			/(?:\/)*dashboard\/(?<thing_context>asks|resources|notes|tasks|events|packs)\/(?<thing_id>[0-9]+).*$/g;
+		var my_regex = /(?:\/)*dashboard\/(?<thing_id>[0-9]+).*$/g;
 		var tmp = my_regex.exec(pathname);
 		if (tmp) {
 			var pack_id =
-				tmp.groups.thing_context === "packs"
-					? tmp.groups.thing_id
-					: find_unit_parents(cache, tmp.groups.thing_id)[0];
+				cache.find((i) => i.thing_id === Number(tmp.groups.thing_id)).thing.type ===
+				"unit/pack"
+					? Number(tmp.groups.thing_id)
+					: find_unit_parents(cache, Number(tmp.groups.thing_id))[0];
 			nav(
 				`/dashboard/${type.split("/")[1] + "s"}/new` +
 					(pack_id ? `?pack_id=${pack_id}` : "")
@@ -97,7 +97,7 @@ export const PrimarySideBar = () => {
 			var i = cache.find((i) => i.thing_id === Number(child_id));
 			if (i.thing.type === "unit/pack") {
 				options.push({
-					url: `/dashboard/packs/${i.thing_id}`,
+					url: `/dashboard/${i.thing_id}`,
 					type: "unit/pack",
 					indent_level,
 					text: i.thing.value.title,
@@ -106,7 +106,7 @@ export const PrimarySideBar = () => {
 				render_tree(tree[Number(child_id)], indent_level + 1);
 			} else {
 				options.push({
-					url: `/dashboard/${i.thing.type.split("/")[1] + "s"}/${i.thing_id}`,
+					url: `/dashboard/${i.thing_id}`,
 					type: i.thing.type,
 					indent_level,
 					text:

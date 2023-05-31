@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React from "react";
 
 import { Section } from "./section";
 import { useNavigate } from "react-router-dom";
