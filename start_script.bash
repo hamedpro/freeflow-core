@@ -3,7 +3,7 @@ if [[ -f "~/.pink_rose_data/env.json" ]]; then
     exit 1 ; 
 fi; 
 node ./api_dist/api/server.js &
-npx tailwindcss -c ./tailwind.config.cjs -i ./src/input.css -o ./src/output.css ;
+tailwindcss -c ./tailwind.config.cjs -i ./src/input.css -o ./src/output.css ;
 vite build ;
 node ./frontend_server.js &
 wait

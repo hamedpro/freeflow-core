@@ -1,6 +1,5 @@
 import { useContext, useState } from "react";
 
-import { new_document } from "../../api/client";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 
 export function AskAttending({ ask_id }) {

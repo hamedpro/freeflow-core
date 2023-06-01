@@ -12,4 +12,4 @@ app.use(cors());
 app.all("/*", (req, res) => {
 	res.sendFile(path.resolve("./dist/index.html"));
 });
-app.listen(Number(frontend_port));
+app.listen(frontend_port);
