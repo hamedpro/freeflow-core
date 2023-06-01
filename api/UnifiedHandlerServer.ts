@@ -329,7 +329,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					value: {
 						file_id: new_file_id,
 						file_privileges: {
-							read: response.locals.user_id,
+							read: [response.locals.user_id],
 						},
 						modify_privileges: response.locals.user_id,
 					},

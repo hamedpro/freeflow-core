@@ -42,7 +42,7 @@ export interface unit_pack extends thing_base {
 	value: {
 		title: string;
 		description: string;
-		pack_id?: number | null;
+
 		default_pack_view_id?: null | number;
 	};
 }
@@ -57,9 +57,8 @@ export interface unit_resource extends thing_base {
 export interface unit_task extends thing_base {
 	type: "unit/task";
 	value: {
-		linked_notes: number[];
 		end_time: number;
-		pack_id?: number | null;
+
 		start_time: number;
 		title: string;
 		category_id?: number | null;
@@ -96,7 +95,7 @@ export interface unit_ask extends thing_base {
 	type: "unit/ask";
 	value: {
 		question: string;
-		pack_id?: null | number;
+
 		mode: "poll" | "multiple_choice" | "text_answer";
 		options?: string[];
 		correct_option_index?: number;
@@ -106,7 +105,7 @@ export interface unit_note extends thing_base {
 	type: "unit/note";
 	value: {
 		title: string;
-		pack_id?: null | number;
+
 		data: EditorJS.OutputData;
 	};
 }

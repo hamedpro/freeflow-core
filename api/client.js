@@ -251,8 +251,8 @@ export var get_resources = ({ filters = {}, global_data }) =>
 		filters,
 		global_data,
 	});
-export var custom_axios_download = async ({ url, file_name }) => {
-	var response = await axios({
+export var custom_axios_download = async ({ configured_axios, url, file_name }) => {
+	var response = await configured_axios({
 		url,
 		method: "GET",
 		responseType: "blob",

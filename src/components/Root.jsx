@@ -1,16 +1,18 @@
 import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, redirect, useNavigate } from "react-router-dom";
 import { Section } from "./section";
 
 export const Root = () => {
-	var nav = useNavigate()
+	var nav = useNavigate();
+	var user_is_loged_in = localStorage.getItem("jwt") !== null;
 	useEffect(() => {
-		if (localStorage.getItem('user_id') !== null) { 
-				nav('/dashboard')	
+		if (user_is_loged_in) {
+			nav("/dashboard");
 		}
-	},[])
-	if (localStorage.getItem('user_id') !== null) {
-		return <h1>navigating to user dashboard ...</h1>
+	}, []);
+
+	if (user_is_loged_in) {
+		return "redirecting to dashboard.";
 	}
 	return (
 		<>
