@@ -3,6 +3,8 @@ import { Pack } from "./Pack";
 import { Note } from "./Note";
 import { Resource } from "./Resource";
 import { Event } from "./Event";
+import { Task } from "./Task";
+import { Ask } from "./Ask";
 
 export const Thing = ({ thing_transactions, cache_item, cache }) => {
 	switch (cache_item.thing.type) {
@@ -17,6 +19,12 @@ export const Thing = ({ thing_transactions, cache_item, cache }) => {
 			break;
 		case "unit/event":
 			return <Event cache_item={cache_item} />;
+			break;
+		case "unit/task":
+			return <Task cache_item={cache_item} />;
+			break;
+		case "unit/ask":
+			return <Ask cache_item={cache_item} cache={cache} />;
 			break;
 		default:
 			return "thing type is not supported!";

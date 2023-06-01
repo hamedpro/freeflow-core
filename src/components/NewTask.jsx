@@ -47,7 +47,7 @@ export const NewTask = () => {
 						start_date: selected_dates.start,
 						title: title_input,
 						description: description_input,
-						category_id: selected_calendar_category.value._id,
+						category_id: selected_calendar_category.value,
 					},
 				}),
 				thing_id: undefined,
