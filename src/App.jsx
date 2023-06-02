@@ -16,7 +16,6 @@ import { Login } from "./components/Login";
 
 function App() {
 	window.ml = ml;
-	window.api_endpoint = API_ENDPOINT; // it gets replaced by vite during build process
 
 	return (
 		<UnifiedHandlerClientContextProvider>

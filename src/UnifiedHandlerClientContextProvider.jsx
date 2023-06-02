@@ -10,7 +10,7 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 	//near line 38
 
 	var uhc = useRef(
-		new UnifiedHandlerClient("http://localhost:4001", "http://localhost:4000", {
+		new UnifiedHandlerClient(WEBSOCKET_API_ENDPOINT, RESTFUL_API_ENDPOINT, {
 			cache: () => {
 				setUnifiedHandlerClientContextState((prev) => ({
 					transactions: uhc.current.transactions,
