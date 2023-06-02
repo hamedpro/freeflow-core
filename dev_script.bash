@@ -1,3 +1,4 @@
+#!/bin/bash
 if [[ -f "~/.pink_rose_data/env.json" ]]; then 
     echo "'~/.pink_rose_data/env.json' does not exist. create it and try again";
     exit 1 
