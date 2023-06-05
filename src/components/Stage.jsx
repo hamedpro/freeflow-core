@@ -29,7 +29,11 @@ export const Stage = () => {
 			<Route path="raw" element={<RawThing {...{ cache_item, thing_transactions }} />} />
 			<Route
 				path="raw_timeline"
-				element={<RawThingTimeline {...{ cache_item, thing_transactions }} />}
+				element={
+					<RawThingTimeline
+						{...{ cache_item, thing_transactions, cache, transactions }}
+					/>
+				}
 			/>
 		</Routes>
 	);

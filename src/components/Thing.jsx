@@ -6,8 +6,9 @@ import { Event } from "./Event";
 import { Task } from "./Task";
 import { Ask } from "./Ask";
 import { Chat } from "./Chat";
+import { MessagesBox } from "./MessagesBox";
 
-export const Thing = ({ thing_transactions, cache_item, cache }) => {
+const ThingPart1 = ({ thing_transactions, cache_item, cache }) => {
 	switch (cache_item.thing.type) {
 		case "unit/pack":
 			return <Pack thing_id={cache_item.thing_id} cache={cache} />;
@@ -32,7 +33,16 @@ export const Thing = ({ thing_transactions, cache_item, cache }) => {
 			break;
 		default:
 			return "thing type is not supported!";
-
 			break;
 	}
 };
+export function Thing({ thing_transactions, cache_item, cache }) {
+	return (
+		<>
+			<ThingPart1 {...{ thing_transactions, cache_item, cache }} />
+			{cache_item.thing.type !== "unit/chat" && (
+				<MessagesBox thing_id={cache_item.thing_id} />
+			)}
+		</>
+	);
+}
