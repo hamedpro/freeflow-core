@@ -2,3 +2,12 @@ take care about which license this app should have
 every time you are just showing verified product reviews tell this to the users (also this is true about comments of blog posts)
 seperate auth needed routes from others and auth user by either its admin profile or with super admin access token 
 use --no-dotfiles when using http-server becuse super admin token and ... are stored in .env
+
+when using start script in this commit 
+on production server when reloading the page 
+sometimes it says websocket isnt connected or something like that
+i didnt see that happening when using dev script 
+
+
+take care of these before each production build which is going to be used by end users:
+that problem of not rerendering comp when route chagnes from /foo/22 to /foo/33

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { Route, Routes, useParams } from "react-router-dom";
 import { ThingTimeline } from "./ThingTimeline";
 import { RawThing } from "./RawThing";

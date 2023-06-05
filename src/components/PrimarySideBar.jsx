@@ -51,6 +51,10 @@ function AddNewOptionRow() {
 					type: "unit/ask",
 					icon: <i className="bi-patch-question-fill text-white"></i>,
 				},
+				{
+					type: "unit/chat",
+					icon: <i className="bi-chat-dots-fill text-white" />,
+				},
 			].map((i) => (
 				<button
 					key={i.type}
@@ -83,6 +87,7 @@ function Option({ text, indent_level, url, type }) {
 					{type === "unit/resource" && <i className="bi-cloud-download-fill" />}
 					{type === "unit/ask" && <i className="bi-patch-question-fill" />}
 					{type === "unit/event" && <i className="bi-calendar4-event" />}
+					{type === "unit/chat" && <i className="bi-chat-dots-fill" />}
 				</>
 			</div>
 			<span>{text}</span>

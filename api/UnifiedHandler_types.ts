@@ -30,6 +30,7 @@ export type meta = {
 				modify_thing_privileges: number /* user_id */;
 				thing_id: number;
 				pack_id: null | number;
+				points_to: number;
 		  }
 		| {
 				file_privileges: { read: number[] | "*" };
@@ -37,6 +38,13 @@ export type meta = {
 				file_id: number;
 		  };
 };
+export interface unit_chat extends thing_base {
+	type: "unit/chat";
+	value: {
+		title: string;
+		description: string;
+	};
+}
 export interface unit_pack extends thing_base {
 	type: "unit/pack";
 	value: {
@@ -86,8 +94,7 @@ export interface message extends thing_base {
 	type: "message";
 	value: {
 		text: string;
-		unit_context: "packs" | "resources" | "events" | "notes" | "tasks" | "asks";
-		unit_id: number;
+		points_to: number /* thing_id  */;
 	};
 }
 export interface verification_code extends thing_base {
@@ -153,6 +160,7 @@ export interface calendar_category extends thing_base {
 	};
 }
 export type thing =
+	| unit_chat
 	| meta
 	| unit_pack
 	| unit_resource

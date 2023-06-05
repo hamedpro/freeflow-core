@@ -1,15 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-	custom_axios_download,
-	custom_delete,
-	leave_here,
-	update_document,
-} from "../../api/client";
+import { custom_axios_download, custom_delete } from "../../api/client";
 import { calc_units_tree } from "../../common_helpers.js";
 
-import { CollaboratorsManagementBox } from "./CollaboratorsManagementBox";
-import { MessagesBox } from "./MessagesBox";
 import { Section } from "./section";
 import { PackView } from "./PackView";
 import { Item, Menu, useContextMenu } from "react-contexify";

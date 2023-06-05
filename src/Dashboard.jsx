@@ -26,6 +26,7 @@ import { Asks } from "./components/Asks";
 import { NewAsk } from "./components/NewAsk";
 import { Ask } from "./components/Ask";
 import { Stage } from "./components/Stage";
+import { NewChat } from "./components/NewChat";
 
 export function Dashboard() {
 	var user_id = localStorage.getItem("user_id");
@@ -96,6 +97,7 @@ export function Dashboard() {
 						<Route path="tasks/new" element={<NewTask />} />
 
 						<Route path="events/new" element={<NewEvent />} />
+						<Route path="chats/new" element={<NewChat />} />
 
 						<Route path="asks/new" element={<NewAsk />} />
 
