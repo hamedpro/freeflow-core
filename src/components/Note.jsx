@@ -1,41 +1,34 @@
-import EditorJS from "@editorjs/editorjs";
-import Header from "@editorjs/header";
-import List from "@editorjs/list";
-import Table from "@editorjs/table";
-import Checklist from "@editorjs/checklist";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { custom_axios_download } from "../../api/client";
 
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 import { Item, Menu, useContextMenu } from "react-contexify";
+import { CustomEditorJs } from "./CustomEditorJs";
+
 export const Note = ({ cache_item }) => {
 	var nav = useNavigate();
-
 	var editor_js_instance = useRef();
-
 	var { show } = useContextMenu({
 		id: "options_context_menu",
 	});
 
 	const saveHandler = async () => {
-		editor_js_instance.current.save().then(async (output_data) => {
-			try {
-				await uhc.request_new_transaction({
-					new_thing_creator: (prev) => ({
-						...prev,
-						value: { ...prev.value, data: output_data },
-					}),
-					thing_id: cache_item.thing_id,
-				});
-			} catch (error) {
-				console.log(error);
-				alert(
-					"something went wrong when saving the new edited note data. details in console"
-				);
-			}
-		});
+		var data = await editor_js_instance.current.save();
+		try {
+			await uhc.request_new_transaction({
+				new_thing_creator: (prev) => ({
+					...prev,
+					value: { ...prev.value, data },
+				}),
+				thing_id: cache_item.thing_id,
+			});
+		} catch (error) {
+			console.log(error);
+			alert("something went wrong when saving the new edited note data. details in console");
+		}
+		alert("saved!");
 		/* 
       TODO: auto save : pass onChange prop to editor_js_configs before initializing and save changes in that onChange
       and also show an indicator which whenever the data changes it shows loading until the data changes is uploaded succeessfuly
@@ -68,52 +61,6 @@ export const Note = ({ cache_item }) => {
 		});
 		alert("done !");
 	}
-	useEffect(() => {
-		var editor_js_configs = {
-			holder: "editor-js-div",
-			tools: {
-				header: {
-					class: Header,
-					inlineToolbar: true,
-				},
-				list: {
-					class: List,
-					inlineToolbar: true,
-				},
-				table: {
-					class: Table,
-					inlineToolbar: true,
-				},
-				checklist: {
-					class: Checklist,
-					inlineToolbar: true,
-				},
-			},
-			logLevel: "ERROR",
-			onReady: () => {
-				//console.log("editor js initializing is done.");
-				//todo show this console.log like a notification or ... to user
-			},
-			defaultBlock: "header",
-			autofocus: true,
-			...(cache_item.thing.value.data ? { data: cache_item.thing.value.data } : {}),
-		};
-
-		editor_js_instance.current = new EditorJS(editor_js_configs);
-		/* todo correct this error : 
-			editor.js:2 addRange(): The given range isn't in document.
-			steps to reproduce :
-				open a note and wait a second 
-				click "open note commits" button and wait 
-				click browser back button and go back
-				it shows up there
-			*/
-	}, []);
-	useEffect(() => {
-		return () => {
-			//todo before component unmount call .destroy method of editor_js_instance
-		};
-	}, []);
 
 	async function export_unit_handler() {
 		alert("feature coming soon !");
@@ -164,7 +111,10 @@ export const Note = ({ cache_item }) => {
 				<h1>note title : {cache_item.thing.value.title}</h1>
 
 				<Section title="note content" className=" relative w-full overflow-hidden">
-					<div id="editor-js-div" className="px-4" style={{ minHeight: "200px" }}></div>
+					<CustomEditorJs
+						note_id={cache_item.thing_id}
+						pass_ref={(i) => (editor_js_instance.current = i)}
+					/>
 				</Section>
 
 				<StyledDiv className="w-fit m-2" onClick={saveHandler}>
