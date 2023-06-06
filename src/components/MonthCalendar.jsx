@@ -1,32 +1,26 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { custom_get_collection } from "../../api/client";
 import { custom_range } from "../../common_helpers.js";
 import "./MonthCalendarStyles.css";
-import { month_names, day_names ,get_months_days_count} from "../../common_helpers.js";
+import { month_names, day_names, get_months_days_count } from "../../common_helpers.js";
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 
-export const MonthCalendar = ({ }) => {
-	var {global_data,get_global_data} = useContext(GlobalDataContext)
-	var nav = useNavigate()
-	var [query_params,set_query_params] = useSearchParams()
-	var user_id = localStorage.getItem("user_id");
-	var [tasks, set_tasks] = useState(null);
-	async function get_data() {
-		set_tasks(
-			await custom_get_collection({
-				context: "tasks",
-				user_id,
-				global_data
-			})
-		);
-	}
-	useEffect(() => {
-		get_data;
-	}, []);
+export const MonthCalendar = () => {
+	var { cache } = useContext(UnifiedHandlerClientContext);
+	var nav = useNavigate();
+	var [query_params, set_query_params] = useSearchParams();
+	var tasks = cache.filter((i) => i.thing.type === "unit/task");
 	var dev_mode = false;
-	
-	var [selected_month, select_month] = useState(query_params.get('default') !== null ? query_params.get('default').split('-')[1] : month_names[new Date().getMonth()]);
-	var [selected_year, select_year] = useState(query_params.get('default') !== null ? Number(query_params.get('default').split('-')[0]) :new Date().getFullYear());
+	var [selected_month, select_month] = useState(
+		query_params.get("default") !== null
+			? query_params.get("default").split("-")[1]
+			: month_names[new Date().getMonth()]
+	);
+	var [selected_year, select_year] = useState(
+		query_params.get("default") !== null
+			? Number(query_params.get("default").split("-")[0])
+			: new Date().getFullYear()
+	);
 	function get_month_number(month_name) {
 		return month_names.indexOf(month_name) + 1;
 	}
@@ -38,13 +32,12 @@ export const MonthCalendar = ({ }) => {
 		return { end, start };
 	}
 	var filter_times = gen_start_and_end(selected_year, selected_month);
-	var filtered_tasks =
-		tasks !== null
-			? tasks.filter(
-					(task) =>
-						task.start_date > filter_times.start && task.end_date < filter_times.end
-			  )
-			: null;
+	var filtered_tasks = tasks.filter(
+		(task) =>
+			task.thing.value.start_date > filter_times.start &&
+			task.thing.value.end_date < filter_times.end
+	);
+
 	function calc_calnedar_parts() {
 		/* 
             this function will calc how many rows with 
@@ -60,6 +53,7 @@ export const MonthCalendar = ({ }) => {
 			1
 		).getDay();
 		var result = [[]];
+
 		var tmp = custom_range({
 			from: 1,
 			to: get_months_days_count(selected_year)[get_month_number(selected_month) - 1],
@@ -138,12 +132,20 @@ export const MonthCalendar = ({ }) => {
 						return (
 							<tr key={index}>
 								{calendar_part.map((day, index2) => {
-									return <td className="cursor-pointer" key={index2} onClick={() => {
-										if (day === null) return 
-										nav(
-											`/dashboard/calendar/day?default=${selected_year}-${selected_month}-${day}`
-										);
-									} }>{day !== null ? day : "-"}</td>;
+									return (
+										<td
+											className="cursor-pointer"
+											key={index2}
+											onClick={() => {
+												if (day === null) return;
+												nav(
+													`/dashboard/calendar/day?default=${selected_year}-${selected_month}-${day}`
+												);
+											}}
+										>
+											{day !== null ? day : "-"}
+										</td>
+									);
 								})}
 							</tr>
 						);

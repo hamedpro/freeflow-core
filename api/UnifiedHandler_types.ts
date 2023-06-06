@@ -83,8 +83,8 @@ export interface unit_task extends thing_base {
 export interface unit_event extends thing_base {
 	type: "unit/event";
 	value: {
-		end_time: number;
-		start_time: number;
+		end_date: number;
+		start_date: number;
 		title: string;
 		category_id?: number | null;
 		description?: string | null;

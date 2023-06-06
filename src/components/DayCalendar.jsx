@@ -13,22 +13,23 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
 
 import { DayCalendarTimeBar } from "./DayCalendarTimeBar";
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 ChartJS.register(ArcElement, Tooltip, Legend);
 function Analytics({ calendar_categories, day_tasks, day_events }) {
 	var day_tasks_percenatages = calendar_categories.map((cal_cat) => {
 		return {
-			name: cal_cat.name,
+			name: cal_cat.thing.value.name,
 			percent: Math.round(
 				(sum_array(
 					day_tasks
-						.filter((i) => i.category_id === cal_cat._id)
+						.filter((i) => i.thing.value.category_id === cal_cat.thing_id)
 						.map((i) => i.end_date - i.start_date)
 				) /
 					(3600 * 1000 * 24)) *
 					100
 			),
-			color: cal_cat.color,
-			category_id: cal_cat._id,
+			color: cal_cat.thing.value.color,
+			category_id: cal_cat.thing_id,
 		};
 	});
 	day_tasks_percenatages.push({
@@ -39,21 +40,22 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 	var day_events_percenatages = calendar_categories.map((cal_cat) => {
 		//it also includes done_tasks inside itself
 		return {
-			name: cal_cat.name,
+			name: cal_cat.thing.value.name,
 			percent: Math.round(
 				(sum_array(
 					[
-						...day_events.filter((i) => i.category_id === cal_cat._id),
+						...day_events.filter((i) => i.thing.value.category_id === cal_cat.thing_id),
 						...day_tasks.filter(
-							(i) => i.category_id === cal_cat._id && i.is_done === true
+							(i) =>
+								i.thing.value.category_id === cal_cat.thing_id && i.is_done === true
 						),
 					].map((i) => i.end_date - i.start_date)
 				) /
 					(3600 * 1000 * 24)) *
 					100
 			),
-			color: cal_cat.color,
-			category_id: cal_cat._id,
+			color: cal_cat.thing.value.color,
+			category_id: cal_cat.thing_id,
 		};
 	});
 	day_events_percenatages.push({
@@ -121,7 +123,7 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 					<div className="w-1/2">
 						<p>
 							you have defined {calendar_categories.length} calendar categories at
-							all. you had {day_events.length} events and $
+							all. you had {day_events.length} events and{" "}
 							{day_tasks.filter((i) => i.is_done === true).length} done tasks in this
 							day and they are from{" "}
 							{
@@ -159,7 +161,7 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 				) : (
 					<p>you have not defined any task in this day</p>
 				)}
-				<p>table</p>
+
 				<table>
 					<thead>
 						<tr>
@@ -169,29 +171,27 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 						</tr>
 					</thead>
 					<tbody>
-						{calendar_categories
-							.filter((i) => i.name !== "empty")
-							.map((cal_cat, index) => {
-								return (
-									<tr key={index}>
-										<td>{cal_cat.name}</td>
-										<td>
-											{
-												day_tasks_percenatages.find(
-													(i) => i.category_id === cal_cat._id
-												).percent
-											}
-										</td>
-										<td>
-											{
-												day_events_percenatages.find(
-													(i) => i.category_id === cal_cat._id
-												).percent
-											}
-										</td>
-									</tr>
-								);
-							})}
+						{calendar_categories.map((cal_cat, index) => {
+							return (
+								<tr key={cal_cat.thing_id}>
+									<td>{cal_cat.thing.value.name}</td>
+									<td>
+										{
+											day_tasks_percenatages.find(
+												(i) => i.category_id === cal_cat.thing_id
+											).percent
+										}
+									</td>
+									<td>
+										{
+											day_events_percenatages.find(
+												(i) => i.category_id === cal_cat.thing_id
+											).percent
+										}
+									</td>
+								</tr>
+							);
+						})}
 					</tbody>
 				</table>
 			</Section>
@@ -217,64 +217,30 @@ export const DayCalendar = () => {
 	var start_timestamp = new Date(year, month - 1, day).getTime();
 	var end_timestamp = start_timestamp + 3600 * 1000 * 24;
 
-	var user_id = localStorage.getItem("user_id");
-	var { global_data, get_global_data } = useContext(GlobalDataContext);
+	var { cache } = useContext(UnifiedHandlerClientContext);
 	var nav = useNavigate();
 
-	var tasks = global_data.user.tasks.map((task) => {
-		return {
-			...task,
-			human_readble_end_date: new Date(task.end_date).toString(),
-			human_readble_start_date: new Date(task.start_date).toString(),
-		};
-	});
-	var events = global_data.user.events.map((event) => {
-		return {
-			...event,
-			human_readble_end_date: new Date(event.end_date).toString(),
-			human_readble_start_date: new Date(event.start_date).toString(),
-		};
-	});
-	var calendar_categories = global_data.user.calendar_categories;
+	var tasks = cache.filter((i) => i.thing.type === "unit/task");
+	var events = cache.filter((i) => i.thing.type === "unit/event");
+	var calendar_categories = cache.filter((i) => i.thing.type === "calendar_category");
 
 	var day_tasks = timestamp_filled_range({
 		start: start_timestamp,
 		end: end_timestamp,
 		items: tasks,
-	})
-		.filter((i) => i.value !== null)
-		.map((i) => {
-			return {
-				...i,
-				human_readble_start_date: new Date(i.start_date).toString(),
-				human_readble_end_date: new Date(i.end_date).toString(),
-			};
-		});
+	}).filter((i) => i.value !== null);
 
 	var day_events = timestamp_filled_range({
 		start: start_timestamp,
 		end: end_timestamp,
 		items: events,
-	})
-		.filter((i) => i.value !== null)
-		.map((i) => {
-			return {
-				...i,
-				human_readble_start_date: new Date(i.start_date).toString(),
-				human_readble_end_date: new Date(i.end_date).toString(),
-			};
-		});
-
+	}).filter((i) => i.value !== null);
 	function open_item_page(item) {
 		if (item.value === null) {
 			alert("there is not any task or event where you clicked");
 			return;
 		}
-		if (item.type_label === "tasks") {
-			nav(`/dashboard/tasks/${item._id}`);
-		} else if (item.type_label) {
-			nav(`/dashboard/events/${item._id}`);
-		}
+		nav(`/dashboard/${item.thing_id}`);
 	}
 
 	return (
@@ -290,7 +256,7 @@ export const DayCalendar = () => {
 				tasks of this day :{" "}
 				{day_tasks.map((task) => {
 					return (
-						<Fragment key={task._id}>
+						<Fragment key={task.thing_id}>
 							<ObjectBox object={task} />
 						</Fragment>
 					);
@@ -300,7 +266,7 @@ export const DayCalendar = () => {
 				events of this day :{" "}
 				{day_events.map((event) => {
 					return (
-						<Fragment key={event._id}>
+						<Fragment key={event.thing_id}>
 							<ObjectBox object={event} />
 						</Fragment>
 					);
@@ -359,12 +325,12 @@ export const DayCalendar = () => {
 								/>
 								{[
 									{
-										items: JSON.parse(JSON.stringify(day_tasks)),
+										items: JSON.parse(JSON.stringify(tasks)),
 										...object,
 										type_label: "tasks",
 									},
 									{
-										items: JSON.parse(JSON.stringify(day_events)),
+										items: JSON.parse(JSON.stringify(events)),
 										...object,
 										type_label: "events",
 									},
@@ -395,10 +361,15 @@ export const DayCalendar = () => {
 																	item.value === null
 																		? "white"
 																		: calendar_categories.find(
-																				(i) =>
-																					i._id ==
-																					item.category_id
-																		  ).color,
+																				(i) => {
+																					return (
+																						i.thing_id ==
+																						item.thing
+																							.value
+																							.category_id
+																					);
+																				}
+																		  ).thing.value.color,
 																overflow: "hidden",
 																whiteSpace: "nowrap",
 																textOverflow: "ellipsis",
@@ -412,7 +383,9 @@ export const DayCalendar = () => {
 															} border-stone-400 flex justify-center items-center`}
 															onClick={() => open_item_page(item)}
 														>
-															{item.title}
+															{item.value !== null
+																? item.thing.value.title
+																: "-"}
 														</div>
 													);
 												})}

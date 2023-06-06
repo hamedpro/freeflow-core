@@ -10,8 +10,8 @@ export function is_there_any_conflict({ start, end, items }) {
 		start of the next one we do not consider it as a conflict 
 		(todo make sure this rule is respected everywhere)*/
 		items.filter((item) => {
-			var item_start = item.start_date;
-			var item_end = item.end_date;
+			var item_start = item.thing.value.start_date;
+			var item_end = item.thing.value.end_date;
 			var possible_conflicts = [
 				/* 	these are situations that if an
 					item has we undertand that it has
@@ -56,7 +56,6 @@ export function is_there_any_conflict({ start, end, items }) {
 			];
 			var conflicts = possible_conflicts.filter((i) => i.bool);
 			if (conflicts.length !== 0) {
-				//console.log(JSON.stringify({ item, situation: conflicts.map(i => i.situation) }))
 				return true;
 			} else {
 				return false;
@@ -206,20 +205,32 @@ export function timestamp_filled_range({ start, end, items }) {
 	//it cuts every part outside its range to fit items inside itself
 
 	let result = JSON.parse(JSON.stringify(items));
+
 	result = result
-		.sort((i1, i2) => i1.start_date - i2.start_date)
+		.sort((i1, i2) => i1.thing.value.start_date - i2.thing.value.start_date)
 		.filter((i) => is_there_any_conflict({ items: [i], start, end }));
+
 	if (result.length === 0) {
-		result = [
+		return [
 			{ value: null, start_date: start, end_date: end, start_percent: 0, end_percent: 100 },
 		];
-		return result;
 	}
+
+	result = result.map((i) => ({
+		...i,
+		start_date: i.thing.value.start_date,
+		end_date: i.thing.value.end_date,
+	}));
+	//console.log(JSON.parse(JSON.stringify(result)));
 	if (result[0].start_date !== start) {
 		if (result[0].start_date < start) {
 			result[0].start_date = start;
 		} else {
-			result.unshift({ value: null, start_date: start, end_date: result[0].start_date });
+			result.unshift({
+				value: null,
+				start_date: start,
+				end_date: result[0].start_date,
+			});
 		}
 	}
 	if (result.at(-1).end_date !== end) {
@@ -252,13 +263,16 @@ export function timestamp_filled_range({ start, end, items }) {
 		}
 	}
 	//adding percents for start and end dates
+	//console.log(result);
 	result = result.map((item) => {
 		return {
 			...item,
+
 			start_percent: ((item.start_date - start) / (end - start)) * 100,
 			end_percent: ((item.end_date - start) / (end - start)) * 100,
 		};
 	});
+	//console.log(result.some((i) => !i.end_date || !i.start_date));
 	return result;
 }
 export function sum_array(array) {
