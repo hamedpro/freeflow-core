@@ -11,23 +11,34 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 
 	var uhc = useRef(
 		new UnifiedHandlerClient(WEBSOCKET_API_ENDPOINT, RESTFUL_API_ENDPOINT, {
+			//todo maybe setstate not be defined yet
 			cache: () => {
 				setUnifiedHandlerClientContextState((prev) => ({
 					transactions: uhc.current.transactions,
 					cache: uhc.current.cache,
+					time_travel_snapshot: uhc.current.time_travel_snapshot,
 				}));
 			},
 			transactions: () => {
 				setUnifiedHandlerClientContextState((prev) => ({
 					transactions: uhc.current.transactions,
 					cache: uhc.current.cache,
+					time_travel_snapshot: uhc.current.time_travel_snapshot,
+				}));
+			},
+			time_travel_snapshot: () => {
+				setUnifiedHandlerClientContextState((prev) => ({
+					transactions: uhc.current.transactions,
+					cache: uhc.current.cache,
+					time_travel_snapshot: uhc.current.time_travel_snapshot,
 				}));
 			},
 		})
-	);
+	); 
 	var [UnifiedHandlerClientContextState, setUnifiedHandlerClientContextState] = useState({
 		transactions: uhc.current.transactions,
 		cache: uhc.current.cache,
+		time_travel_snapshot: uhc.current.time_travel_snapshot,
 	});
 	if (window.uhc === undefined) {
 		window.uhc = uhc.current;

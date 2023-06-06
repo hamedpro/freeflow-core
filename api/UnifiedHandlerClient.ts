@@ -1,5 +1,4 @@
 import jwtDecode from "jwt-decode";
-import { transaction } from "./UnifiedHandler_types";
 import { io } from "socket.io-client";
 import axios from "axios";
 import rdiff from "recursive-diff";
@@ -13,7 +12,11 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 	constructor(
 		websocket_api_endpoint: string,
 		restful_api_endpoint: string,
-		onChanges_functions: { transactions: () => void; cache: () => void }
+		onChanges_functions: {
+			transactions: () => void;
+			cache: () => void;
+			time_travel_snapshot: () => void;
+		}
 	) {
 		super();
 		this.onChanges = onChanges_functions;

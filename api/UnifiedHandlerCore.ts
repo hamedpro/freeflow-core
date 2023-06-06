@@ -33,22 +33,24 @@ export class UnifiedHandlerCore {
 
 	check_lock = check_lock;
 
-	onChanges: { transactions: () => void; cache: () => void } = {
+	onChanges: { transactions: () => void; cache: () => void; time_travel_snapshot: () => void } = {
 		transactions: () => {},
 		cache: () => {},
+		time_travel_snapshot: () => {},
 	};
 
 	time_travel_snapshot: number | undefined;
 
-	time_travel(snapshot: number) {
+	time_travel(snapshot: number | undefined) {
 		this.time_travel_snapshot = snapshot;
+		this.onChanges.time_travel_snapshot();
 		this.onChanges.cache();
 	}
 
 	transactions: transaction[] = [];
 
 	get cache(): cache_item[] {
-		return calc_cache(this.transactions, undefined);
+		return calc_cache(this.transactions, this.time_travel_snapshot);
 	}
 	get unresolved_cache() {
 		return calc_unresolved_cache(this.transactions, this.time_travel_snapshot);

@@ -2,7 +2,7 @@ import React from "react";
 import "./App.css";
 import "./output.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import { month_names } from "../common_helpers.js";
 import { Note } from "./components/Note";
 import { Task } from "./components/Task";
@@ -27,9 +27,11 @@ import { NewAsk } from "./components/NewAsk";
 import { Ask } from "./components/Ask";
 import { Stage } from "./components/Stage";
 import { NewChat } from "./components/NewChat";
+import { TimeMachine } from "./TimeMachine";
 
 export function Dashboard() {
-	var user_id = localStorage.getItem("user_id");
+	var user_id = uhc.user_id;
+	var nav = useNavigate();
 	return (
 		<div className="h-full w-full border-black-900 flex-col overflow-hidden">
 			<div className="w-full h-14 bg-blue-700 overflow-y-hidden flex items-center px-3 space-x-3">
@@ -54,7 +56,14 @@ export function Dashboard() {
 					</Link>
 				</div>
 				<div className="w-3/4 flex justify-between items-center h-full ">
-					<div className="h-full text-white flex items-center space-x-3">
+					<button
+						onClick={() => nav("/dashboard/time_machine")}
+						className="h-full text-white flex items-center space-x-2 hover:bg-blue-500 duration-300 px-2"
+					>
+						<i className="bi-clock-history" />
+						<b>time machine</b>
+					</button>
+					<div className="h-full text-white flex items-center space-x-2 hover:bg-blue-500 duration-300 px-2">
 						<i className="bi-calendar4"></i>
 						<div>
 							{new Date().getFullYear()} /{" "}
@@ -87,6 +96,7 @@ export function Dashboard() {
 						<Route path="/:thing_id/*" element={<Stage />} />
 
 						<Route path="packs/new" element={<NewPack />} />
+						<Route path="time_machine" element={<TimeMachine />} />
 
 						<Route path="settings" element={<UserSettings />} />
 
