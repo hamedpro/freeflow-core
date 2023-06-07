@@ -26,8 +26,6 @@ function App() {
 					<Route path="/login" element={<Login />} />
 					<Route path="/terms" element={<Terms />} />
 					<Route path="/subscribtion" element={<SubscribtionPage />} />
-
-					<Route path="/users/:user_id" element={<UserProfile />} />
 					<Route path="/dashboard/*" element={<Dashboard />}></Route>
 				</Routes>
 			</BrowserRouter>

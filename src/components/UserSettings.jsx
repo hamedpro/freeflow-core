@@ -1,55 +1,75 @@
 import React, { useContext } from "react";
-import { custom_axios, get_users, update_document } from "../../api/client";
 import { Section } from "./section";
 import Select from "react-select";
-
 import { StyledDiv } from "./styled_elements";
 import axios from "axios";
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 export const UserSettings = () => {
-	var { global_data, get_global_data } = useContext(GlobalDataContext);
-	var user_id = localStorage.getItem("user_id");
-	var user = get_users({ filters: { _id: user_id }, global_data })[0];
+	var { cache } = useContext(UnifiedHandlerClientContext);
+
+	var user_id = uhc.user_id;
+	var user = cache.find((i) => i.thing_id === user_id);
+	if (user === undefined) {
+		return `thing could not be found :${user_id}`;
+	}
+
+	var values = { ...user.thing.value.$user_private_data.value, ...user.thing.value };
+	var { calendar_type, week_starting_day, language } = values;
+
 	async function simple_update(key, new_value) {
-		var update_set = {};
-		update_set[key] = new_value;
-		await update_document({
-			collection: "users",
-			update_filter: {
-				_id: user_id,
-			},
-			update_set,
-		});
-		await get_global_data();
+		var user_private_data_thing_id = Number(
+			uhc.unresolved_cache
+				.find((i) => i.thing_id === user_id)
+				.thing.value.$user_private_data.split(":")[2]
+		);
+		if (
+			["calendar_type", "week_starting_day", "language", "mobile", "email_address"].includes(
+				key
+			)
+		) {
+			await uhc.request_new_transaction({
+				new_thing_creator: (prev) => ({
+					...prev,
+					value: { ...prev.value, [key]: new_value },
+				}),
+				thing_id: user_private_data_thing_id,
+			});
+		} else if (["username", "full_name"].includes(key)) {
+			await uhc.request_new_transaction({
+				new_thing_creator: (prev) => ({
+					...prev,
+					value: { ...prev.value, [key]: new_value },
+				}),
+				thing_id: user_id,
+			});
+		}
 	}
 	async function set_profile_picture() {
-		var files = document.getElementById("new_profile_image_input").files;
-		if (files.lenght === 0) {
+		var [file] = document.getElementById("new_profile_image_input").files;
+		if (!file) {
 			alert("first select an image");
 			return;
 		}
 		var f = new FormData();
-		f.append("file", files[0]);
+		f.append("file", file);
 		var profile_image_file_id = (
-			await axios({
-				baseURL: window.api_endpoint,
-				url: "/v2/files",
-				method: "post",
+			await uhc.configured_axios({
+				url: "/files",
 				data: f,
+				method: "post",
 			})
-		).data.file_id;
-		await update_document({
-			collection: "users",
-			update_filter: {
-				_id: user_id,
-			},
-			update_set: {
-				profile_image_file_id,
-			},
+		).data;
+		await uhc.request_new_transaction({
+			new_thing_creator: (prev) => ({
+				...prev,
+				value: { ...prev.value, profile_image_file_id },
+			}),
+			thing_id: user_id,
 		});
-
-		get_global_data();
 	}
 	async function import_exported_unit() {
+		alert("feature coming soon!");
+		return;
 		var files = document.getElementById("importing_exported_unit").files;
 		if (files.length !== 1) {
 			alert("Error : selected files count is invalid");
@@ -82,18 +102,19 @@ export const UserSettings = () => {
 
 		await get_global_data();
 	}
-	if (user === null) return <h1>loading user ... </h1>;
 	return (
 		<>
 			<div className="p-2">
 				<h1>UserSettings</h1>
 				<div style={{ width: "200px", height: "200px" }}>
-					{user.profile_image_file_id ? (
+					{user.thing.value.profile_image_file_id ? (
 						<img
 							src={
 								new URL(
-									`/v2/files/${user.profile_image_file_id}`,
-									window.api_endpoint
+									`/files/${
+										user.thing.value.profile_image_file_id
+									}?jwt=${localStorage.getItem("jwt")}`,
+									window.RESTFUL_API_ENDPOINT
 								).href
 							}
 							className="w-full h-full"
@@ -126,11 +147,8 @@ export const UserSettings = () => {
 						}),
 					]}
 					value={{
-						value: user.calendar_type,
-						label:
-							user.calendar_type === null
-								? "not chosen (use default )"
-								: user.calendar_type,
+						value: calendar_type || null,
+						label: !calendar_type ? "not chosen (use default )" : calendar_type,
 					}}
 				/>
 			</Section>
@@ -155,11 +173,8 @@ export const UserSettings = () => {
 						},
 					]}
 					value={{
-						value: user.week_starting_day,
-						label:
-							user.week_starting_day === null
-								? "not chosen (use default )"
-								: user.week_starting_day,
+						value: week_starting_day || null,
+						label: !week_starting_day ? "not chosen (use default )" : week_starting_day,
 					}}
 				/>
 			</Section>
@@ -172,8 +187,8 @@ export const UserSettings = () => {
 						{ value: "persian", label: "persian" },
 					]}
 					value={{
-						value: user.language,
-						label: user.language === null ? "not chosen (use default )" : user.language,
+						value: language || null,
+						label: !language ? "not chosen (use default )" : language,
 					}}
 				/>
 			</Section>
@@ -181,9 +196,9 @@ export const UserSettings = () => {
 				{["email_address", "mobile", "username", "full_name"].map((i, index) => {
 					return (
 						<div key={index} className="block">
-							{user[i] ? (
+							{values[i] ? (
 								<>
-									<span>{i}</span> : {user[i]}
+									<span>{i}</span> : {values[i]}
 								</>
 							) : (
 								<>

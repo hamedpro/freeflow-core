@@ -7,6 +7,7 @@ import { Task } from "./Task";
 import { Ask } from "./Ask";
 import { Chat } from "./Chat";
 import { MessagesBox } from "./MessagesBox";
+import UserProfile from "./UserProfile";
 
 const ThingPart1 = ({ thing_transactions, cache_item, cache }) => {
 	switch (cache_item.thing.type) {
@@ -30,6 +31,9 @@ const ThingPart1 = ({ thing_transactions, cache_item, cache }) => {
 			break;
 		case "unit/chat":
 			return <Chat cache_item={cache_item} />;
+			break;
+		case "user":
+			return <UserProfile cache_item={cache_item} />;
 			break;
 		default:
 			return "thing type is not supported!";

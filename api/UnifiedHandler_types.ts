@@ -129,7 +129,7 @@ export interface user_private_data extends thing_base {
 		mobile?: string | null;
 		email_address?: string | null;
 		password?: string | null;
-		profile_image_file_id?: number | null;
+
 		calendar_type?: "persian" | "arabic" | "english" | null;
 		week_starting_day?:
 			| "saturday"
@@ -143,7 +143,6 @@ export interface user_private_data extends thing_base {
 		language?: "english" | "persian";
 		email_is_verified?: boolean;
 		mobile_is_verified?: boolean;
-		full_name?: string;
 	};
 }
 export interface user extends thing_base {
@@ -151,6 +150,8 @@ export interface user extends thing_base {
 	value: {
 		$user_private_date: user_private_data;
 		username?: string;
+		profile_image_file_id?: number | null;
+		full_name?: string | null;
 	};
 }
 export interface calendar_category extends thing_base {

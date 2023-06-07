@@ -26,9 +26,16 @@ import {
 } from "./utils.js";
 function custom_express_jwt_middleware(jwt_secret: string) {
 	return (request: any, response: any, next: any) => {
-		if ("headers" in request && "jwt" in request.headers) {
+		if (("headers" in request && "jwt" in request.headers) || "jwt" in request.query) {
+			if (request.headers.jwt && request.query.jwt) {
+				response
+					.status(400)
+					.json("jwt is sent through request.query alongside with req headers");
+				return;
+			}
+			var jwt = request.headers.jwt || request.query.jwt;
 			try {
-				var payload = jwt_module.verify(request.headers.jwt, jwt_secret);
+				var payload = jwt_module.verify(jwt, jwt_secret);
 				if (typeof payload !== "string") {
 					response.locals.user_id = payload.user_id;
 					//todo disconnect websocket when jwt expires

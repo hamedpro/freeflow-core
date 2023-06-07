@@ -32,7 +32,7 @@ export function Dashboard() {
 							className="text-3xl bi-person-fill-gear hover:bg-blue-900 duration-300 rounded-lg p-1"
 						/>
 					</Link>
-					<Link to={`/users/${user_id}`}>
+					<Link to={`/dashboard/${user_id}`}>
 						<i
 							style={{ color: "white" }}
 							className="text-3xl bi-person-lines-fill hover:bg-blue-900 duration-300 rounded-lg p-1"

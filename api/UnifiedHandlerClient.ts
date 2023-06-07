@@ -12,14 +12,19 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 	constructor(
 		websocket_api_endpoint: string,
 		restful_api_endpoint: string,
-		onChanges_functions: {
-			transactions: () => void;
-			cache: () => void;
-			time_travel_snapshot: () => void;
-		}
+		onChanges_functions:
+			| {
+					transactions: () => void;
+					cache: () => void;
+					time_travel_snapshot: () => void;
+			  }
+			| undefined
 	) {
 		super();
-		this.onChanges = onChanges_functions;
+		if (onChanges_functions !== undefined) {
+			this.onChanges = onChanges_functions;
+		}
+
 		this.websocket_api_endpoint = websocket_api_endpoint;
 		this.restful_api_endpoint = restful_api_endpoint;
 		//console.log("a new uhclient is created ");
