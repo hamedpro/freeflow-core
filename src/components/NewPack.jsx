@@ -51,7 +51,7 @@ export const NewPack = () => {
 				}),
 			});
 			alert("all done!. navigating to newly created pack's page ...");
-			nav(`/dashboard/packs/${id_of_new_pack}`);
+			nav(`/dashboard/${id_of_new_pack}`);
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");

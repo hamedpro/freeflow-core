@@ -78,6 +78,7 @@ export interface unit_task extends thing_base {
 		title: string;
 		category_id?: number | null;
 		description: string;
+		steps: { title: string; description: string; percent: number; is_done: boolean }[];
 	};
 }
 export interface unit_event extends thing_base {

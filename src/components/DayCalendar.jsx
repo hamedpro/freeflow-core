@@ -45,10 +45,12 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 				(sum_array(
 					[
 						...day_events.filter((i) => i.thing.value.category_id === cal_cat.thing_id),
-						...day_tasks.filter(
-							(i) =>
-								i.thing.value.category_id === cal_cat.thing_id && i.is_done === true
-						),
+						...day_tasks.filter((i) => {
+							return (
+								i.thing.value.category_id === cal_cat.thing_id &&
+								i.thing.value.steps.every((step) => step.is_done === true)
+							);
+						}),
 					].map((i) => i.end_date - i.start_date)
 				) /
 					(3600 * 1000 * 24)) *
@@ -124,13 +126,21 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 						<p>
 							you have defined {calendar_categories.length} calendar categories at
 							all. you had {day_events.length} events and{" "}
-							{day_tasks.filter((i) => i.is_done === true).length} done tasks in this
-							day and they are from{" "}
+							{
+								day_tasks.filter((i) =>
+									i.thing.value.steps.every((step) => step.is_done === true)
+								).length
+							}{" "}
+							done tasks in this day and they are from{" "}
 							{
 								unique_items_of_array(
 									[
 										...day_events,
-										...day_tasks.filter((i) => i.is_done === true),
+										...day_tasks.filter((i) =>
+											i.thing.value.steps.every(
+												(step) => step.is_done === true
+											)
+										),
 									].map((i) => i.category_id)
 								).length
 							}{" "}
@@ -154,7 +164,10 @@ function Analytics({ calendar_categories, day_tasks, day_events }) {
 				{day_tasks.length !== 0 ? (
 					<p>
 						you have successfully turned{" "}
-						{(day_tasks.filter((i) => i.is_done === true).length / day_tasks.length) *
+						{(day_tasks.filter((i) =>
+							i.thing.value.steps.every((step) => step.is_done === true)
+						).length /
+							day_tasks.length) *
 							100}
 						% of today's tasks to events (it means marking them as done)
 					</p>

@@ -559,10 +559,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
 		this.transactions.push(transaction);
 
-		fs.writeFileSync(
-			this.store_file_absolute_path,
-			JSON.stringify(this.transactions, undefined, 4)
-		);
+		fs.writeFileSync(this.store_file_absolute_path, JSON.stringify(this.transactions));
 
 		this.onChanges.cache();
 		this.onChanges.transactions();

@@ -11,6 +11,7 @@ import { StyledDiv } from "./styled_elements";
 import { NewCalendarCategorySection } from "./NewCalendarCategorySection";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { PrivilegesEditor } from "./PrivilegesEditor";
+import { sum_array } from "../../common_helpers";
 //TODO: component re-renders
 export const NewTask = () => {
 	var { cache } = useContext(UnifiedHandlerClientContext);
@@ -31,13 +32,40 @@ export const NewTask = () => {
 	});
 
 	const [title_input, set_title_input] = useState("");
+	var [steps, set_steps] = useState([]);
 	const [description_input, set_description_input] = useState("");
 	//TODO: check _locale for possible option to output the _d(date) object in jalaali's format
 	const [selected_dates, set_selected_dates] = useState({
 		end: null,
 		start: null,
 	});
+	function add_new_step() {
+		var title = prompt("enter its title");
+		var description = prompt("enter its description");
+		var percent = prompt("enter its percent");
+		if (!percent || isNaN(Number(percent)) || Number(percent) > 100 || Number(percent) < 0) {
+			alert("percent must be a number between 0-100");
+			return;
+		}
+		set_steps((prev) => [
+			...prev,
+			{ title, description, percent: Number(percent), is_done: false },
+		]);
+	}
 	async function submit_new_task() {
+		if (steps.length === 0) {
+			alert("there must be at least a single step defined");
+			return;
+		}
+
+		if (sum_array(steps.map((i) => i.percent)) !== 100) {
+			alert("sum of percent of steps must be equal to 100");
+			return;
+		}
+		if (!selected_calendar_category) {
+			alert("you must choose a calendar category for this");
+			return;
+		}
 		try {
 			var new_task_id = await uhc.request_new_transaction({
 				new_thing_creator: () => ({
@@ -48,6 +76,7 @@ export const NewTask = () => {
 						title: title_input,
 						description: description_input,
 						category_id: selected_calendar_category.value,
+						steps,
 					},
 				}),
 				thing_id: undefined,
@@ -85,7 +114,25 @@ export const NewTask = () => {
 				onChange={(ev) => set_description_input(ev.target.value)}
 				rows={5}
 			/>
-
+			<table>
+				<thead>
+					<tr>
+						<th>title</th>
+						<th>description</th>
+						<th>percent</th>
+					</tr>
+				</thead>
+				<tbody>
+					{steps.map((step, index) => (
+						<tr key={index}>
+							<td>{step.title}</td>
+							<td>{step.description}</td>
+							<td>{step.percent}</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+			<button onClick={add_new_step}>add new step</button>
 			<h2 className="mt-2">select an existing calendar category or create a new one</h2>
 			<p>(if what you want was not in existing categories create it now in section below)</p>
 			<Select
