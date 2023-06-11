@@ -16,7 +16,7 @@ export type paths = string[];
 export type locks = {
 	path: string[];
 	value: number | undefined;
-}[]; /* it stores only existing locks */
+}[]; /* maybe it only contain existing locks */
 export type thing_privileges = {
 	read: number[] | "*";
 	write: number[] | "*";

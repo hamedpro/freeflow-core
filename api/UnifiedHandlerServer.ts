@@ -379,7 +379,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
 		var io = new Server(this.websocket_api_port, {
 			cors: {
-				origin: frontend_endpoint,
+				origin: "*",
 				methods: ["GET", "POST"],
 			},
 		});

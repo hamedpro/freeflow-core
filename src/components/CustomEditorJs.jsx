@@ -56,16 +56,20 @@ export class CustomEditorJs extends React.Component {
 		return this.context.cache.find((i) => i.thing_id === this.props.note_id).thing.value.data;
 	};
 	refresh_editor = async () => {
+		//todo maybe a js lock is required because this
+		//function may be called twice parallel
 		var tmp = uhc
 			.find_thing_meta(this.props.note_id)
-			.thing.value.locks.find((i) => i[0] == "data");
+			.thing.value.locks.find((i) => i.path[0] == "data");
 		await this.editor_js_instance.isReady;
-		//this.editor_js_instance.readOnly.toggle(tmp === undefined || tmp !== uhc.user_id);
 
+		//await this.editor_js_instance.readOnly.toggle(false);
+		await this.editor_js_instance.readOnly.toggle(
+			tmp?.value === undefined || tmp?.value !== uhc.user_id
+		);
 		this.editor_js_instance.clear();
-		if (this.find_note_data !== undefined) {
-			var tmp = this.find_note_data();
-			this.editor_js_instance.render(tmp);
+		if ((tmp = this.find_note_data())) {
+			await this.editor_js_instance.render(tmp);
 		}
 	};
 	componentDidMount() {

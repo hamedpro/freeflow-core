@@ -73,6 +73,34 @@ export const Note = ({ cache_item }) => {
 			),
 		});
 	}
+	var note_locks = uhc.find_thing_meta(cache_item.thing_id).thing.value.locks;
+	var note_data_lock = note_locks.find((i) => i.path[0] === "data");
+	async function lock_note_data_for_me() {
+		await uhc.request_new_transaction({
+			new_thing_creator: (prev) => ({
+				...prev,
+				value: {
+					...prev.value,
+					locks: [...prev.value.locks, { path: ["data"], value: uhc.user_id }],
+				},
+			}),
+			thing_id: uhc.find_thing_meta(cache_item.thing_id).thing_id,
+		});
+	}
+	async function release_note_data_lock() {
+		var new_locks = note_locks.filter((i) => i.path[0] !== "data");
+
+		await uhc.request_new_transaction({
+			new_thing_creator: (prev) => ({
+				...prev,
+				value: {
+					...prev.value,
+					locks: new_locks,
+				},
+			}),
+			thing_id: uhc.find_thing_meta(cache_item.thing_id).thing_id,
+		});
+	}
 	return (
 		<>
 			<Menu id="options_context_menu">
@@ -109,7 +137,20 @@ export const Note = ({ cache_item }) => {
 					</div>
 				)}
 				<h1>note title : {cache_item.thing.value.title}</h1>
-
+				<Section title="note data lock state">
+					state :{" "}
+					{note_data_lock?.value
+						? `is_locked_for ${note_data_lock.value}`
+						: "is not locked"}
+					<br />
+					{!note_data_lock?.value && (
+						<button onClick={lock_note_data_for_me}>lock for me(start_editing)</button>
+					)}
+					<br />
+					{note_data_lock?.value && note_data_lock.value === uhc.user_id && (
+						<button onClick={release_note_data_lock}>release lock</button>
+					)}
+				</Section>
 				<Section title="note content" className=" relative w-full overflow-hidden">
 					<CustomEditorJs
 						note_id={cache_item.thing_id}
