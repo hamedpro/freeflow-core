@@ -3,7 +3,7 @@
 
 clone this repositoty using this command:
 ```
-git clone https://github.com/hamedpro/pink_rose
+git clone https://github.com/hamedpro/freeflow
 ```
 
 then install a mongodb server on your system by following installation instruction provided on their website :
@@ -14,7 +14,7 @@ https://www.mongodb.com/docs/manual/installation/
 then go to this newly created directory and install npm dependencies using this command below :
 
 ```
-cd pink_rose;
+cd freeflow;
 npm install;
 ```
 then finally modify env.json file and set values whatever you want

@@ -4,7 +4,7 @@ import cors from "cors";
 import fs from "fs";
 import os from "os";
 var { frontend_port } = JSON.parse(
-	fs.readFileSync(path.join(os.homedir(), "./.pink_rose_data/env.json"), "utf8")
+	fs.readFileSync(path.join(os.homedir(), "./.freeflow_data/env.json"), "utf8")
 );
 var app = express();
 app.use(express.static("./dist"));

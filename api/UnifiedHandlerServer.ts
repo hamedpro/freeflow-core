@@ -64,34 +64,31 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 	websocket_api_port: number;
 	restful_api_port: number;
 	frontend_endpoint: string;
-	pink_rose_data_dir_absolute_path: string;
-	store_file_absolute_path: string;
-	env_json_file_absolute_path: string;
 
+	get absolute_paths(): {
+		data_dir: string;
+		uploads_dir: string;
+		store_file: string;
+		env_file: string;
+	} {
+		var tmp: any = { data_dir: path.join(os.homedir(), "./.freeflow_data") };
+		tmp.uploads_dir = path.join(tmp.data_dir, "./uploads");
+		tmp.store_file = path.join(tmp.data_dir, "./store.json");
+		tmp.env_file = path.join(tmp.data_dir, "./env.json");
+		return tmp;
+	}
 	constructor() {
 		super();
-		var pink_rose_data_dir_absolute_path = (this.pink_rose_data_dir_absolute_path = path.join(
-			os.homedir(),
-			"./.pink_rose_data"
-		));
 
-		mkdirSync(path.join(pink_rose_data_dir_absolute_path, "./uploads"), { recursive: true });
+		mkdirSync(this.absolute_paths.data_dir, { recursive: true });
 
-		var store_file_absolute_path = (this.store_file_absolute_path = path.join(
-			pink_rose_data_dir_absolute_path,
-			"./store.json"
-		));
-		if (fs.existsSync(store_file_absolute_path) !== true) {
-			fs.writeFileSync(store_file_absolute_path, JSON.stringify([], undefined, 4));
+		if (fs.existsSync(this.absolute_paths.store_file) !== true) {
+			fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify([], undefined, 4));
 		}
 
-		var env_json_file_absolute_path = (this.env_json_file_absolute_path = path.join(
-			pink_rose_data_dir_absolute_path,
-			"./env.json"
-		));
-		if (fs.existsSync(env_json_file_absolute_path) !== true) {
+		if (fs.existsSync(this.absolute_paths.env_file) !== true) {
 			console.log(
-				`env.json does not exist here : ${env_json_file_absolute_path}. create it with proper properties then try again`
+				`env.json does not exist here : ${this.absolute_paths.env_file}. create it with proper properties then try again`
 			);
 			exit();
 		}
@@ -106,14 +103,14 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			restful_api_port: number;
 			jwt_secret: string;
 			frontend_endpoint: string;
-		} = JSON.parse(fs.readFileSync(env_json_file_absolute_path, "utf-8"));
+		} = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
 
 		this.frontend_endpoint = frontend_endpoint;
 		this.jwt_secret = jwt_secret;
 		this.websocket_api_port = websocket_api_port;
 		this.restful_api_port = restful_api_port;
 
-		this.transactions = JSON.parse(fs.readFileSync(store_file_absolute_path, "utf-8"));
+		this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
 
 		this.onChanges.cache = this.onChanges.transactions = () => {
 			for (var i of this.authenticated_websocket_clients) {
@@ -282,11 +279,9 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					response.sendFile(
 						path.resolve(
 							path.join(
-								pink_rose_data_dir_absolute_path,
-								`./uploads/${fs
-									.readdirSync(
-										path.join(pink_rose_data_dir_absolute_path, "./uploads")
-									)
+								this.absolute_paths.uploads_dir,
+								`${fs
+									.readdirSync(this.absolute_paths.uploads_dir)
 									.find((i) => i.startsWith(request.params.file_id))}`
 							)
 						)
@@ -309,7 +304,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			}
 			var new_file_id = await new Promise((resolve, reject) => {
 				var f = formidable({
-					uploadDir: path.join(pink_rose_data_dir_absolute_path, "./uploads"),
+					uploadDir: path.join(this.absolute_paths.uploads_dir, "./uploads"),
 				});
 				f.parse(request, (err: any, fields: any, files: any) => {
 					if (err) {
@@ -321,7 +316,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 							(i) => i.thing.type === "meta" && "locks" in i.thing.value
 						).length + 1;
 					var new_file_path = path.resolve(
-						path.join(pink_rose_data_dir_absolute_path, "./uploads"),
+						path.join(this.absolute_paths.data_dir, "./uploads"),
 						`${tmp}-${files["file"].originalFilename}`
 					);
 
@@ -566,7 +561,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
 		this.transactions.push(transaction);
 
-		fs.writeFileSync(this.store_file_absolute_path, JSON.stringify(this.transactions));
+		fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
 
 		this.onChanges.cache();
 		this.onChanges.transactions();

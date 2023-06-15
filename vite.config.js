@@ -4,7 +4,7 @@ import fs from "fs"
 import os from "os";
 import path from "path";
 var { frontend_port, restful_api_endpoint, websocket_api_endpoint } = JSON.parse(
-	fs.readFileSync(path.join(os.homedir(), "./.pink_rose_data/env.json"), "utf-8")
+	fs.readFileSync(path.join(os.homedir(), "./.freeflow_data/env.json"), "utf-8")
 );
 //console.log({ frontend_port });
 // https://vitejs.dev/config/

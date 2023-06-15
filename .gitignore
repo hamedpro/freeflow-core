@@ -28,7 +28,6 @@ common-codes/.git
 tmp.txt
 nohup.out
 .env.backup
-pink_task_server.cjs
 .VSCodeCounter
 notesData.js
 api/task.ts
