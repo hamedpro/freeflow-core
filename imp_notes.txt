@@ -11,6 +11,7 @@ i didnt see that happening when using dev script
 
 take care of these before each production build which is going to be used by end users:
 that problem of not rerendering comp when route chagnes from /foo/22 to /foo/33
+async lock issue specially in UHServer 
 
 error : Unhandled Promise Rejection: TypeError: null is not an object (evaluating 'e3.blocks') editorjs:2
 when simply added a note (in webserver not local)

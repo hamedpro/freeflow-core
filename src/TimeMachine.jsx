@@ -28,23 +28,25 @@ export const TimeMachine = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{transactions.map((tr) => (
-						<tr key={tr.id}>
-							<td>{tr.id}</td>
-							<td className="break-all">{JSON.stringify(tr.diff)}</td>
-							<td>{tr.time}</td>
-							<td>{tr.user_id}</td>
-							<td>
-								<button onClick={() => uhc.time_travel(tr.id)}>
-									{tr.id === time_travel_snapshot ? (
-										<i className="bi-toggle-on" />
-									) : (
-										<i className="bi-toggle-off" />
-									)}
-								</button>
-							</td>
-						</tr>
-					))}
+					{transactions
+						.sort((i1, i2) => i1.id - i2.id)
+						.map((tr) => (
+							<tr key={tr.id}>
+								<td>{tr.id}</td>
+								<td className="break-all">{JSON.stringify(tr.diff)}</td>
+								<td>{tr.time}</td>
+								<td>{tr.user_id}</td>
+								<td>
+									<button onClick={() => uhc.time_travel(tr.id)}>
+										{tr.id === time_travel_snapshot ? (
+											<i className="bi-toggle-on" />
+										) : (
+											<i className="bi-toggle-off" />
+										)}
+									</button>
+								</td>
+							</tr>
+						))}
 				</tbody>
 			</table>
 		</div>

@@ -88,7 +88,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 	constructor() {
 		super();
 
-		mkdirSync(this.absolute_paths.data_dir, { recursive: true });
+		mkdirSync(this.absolute_paths.uploads_dir, { recursive: true });
 
 		if (fs.existsSync(this.absolute_paths.store_file) !== true) {
 			fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify([], undefined, 4));
@@ -328,19 +328,16 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				}
 				var new_file_id = await new Promise((resolve, reject) => {
 					var f = formidable({
-						uploadDir: path.join(this.absolute_paths.uploads_dir, "./uploads"),
+						uploadDir: path.resolve(this.absolute_paths.uploads_dir),
 					});
 					f.parse(request, (err: any, fields: any, files: any) => {
 						if (err) {
 							reject(err);
 							return;
 						}
-						var tmp =
-							this.cache.filter(
-								(i) => i.thing.type === "meta" && "locks" in i.thing.value
-							).length + 1;
+						var tmp = this.cache.length + 1;
 						var new_file_path = path.resolve(
-							path.join(this.absolute_paths.data_dir, "./uploads"),
+							this.absolute_paths.uploads_dir,
 							`${tmp}-${files["file"].originalFilename}`
 						);
 
@@ -527,7 +524,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				? {}
 				: this.unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
 
-		var new_thing = new_thing_creator(thing);
+		var new_thing = new_thing_creator(JSON.parse(JSON.stringify(thing)));
 		var transaction_diff = getDiff(thing, new_thing);
 		if (
 			new_thing.type === "meta" &&
@@ -585,7 +582,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		};
 
 		this.transactions.push(transaction);
-
+		console.log(JSON.stringify(this.transactions[0], undefined, 4));
 		fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
 
 		this.onChanges.cache();

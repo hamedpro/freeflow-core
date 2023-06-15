@@ -1,7 +1,9 @@
 import rdiff from "recursive-diff";
 import { unique_items_of_array } from "../common_helpers.js";
 import { cache, cache_item, locks, meta, thing, transaction } from "./UnifiedHandler_types.js";
-
+export function custom_deepcopy(value: any) {
+	return JSON.parse(JSON.stringify(value));
+}
 export function calc_all_paths(object: object) {
 	var results: string[][] = [];
 	function make_path(object: any, base: string[]) {
@@ -365,7 +367,7 @@ export function calc_unresolved_thing(
 	for (var transaction of transactions.filter(
 		(i) => i.thing_id === thing_id && (snapshot === undefined ? true : i.id <= snapshot)
 	)) {
-		rdiff.applyDiff(cache_item.thing, transaction.diff);
+		rdiff.applyDiff(cache_item.thing, custom_deepcopy(transaction.diff));
 	}
 	return cache_item;
 }
