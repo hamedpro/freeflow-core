@@ -6,6 +6,7 @@ import express from "express";
 import fs, { mkdirSync } from "fs";
 import os from "os";
 import rdiff from "recursive-diff";
+import AsyncLock from "async-lock";
 var { applyDiff, getDiff } = rdiff;
 
 import { Server, Socket } from "socket.io";
@@ -64,6 +65,13 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 	websocket_api_port: number;
 	restful_api_port: number;
 	frontend_endpoint: string;
+	lock = new AsyncLock();
+	gen_lock_safe_request_handler =
+		(func: (response: any, reject: any) => any) => async (request: any, response: any) =>
+			this.lock.acquire("restful_request", async (done) => {
+				await func(request, response);
+				done();
+			});
 
 	get absolute_paths(): {
 		data_dir: string;
@@ -123,97 +131,108 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		this.restful_express_app.use(custom_express_jwt_middleware(this.jwt_secret));
 		this.restful_express_app.post(
 			"/register",
-			async (
-				request: Express.Request & { body: { username: string; password: string } },
-				response: any
-			) => {
-				if (
-					this.cache
-						.filter((item: cache_item) => item.thing.type === "user")
-						.map((item: any) => item.thing.value.username)
-						.includes(request.body.username)
-				) {
-					response.status(400).json("username is taken");
-				} else {
-					var new_user_id = this.new_user(request.body.username, request.body.password);
+			this.gen_lock_safe_request_handler(
+				async (
+					request: Express.Request & { body: { username: string; password: string } },
+					response: any
+				) => {
+					if (
+						this.cache
+							.filter((item: cache_item) => item.thing.type === "user")
+							.map((item: any) => item.thing.value.username)
+							.includes(request.body.username)
+					) {
+						response.status(400).json("username is taken");
+					} else {
+						var new_user_id = this.new_user(
+							request.body.username,
+							request.body.password
+						);
 
-					response.json({ jwt: jwt_module.sign({ user_id: new_user_id }, jwt_secret) });
+						response.json({
+							jwt: jwt_module.sign({ user_id: new_user_id }, jwt_secret),
+						});
+					}
 				}
-			}
+			)
 		);
-		this.restful_express_app.post("/login", async (request: any, response: any) => {
-			var user_id = this.flexible_user_finder(request.body.identifier);
-			if (user_id === undefined) {
-				response.status(400).json("sent combination was not valid");
-				return;
-			}
-			if (request.body.login_mode === "verf_code_mode") {
-				var filtered_surface_cache: any = this.cache.filter((i: any) => {
-					return (
-						i.thing.type === "verification_code" && i.thing.value.user_id === user_id
-					);
-				});
-
-				if (filtered_surface_cache.length === 0) {
+		this.restful_express_app.post(
+			"/login",
+			this.gen_lock_safe_request_handler(async (request: any, response: any) => {
+				var user_id = this.flexible_user_finder(request.body.identifier);
+				if (user_id === undefined) {
 					response.status(400).json("sent combination was not valid");
 					return;
 				}
-				if (filtered_surface_cache[0].thing.value.value === request.body.value) {
-					this.new_transaction({
-						new_thing_creator: (thing: any) => ({
-							...thing,
-							value: {
-								...thing.value,
-								[thing.value.kind + "_is_verified"]: true,
-							},
-						}),
-
-						thing_id: user_id,
-
-						user_id: user_id,
+				if (request.body.login_mode === "verf_code_mode") {
+					var filtered_surface_cache: any = this.cache.filter((i: any) => {
+						return (
+							i.thing.type === "verification_code" &&
+							i.thing.value.user_id === user_id
+						);
 					});
-					/* todo new transaction must not repeat type = x when trying to update a thing 
+
+					if (filtered_surface_cache.length === 0) {
+						response.status(400).json("sent combination was not valid");
+						return;
+					}
+					if (filtered_surface_cache[0].thing.value.value === request.body.value) {
+						this.new_transaction({
+							new_thing_creator: (thing: any) => ({
+								...thing,
+								value: {
+									...thing.value,
+									[thing.value.kind + "_is_verified"]: true,
+								},
+							}),
+
+							thing_id: user_id,
+
+							user_id: user_id,
+						});
+						/* todo new transaction must not repeat type = x when trying to update a thing 
 					maybe type must be inside current value
 					*/
-					response.json({
-						jwt: jwt_module.sign(
-							{
-								user_id,
-								//exp: Math.round(new Date().getTime() / 1000 + 24 * 3600 * 3),
-							},
-							this.jwt_secret
-						),
-					});
-				} else {
-					response.status(400).json("sent combination was not valid.");
+						response.json({
+							jwt: jwt_module.sign(
+								{
+									user_id,
+									//exp: Math.round(new Date().getTime() / 1000 + 24 * 3600 * 3),
+								},
+								this.jwt_secret
+							),
+						});
+					} else {
+						response.status(400).json("sent combination was not valid.");
+					}
+				} else if (request.body.login_mode === "password_mode") {
+					var filtered_user_things: any = this.cache.filter(
+						(item) => item.thing_id === user_id
+					);
+					if (
+						request.body.value ===
+						filtered_user_things[0].thing.value.$user_private_data.value.password
+					) {
+						response.json({
+							jwt: jwt_module.sign(
+								{
+									user_id,
+								},
+								this.jwt_secret
+							),
+						});
+						return;
+					} else {
+						response.status(400).json("sent combination was not valid.");
+						return;
+					}
 				}
-			} else if (request.body.login_mode === "password_mode") {
-				var filtered_user_things: any = this.cache.filter(
-					(item) => item.thing_id === user_id
-				);
-				if (
-					request.body.value ===
-					filtered_user_things[0].thing.value.$user_private_data.value.password
-				) {
-					response.json({
-						jwt: jwt_module.sign(
-							{
-								user_id,
-							},
-							this.jwt_secret
-						),
-					});
-					return;
-				} else {
-					response.status(400).json("sent combination was not valid.");
-					return;
-				}
-			}
-		});
+			})
+		);
 
 		this.restful_express_app.post(
 			"/send_verification_code",
-			async (request: any, response: any) => {
+			this.gen_lock_safe_request_handler(async (request: any, response: any) => {
 				var user_id = this.flexible_user_finder(request.body.identifier);
 				if (user_id === undefined) {
 					response.json({});
@@ -256,91 +275,97 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				}
 				response.json("verification_code was sent");
 				return;
-			}
+			})
 		);
-		this.restful_express_app.get("/files/:file_id", async (request: any, response: any) => {
-			var assosiated_meta = this.cache.find(
-				(i) =>
-					i.thing.type === "meta" &&
-					"file_id" in i.thing.value &&
-					i.thing.value.file_id === Number(request.params.file_id)
-			);
-			if (
-				assosiated_meta !== undefined &&
-				"file_id" in assosiated_meta.thing.value &&
-				"file_privileges" in assosiated_meta.thing.value
-			) {
+		this.restful_express_app.get(
+			"/files/:file_id",
+			this.gen_lock_safe_request_handler(async (request: any, response: any) => {
+				var assosiated_meta = this.cache.find(
+					(i) =>
+						i.thing.type === "meta" &&
+						"file_id" in i.thing.value &&
+						i.thing.value.file_id === Number(request.params.file_id)
+				);
 				if (
-					assosiated_meta.thing.value.file_privileges.read === "*" ||
-					assosiated_meta.thing.value.file_privileges.read.includes(
-						response.locals.user_id
-					)
+					assosiated_meta !== undefined &&
+					"file_id" in assosiated_meta.thing.value &&
+					"file_privileges" in assosiated_meta.thing.value
 				) {
-					response.sendFile(
-						path.resolve(
-							path.join(
-								this.absolute_paths.uploads_dir,
-								`${fs
-									.readdirSync(this.absolute_paths.uploads_dir)
-									.find((i) => i.startsWith(request.params.file_id))}`
-							)
+					if (
+						assosiated_meta.thing.value.file_privileges.read === "*" ||
+						assosiated_meta.thing.value.file_privileges.read.includes(
+							response.locals.user_id
 						)
-					);
-				} else {
-					response.status(403).json("you have not access to that file ");
-				}
-			} else {
-				response.status(400).json("couldnt find assosiated meta for this file_id");
-			}
-		});
-		this.restful_express_app.post("/files", async (request, response) => {
-			//saves the file with key = "file" inside sent form inside ./uploads directory
-			//returns json : {file_id : string }
-			//saved file name + extension is {file_id}-{original file name with extension }
-
-			if (response.locals.user_id === undefined) {
-				response.status(403).json("jwt is not provided in request's headers");
-				return;
-			}
-			var new_file_id = await new Promise((resolve, reject) => {
-				var f = formidable({
-					uploadDir: path.join(this.absolute_paths.uploads_dir, "./uploads"),
-				});
-				f.parse(request, (err: any, fields: any, files: any) => {
-					if (err) {
-						reject(err);
-						return;
+					) {
+						response.sendFile(
+							path.resolve(
+								path.join(
+									this.absolute_paths.uploads_dir,
+									`${fs
+										.readdirSync(this.absolute_paths.uploads_dir)
+										.find((i) => i.startsWith(request.params.file_id))}`
+								)
+							)
+						);
+					} else {
+						response.status(403).json("you have not access to that file ");
 					}
-					var tmp =
-						this.cache.filter(
-							(i) => i.thing.type === "meta" && "locks" in i.thing.value
-						).length + 1;
-					var new_file_path = path.resolve(
-						path.join(this.absolute_paths.data_dir, "./uploads"),
-						`${tmp}-${files["file"].originalFilename}`
-					);
+				} else {
+					response.status(400).json("couldnt find assosiated meta for this file_id");
+				}
+			})
+		);
+		this.restful_express_app.post(
+			"/files",
+			this.gen_lock_safe_request_handler(async (request, response) => {
+				//saves the file with key = "file" inside sent form inside ./uploads directory
+				//returns json : {file_id : string }
+				//saved file name + extension is {file_id}-{original file name with extension }
 
-					fs.renameSync(files["file"].filepath, new_file_path);
-					resolve(tmp);
+				if (response.locals.user_id === undefined) {
+					response.status(403).json("jwt is not provided in request's headers");
 					return;
+				}
+				var new_file_id = await new Promise((resolve, reject) => {
+					var f = formidable({
+						uploadDir: path.join(this.absolute_paths.uploads_dir, "./uploads"),
+					});
+					f.parse(request, (err: any, fields: any, files: any) => {
+						if (err) {
+							reject(err);
+							return;
+						}
+						var tmp =
+							this.cache.filter(
+								(i) => i.thing.type === "meta" && "locks" in i.thing.value
+							).length + 1;
+						var new_file_path = path.resolve(
+							path.join(this.absolute_paths.data_dir, "./uploads"),
+							`${tmp}-${files["file"].originalFilename}`
+						);
+
+						fs.renameSync(files["file"].filepath, new_file_path);
+						resolve(tmp);
+						return;
+					});
 				});
-			});
-			this.new_transaction({
-				new_thing_creator: (prev) => ({
-					type: "meta",
-					value: {
-						file_id: new_file_id,
-						file_privileges: {
-							read: [response.locals.user_id],
+				this.new_transaction({
+					new_thing_creator: (prev) => ({
+						type: "meta",
+						value: {
+							file_id: new_file_id,
+							file_privileges: {
+								read: [response.locals.user_id],
+							},
+							modify_privileges: response.locals.user_id,
 						},
-						modify_privileges: response.locals.user_id,
-					},
-				}),
-				user_id: undefined,
-				thing_id: undefined,
-			});
-			response.json(new_file_id);
-		});
+					}),
+					user_id: undefined,
+					thing_id: undefined,
+				});
+				response.json(new_file_id);
+			})
+		);
 		this.restful_express_app.post("/new_transaction", (request, response) => {
 			if (!("user_id" in response.locals) || response.locals.user_id === undefined) {
 				response
