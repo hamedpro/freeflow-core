@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { DataGrid } from "@mui/x-data-grid";
 const ObjectBox = ({ object, link = null, onClick = () => {} }) => {
 	//onClick prop will be executed before navigating to the given link
 	var nav = useNavigate();
