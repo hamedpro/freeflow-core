@@ -36,6 +36,7 @@ export type meta = {
 				file_privileges: { read: number[] | "*" };
 				modify_privileges: number;
 				file_id: number;
+				file_mime_type: string /* todo : it may not be the exact meme type */;
 		  };
 };
 export interface unit_chat extends thing_base {

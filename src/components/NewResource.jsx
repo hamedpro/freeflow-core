@@ -51,6 +51,7 @@ export const NewResource = () => {
 						file_id,
 					},
 				}),
+				thing_id: undefined,
 			});
 			alert(`all done! navigating to this new uploaded resource ...`);
 			nav(`/dashboard/${new_resource_id}`);

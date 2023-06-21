@@ -326,7 +326,11 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					response.status(403).json("jwt is not provided in request's headers");
 					return;
 				}
-				var new_file_id = await new Promise((resolve, reject) => {
+				var { new_file_id, file_mime_type, originalFilename } = await new Promise<{
+					file_mime_type: string;
+					new_file_id: number;
+					originalFilename: string;
+				}>((resolve, reject) => {
 					var f = formidable({
 						uploadDir: path.resolve(this.absolute_paths.uploads_dir),
 					});
@@ -340,9 +344,12 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 							this.absolute_paths.uploads_dir,
 							`${tmp}-${files["file"].originalFilename}`
 						);
-
 						fs.renameSync(files["file"].filepath, new_file_path);
-						resolve(tmp);
+						resolve({
+							new_file_id: tmp,
+							file_mime_type: files["file"].mimetype,
+							originalFilename: files["file"].originalFilename,
+						});
 						return;
 					});
 				});
@@ -355,6 +362,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 								read: [response.locals.user_id],
 							},
 							modify_privileges: response.locals.user_id,
+							file_mime_type,
+							originalFilename,
 						},
 					}),
 					user_id: undefined,
@@ -582,7 +591,6 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		};
 
 		this.transactions.push(transaction);
-		console.log(JSON.stringify(this.transactions[0], undefined, 4));
 		fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
 
 		this.onChanges.cache();

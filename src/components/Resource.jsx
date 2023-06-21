@@ -4,6 +4,7 @@ import { custom_axios_download } from "../../api/client";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { StyledDiv } from "./styled_elements";
 import { Item, Menu, useContextMenu } from "react-contexify";
+import { CustomFileViewer } from "./CustomFileViewer";
 
 export const Resource = ({ cache_item }) => {
 	var nav = useNavigate();
@@ -66,18 +67,10 @@ export const Resource = ({ cache_item }) => {
 						<i className="bi-list text-lg" />{" "}
 					</button>
 				</div>
-				<StyledDiv
-					className="w-fit mt-2 mb-3"
-					onClick={() =>
-						custom_axios_download({
-							configured_axios: uhc.configured_axios,
-							url: `/files/${cache_item.thing.value.file_id}`,
-							file_name: cache_item.thing.value.title,
-						})
-					}
-				>
-					<i className="bi-cloud-download-fill" /> download this resource
-				</StyledDiv>
+				<CustomFileViewer
+					file_id={cache_item.thing.value.file_id}
+					download_file_name={cache_item.thing.value.title}
+				/>
 				<h1>resource title : {cache_item.thing.value.title}</h1>
 				<h1>resource description : {cache_item.thing.value.description}</h1>
 			</div>
