@@ -3,6 +3,7 @@ import React from "react";
 import { Section } from "./section";
 import { useNavigate } from "react-router-dom";
 import { custom_editorjs_to_jsx } from "../../jsx_helpers.jsx";
+import ObjectBox from "./ObjectBox";
 function PackViewNote({ cache_item }) {
 	var nav = useNavigate();
 
@@ -149,7 +150,7 @@ function PackViewItem({ cache_item }) {
 	} else if (cache_item.thing.type === "unit/note") {
 		return <PackViewNote cache_item={cache_item} />;
 	} else {
-		return <pre>{JSON.stringify(cache_item)}</pre>;
+		return <ObjectBox object={cache_item} />;
 	}
 }
 function GroupedPackView({ cache_items }) {

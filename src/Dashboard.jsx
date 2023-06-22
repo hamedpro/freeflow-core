@@ -1,7 +1,6 @@
 import React from "react";
 import "./App.css";
 import "./output.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import { month_names } from "../common_helpers.js";
 import { NewNote } from "./components/NewNote";

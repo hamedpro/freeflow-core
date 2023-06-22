@@ -1,12 +1,8 @@
+import { JsonViewer } from "@rich-data/viewer";
 import React from "react";
-import { useNavigate } from "react-router-dom";
-const ObjectBox = ({ object, link = null, onClick = () => {} }) => {
-	//onClick prop will be executed before navigating to the given link
-	var nav = useNavigate();
+const ObjectBox = ({ object }) => {
 	if (!object) return null;
-	return (
-		<pre className="overflow-auto break-all w-full">{JSON.stringify(object, undefined, 4)}</pre>
-	);
+	return <JsonViewer value={object} indentWidth={20} />;
 };
 
 export default ObjectBox;

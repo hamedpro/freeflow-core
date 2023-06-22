@@ -1,4 +1,5 @@
 import React from "react";
+import ObjectBox from "./ObjectBox";
 
 export const RawThingTimeline = ({ thing_transactions, cache_item, cache, transactions }) => {
 	var transactions_to_show = [
@@ -20,7 +21,7 @@ export const RawThingTimeline = ({ thing_transactions, cache_item, cache, transa
 			<p>thing_id : {cache_item.thing_id}</p>
 			{transactions_to_show.map((tr) => (
 				<div key={tr.id}>
-					<pre>{JSON.stringify(tr)}</pre>
+					<ObjectBox object={tr} />
 					<hr />
 				</div>
 			))}

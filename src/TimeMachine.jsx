@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
-
+import ObjectBox from "./components/ObjectBox";
 export const TimeMachine = () => {
 	var { transactions, time_travel_snapshot } = useContext(UnifiedHandlerClientContext);
 
@@ -33,7 +33,9 @@ export const TimeMachine = () => {
 						.map((tr) => (
 							<tr key={tr.id}>
 								<td>{tr.id}</td>
-								<td className="break-all">{JSON.stringify(tr.diff)}</td>
+								<td className="break-all">
+									<ObjectBox object={tr.diff} />{" "}
+								</td>
 								<td>{tr.time}</td>
 								<td>{tr.user_id}</td>
 								<td>
