@@ -4,7 +4,7 @@ import { Section } from "./section";
 import { custom_axios_download } from "../../api/client";
 function RenderedMode({ file_meta }) {
 	var t = file_meta.thing.value.file_mime_type;
-
+	console.log(file_meta.thing.value);
 	var l = new URL(
 		`/files/${file_meta.thing.value.file_id}?jwt=${localStorage.getItem("jwt")}`,
 		uhc.restful_api_endpoint
@@ -37,7 +37,10 @@ function ShortMode({ file_meta }) {
 }
 export const CustomFileViewer = ({ file_id, download_file_name }) => {
 	var { cache } = useContext(UnifiedHandlerClientContext);
-	var file_meta = cache.find((cache_item) => cache_item.thing.value.file_id === file_id);
+	var file_meta = cache.find(
+		(cache_item) =>
+			cache_item.thing.value.file_id === file_id && cache_item.thing.type === "meta"
+	);
 	if (file_meta === undefined) {
 		return "meta of this file couldn't be found.";
 	}

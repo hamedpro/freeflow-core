@@ -5,6 +5,7 @@ import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { StyledDiv } from "./styled_elements";
 import { Item, Menu, useContextMenu } from "react-contexify";
 import { CustomFileViewer } from "./CustomFileViewer";
+import { Section } from "./section";
 
 export const Resource = ({ cache_item }) => {
 	var nav = useNavigate();
@@ -42,7 +43,31 @@ export const Resource = ({ cache_item }) => {
 		});
 		alert("all done ");
 	}
+	async function change_source_file() {
+		var [file] = document.getElementById("change_source_file_input").files;
+		if (file === undefined) {
+			alert("a file must be chosen");
+			return;
+		}
+		var f = new FormData();
+		f.append("file", file);
+		var file_id = (
+			await uhc.configured_axios({
+				data: f,
+				url: "/files",
+				method: "post",
+			})
+		).data;
 
+		await uhc.request_new_transaction({
+			new_thing_creator: (prev) => ({
+				...prev,
+				value: { ...prev.value, file_id },
+			}),
+			thing_id: cache_item.thing_id,
+		});
+		alert(`all done!`);
+	}
 	return (
 		<>
 			<Menu id="options_context_menu">
@@ -73,6 +98,10 @@ export const Resource = ({ cache_item }) => {
 				/>
 				<h1>resource title : {cache_item.thing.value.title}</h1>
 				<h1>resource description : {cache_item.thing.value.description}</h1>
+				<Section title="change source file">
+					<input id="change_source_file_input" type="file" />
+					<button onClick={change_source_file}>apply change</button>
+				</Section>
 			</div>
 		</>
 	);

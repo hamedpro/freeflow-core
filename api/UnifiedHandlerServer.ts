@@ -552,7 +552,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			) !== true
 		) {
 			throw new Error(
-				"access denied. required privileges to insert new transaction were not met"
+				"access denied. required privileges to insert new transaction were not met" +
+					` user ${user_id} wanted to modify thing : ${thing_id || "undefined"}`
 			);
 		}
 

@@ -53,6 +53,20 @@ export const NewResource = () => {
 				}),
 				thing_id: undefined,
 			});
+			var new_meta_id = await uhc.request_new_transaction({
+				new_thing_creator: () => ({
+					type: "meta",
+					value: {
+						thing_privileges: privileges,
+						modify_thing_privileges: uhc.user_id,
+						locks: [],
+						thing_id: new_resource_id,
+						pack_id: selected_parent_pack.value,
+					},
+				}),
+				thing_id: undefined,
+			});
+			
 			alert(`all done! navigating to this new uploaded resource ...`);
 			nav(`/dashboard/${new_resource_id}`);
 		} catch (error) {
