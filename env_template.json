@@ -1,9 +1,9 @@
 {
-	"websocket_api_port": 4001,
-	"restful_api_port": 4000,
+	"websocket_api_port": 5002,
+	"restful_api_port": 5001,
 	"jwt_secret": "hamed405n437582345m9845mud2ojkldfj",
 	"frontend_endpoint": "http://localhost:5000",
 	"frontend_port": 5000,
-	"websocket_api_endpoint": "http://localhost:4001",
-	"restful_api_endpoint": "http://localhost:4000"
+	"websocket_api_endpoint": "http://localhost:5002",
+	"restful_api_endpoint": "http://localhost:5001"
 }

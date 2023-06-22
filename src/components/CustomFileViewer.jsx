@@ -4,7 +4,6 @@ import { Section } from "./section";
 import { custom_axios_download } from "../../api/client";
 function RenderedMode({ file_meta }) {
 	var t = file_meta.thing.value.file_mime_type;
-	console.log(file_meta.thing.value);
 	var l = new URL(
 		`/files/${file_meta.thing.value.file_id}?jwt=${localStorage.getItem("jwt")}`,
 		uhc.restful_api_endpoint
