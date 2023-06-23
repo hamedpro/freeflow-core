@@ -21,9 +21,6 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 						time_travel_snapshot: window.uhc.time_travel_snapshot,
 					}));
 				};
-		if (window.localStorage.getItem("jwt") !== null) {
-			window.uhc.auth();
-		}
 	}, []);
 
 	return (

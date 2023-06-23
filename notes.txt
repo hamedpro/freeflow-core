@@ -37,3 +37,5 @@ in unified handler server if auth is done twice nothing must go wrong
 
 during JSON stringifying something to send it through http it loses properties = undef 
 make sure it will not cause any problem when transfering or saving result of getDiff or ...
+
+take care of lock and task orders when working with websockets.

@@ -1,6 +1,7 @@
 import rdiff from "recursive-diff";
 import { unique_items_of_array } from "../common_helpers.js";
 import { cache, cache_item, locks, meta, thing, transaction } from "./UnifiedHandler_types.js";
+import jwtDecode from "jwt-decode";
 export function custom_deepcopy(value: any) {
 	return JSON.parse(JSON.stringify(value));
 }
@@ -396,4 +397,18 @@ export function simple_arrays_are_identical(
 		}
 	}
 	return true;
+}
+export function extract_user_id(jwt: string): number | null | undefined {
+	var decoded_jwt = jwtDecode(jwt);
+	if (decoded_jwt !== null && typeof decoded_jwt === "object" && "user_id" in decoded_jwt) {
+		var v = decoded_jwt.user_id;
+
+		if (typeof v === "number" || typeof v === "undefined" || v === null) {
+			return v;
+		} else {
+			throw "extracted user_id has an invalid type.";
+		}
+	} else {
+		throw "failed to get user_id from jwt token";
+	}
 }

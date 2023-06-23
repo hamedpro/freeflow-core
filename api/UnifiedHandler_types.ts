@@ -180,8 +180,19 @@ export interface cache_item {
 	thing: thing;
 }
 export type cache = cache_item[];
-export interface authenticated_websocket_client {
+export interface websocket_client {
 	socket: Socket;
-	user_id: number;
+	profiles_seed?: profile_seed[];
+	prev_profiles_seed?: profile_seed[];
 	last_synced_snapshot: number | undefined /*  a transaction_id  */;
 }
+export type profile_data = {
+	transactions: transaction[];
+};
+export type profile_seed = {
+	user_id: number;
+	jwt?: string;
+	is_active: boolean;
+};
+export type profile = profile_data & profile_seed;
+export type profiles = profile[];

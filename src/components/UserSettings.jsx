@@ -111,9 +111,9 @@ export const UserSettings = () => {
 						<img
 							src={
 								new URL(
-									`/files/${
-										user.thing.value.profile_image_file_id
-									}?jwt=${localStorage.getItem("jwt")}`,
+									`/files/${user.thing.value.profile_image_file_id}?${
+										jwt && "jwt=" + uhc.jwt
+									}`,
 									window.RESTFUL_API_ENDPOINT
 								).href
 							}

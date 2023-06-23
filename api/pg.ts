@@ -8,4 +8,4 @@ import path from "path";
 );
 console.log(JSON.stringify(calc_cache(trs, 4), undefined, 4));
  */
-console.log(calc_all_paths({ 12: { 13: { 14: undefined } } }));
+//console.log(calc_all_paths({ 12: { 13: { 14: undefined } } }));

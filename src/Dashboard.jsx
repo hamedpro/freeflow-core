@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import "./App.css";
 import "./output.css";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
@@ -17,21 +17,54 @@ import { NewAsk } from "./components/NewAsk";
 import { Stage } from "./components/Stage";
 import { NewChat } from "./components/NewChat";
 import { TimeMachine } from "./TimeMachine";
+import ReactDropdown from "react-dropdown";
+import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext";
+function ProfilesDropdown() {
+	var { profiles_seed, set_virtual_local_storage } = useContext(VirtualLocalStorageContext);
 
+	function select_profile(new_user_id) {
+		set_virtual_local_storage((prev) => ({
+			...prev,
+			profiles_seed: prev.profiles_seed.map((seed) => ({
+				...seed,
+				is_active: seed.user_id === new_user_id,
+			})),
+		}));
+	}
+	var dropdown_options = profiles_seed.map((profile) => ({
+		value: profile.user_id,
+		label: profile.user_id === null ? "ananymous" : `#${profile.user_id}`,
+		is_active: profile.is_active,
+	}));
+	return (
+		<ReactDropdown
+			options={dropdown_options}
+			value={dropdown_options.find((profile) => profile.is_active === true)}
+			onChange={(option) => select_profile(option.value)}
+		>
+			<i
+				style={{ color: "white" }}
+				className="text-3xl bi-person-fill-gear hover:bg-blue-900 duration-300 rounded-lg p-1"
+			/>
+		</ReactDropdown>
+	);
+}
 export function Dashboard() {
-	var user_id = uhc.user_id;
 	var nav = useNavigate();
+
 	return (
 		<div className="h-full w-full border-black-900 flex-col overflow-hidden">
-			<div className="w-full h-14 bg-blue-700 overflow-y-hidden flex items-center px-3 space-x-3">
-				<div className="w-1/4 flex space-x-2">
+			<div className="w-full h-14 bg-blue-600 flex items-center px-3 space-x-3">
+				<div className="w-fit flex space-x-2">
+					<ProfilesDropdown />
+
 					<Link to={`/dashboard/settings`}>
 						<i
 							style={{ color: "white" }}
 							className="text-3xl bi-person-fill-gear hover:bg-blue-900 duration-300 rounded-lg p-1"
 						/>
 					</Link>
-					<Link to={`/dashboard/${user_id}`}>
+					<Link to={`/dashboard/${uhc.user_id}`}>
 						<i
 							style={{ color: "white" }}
 							className="text-3xl bi-person-lines-fill hover:bg-blue-900 duration-300 rounded-lg p-1"
@@ -44,7 +77,7 @@ export function Dashboard() {
 						/>
 					</Link>
 				</div>
-				<div className="w-3/4 flex justify-between items-center h-full ">
+				<div className="w-full flex justify-between items-center h-full ">
 					<button
 						onClick={() => nav("/dashboard/time_machine")}
 						className="h-full text-white flex items-center space-x-2 hover:bg-blue-500 duration-300 px-2"
@@ -74,11 +107,11 @@ export function Dashboard() {
 				</div>
 			</div>
 			<div className="w-full flex" style={{ height: "92%" }}>
-				<div className=" bg-blue-600 overflow-y-auto h-full" style={{ width: "13rem" }}>
+				<div className=" bg-blue-500 overflow-y-auto h-full" style={{ width: "13rem" }}>
 					<PrimarySideBar />
 				</div>
 				<div
-					className=" bg-blue-400 h-full overflow-y-auto h-9/10"
+					className=" bg-blue-200 h-full overflow-y-auto h-9/10"
 					style={{ width: "calc(100% - 13rem)" }}
 				>
 					<Routes>

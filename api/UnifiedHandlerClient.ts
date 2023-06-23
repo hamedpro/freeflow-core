@@ -3,12 +3,15 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import rdiff from "recursive-diff";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore";
+import { profile, profile_seed } from "./UnifiedHandler_types";
 var { applyDiff } = rdiff;
 
 export class UnifiedHandlerClient extends UnifiedHandlerCore {
 	websocket: ReturnType<typeof io>;
 	websocket_api_endpoint: string;
 	restful_api_endpoint: string;
+	profiles_seed: profile_seed[] = [];
+	profiles: profile[] = [];
 	constructor(
 		websocket_api_endpoint: string,
 		restful_api_endpoint: string,
@@ -30,26 +33,20 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 		//console.log("a new uhclient is created ");
 
 		this.websocket = io(websocket_api_endpoint);
-		this.websocket.on("syncing_discoverable_transactions", (args: rdiff.rdiffResult[]) => {
-			applyDiff(this.transactions, args);
+		this.websocket.on("syncing_discoverable_transactions", (diff: rdiff.rdiffResult[]) => {
+			applyDiff(this.profiles, diff);
+
+			this.transactions = this.active_profile?.transactions || [];
+			console.log(this.transactions);
 			this.onChanges.transactions();
 		});
 	}
+
 	get jwt() {
-		return window.localStorage.getItem("jwt") ?? undefined;
+		return this.active_profile?.jwt;
 	}
-	get user_id(): number | undefined {
-		if (this.jwt === undefined) {
-			return undefined;
-		}
-		var decoded_jwt = jwtDecode(this.jwt);
-		if (decoded_jwt !== null && typeof decoded_jwt === "object" && "user_id" in decoded_jwt) {
-			if (typeof decoded_jwt.user_id === "number") {
-				return decoded_jwt.user_id;
-			}
-		} else {
-			throw "failed to get user_id from jwt token";
-		}
+	get active_profile() {
+		return this.profiles.find((profile) => profile.is_active);
 	}
 	get configured_axios(): ReturnType<typeof axios.create> {
 		return axios.create({
@@ -60,9 +57,10 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 		});
 	}
 
-	auth() {
-		this.websocket.emit("jwt", this.jwt);
+	sync_profiles() {
+		this.websocket.emit("sync_profiles", this.profiles_seed);
 	}
+
 	// todo when discoverable transactions are
 	// not fetched (at the first time) we must
 	// have it equal to undefined instead of []

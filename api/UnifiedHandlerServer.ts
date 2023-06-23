@@ -12,11 +12,14 @@ var { applyDiff, getDiff } = rdiff;
 import { Server, Socket } from "socket.io";
 import path from "path";
 import {
-	authenticated_websocket_client,
 	cache_item,
+	profile,
+	profile_seed,
+	profiles,
 	thing,
 	transaction,
 	user,
+	websocket_client,
 } from "./UnifiedHandler_types.js";
 import { exit } from "process";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
@@ -59,7 +62,7 @@ function gen_verification_code() {
 }
 
 export class UnifiedHandlerServer extends UnifiedHandlerCore {
-	authenticated_websocket_clients: authenticated_websocket_client[] = [];
+	websocket_clients: websocket_client[] = [];
 	restful_express_app: express.Express;
 	jwt_secret: string;
 	websocket_api_port: number;
@@ -121,7 +124,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
 
 		this.onChanges.cache = this.onChanges.transactions = () => {
-			for (var i of this.authenticated_websocket_clients) {
+			for (var i of this.websocket_clients) {
 				this.sync_websocket_client(i);
 			}
 		};
@@ -599,40 +602,65 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
 		return transaction.thing_id;
 	}
-
-	sync_websocket_client(websocket_client: authenticated_websocket_client) {
-		if (websocket_client.last_synced_snapshot === undefined) {
-			var diff_to_send = getDiff(
-				[],
-				this.calc_user_discoverable_transactions(websocket_client.user_id)
-			);
-			websocket_client.socket.emit("syncing_discoverable_transactions", diff_to_send);
-		} else {
-			var tmp: number = websocket_client.last_synced_snapshot;
-			var diff_to_send = getDiff(
-				this.calc_user_discoverable_transactions(websocket_client.user_id).filter(
-					(transaction) => transaction.id <= tmp
-				),
-				this.calc_user_discoverable_transactions(websocket_client.user_id)
-			);
-			websocket_client.socket.emit("syncing_discoverable_transactions", diff_to_send);
+	calc_profile(profile_seed: profile_seed, transaction_limit: number | undefined): profile {
+		return {
+			...profile_seed,
+			transactions: this.calc_user_discoverable_transactions(profile_seed.user_id).filter(
+				(tr) => {
+					if (transaction_limit === undefined) {
+						return true;
+					} else {
+						return tr.id <= transaction_limit;
+					}
+				}
+			),
+		};
+	}
+	sync_websocket_client(websocket_client: websocket_client) {
+		var prev: profiles = [];
+		if (websocket_client.prev_profiles_seed !== undefined) {
+			for (var profile_seed of websocket_client.prev_profiles_seed) {
+				prev.push(this.calc_profile(profile_seed, websocket_client.last_synced_snapshot));
+			}
 		}
+
+		var current: profiles = (websocket_client.profiles_seed || []).map((profile_seed) =>
+			this.calc_profile(profile_seed, undefined)
+		);
+
+		websocket_client.socket.emit("syncing_discoverable_transactions", getDiff(prev, current));
 	}
 	add_socket(socket: Socket) {
-		socket.on("jwt", (jwt: string) => {
+		var new_websocket_client: websocket_client = {
+			socket,
+			profiles_seed: [],
+			last_synced_snapshot: undefined,
+		};
+		this.websocket_clients.push(new_websocket_client);
+
+		socket.on("sync_profiles", (profiles: profiles) => {
 			try {
-				var decoded_jwt = jwt_module.verify(jwt, this.jwt_secret);
-				if (typeof decoded_jwt !== "string" /* this bool is always true */) {
-					var { user_id } = decoded_jwt;
-					var new_websocket_client: authenticated_websocket_client = {
-						socket,
-						user_id,
-						last_synced_snapshot: undefined,
-					};
-					this.authenticated_websocket_clients.push(new_websocket_client);
-					//sending all discoverable transactions to that user (in diff format)
-					this.sync_websocket_client(new_websocket_client);
+				for (var profile of profiles) {
+					if (typeof profile.jwt === "string") {
+						var decoded_jwt = jwt_module.verify(profile.jwt, this.jwt_secret);
+						if (typeof decoded_jwt !== "string" /* this bool is always true */) {
+							var { user_id } = decoded_jwt;
+							if (user_id !== profile.user_id) {
+								throw "jwt was verified but user id of profile does not match the user id inside the jwt";
+							}
+						}
+					}
 				}
+				var t = this.websocket_clients.find((cl) => cl.socket === socket);
+				if (t !== undefined) {
+					t.prev_profiles_seed = t.profiles_seed;
+					t.profiles_seed = profiles;
+				} else {
+					throw "freeflow internal error! tried to update profiles of a websocket which doest exist.";
+				}
+
+				//sending all discoverable transactions to that user (in diff format)
+				this.sync_websocket_client(new_websocket_client);
 			} catch (error) {
 				console.error(error);
 			}

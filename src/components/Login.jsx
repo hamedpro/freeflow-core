@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { extract_user_id } from "../../api_dist/api/utils";
+import { VirtualLocalStorageContext } from "../VirtualLocalStorageContext";
 export const Login = () => {
+	var { profiles_seed, set_virtual_local_storage } = useContext(VirtualLocalStorageContext);
 	var nav = useNavigate();
 	var [login_mode, set_login_mode] = useState(); // verf_code_mode or password_mode
 	async function login() {
@@ -22,10 +24,18 @@ export const Login = () => {
 					method: "post",
 				})
 			).data;
-			alert("auth was done. going to reload the app ");
-			localStorage.setItem("jwt", jwt);
+			alert("auth was done.");
+			var user_id = extract_user_id(jwt);
+			if (!profiles_seed.map((p_seed) => p_seed.user_id).includes(user_id)) {
+				set_virtual_local_storage((prev) => ({
+					...prev,
+					profiles_seed: [
+						...prev.profiles_seed.map((i) => ({ ...i, is_active: false })),
+						{ user_id, jwt, is_active: true },
+					],
+				}));
+			}
 			nav("/dashboard");
-			location.reload();
 		} catch (error) {
 			console.log(error);
 			alert("auth couldnt be done .");

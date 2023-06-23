@@ -3,6 +3,7 @@ import "./App.css";
 import "./output.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "@rich-data/viewer/theme/base.css";
+import "react-dropdown/style.css";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { multi_lang_helper as ml } from "../common_helpers.js";
 import { SubscribtionPage } from "./components/subscribtionPage";
@@ -14,22 +15,25 @@ import "react-contexify/ReactContexify.css";
 import { Dashboard } from "./Dashboard";
 import { UnifiedHandlerClientContextProvider } from "./UnifiedHandlerClientContextProvider";
 import { Login } from "./components/Login";
+import { VirtualLocalStorageContextProvider } from "./VirtualLocalStorageContextProvider";
 
 function App() {
 	window.ml = ml;
 
 	return (
 		<UnifiedHandlerClientContextProvider>
-			<BrowserRouter>
-				<Routes>
-					<Route path="/" element={<Root />} />
-					<Route path="/register" element={<Register />} />
-					<Route path="/login" element={<Login />} />
-					<Route path="/terms" element={<Terms />} />
-					<Route path="/subscribtion" element={<SubscribtionPage />} />
-					<Route path="/dashboard/*" element={<Dashboard />}></Route>
-				</Routes>
-			</BrowserRouter>
+			<VirtualLocalStorageContextProvider>
+				<BrowserRouter>
+					<Routes>
+						<Route path="/" element={<Root />} />
+						<Route path="/register" element={<Register />} />
+						<Route path="/login" element={<Login />} />
+						<Route path="/terms" element={<Terms />} />
+						<Route path="/subscribtion" element={<SubscribtionPage />} />
+						<Route path="/dashboard/*" element={<Dashboard />}></Route>
+					</Routes>
+				</BrowserRouter>
+			</VirtualLocalStorageContextProvider>
 		</UnifiedHandlerClientContextProvider>
 	);
 }

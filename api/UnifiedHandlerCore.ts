@@ -8,6 +8,7 @@ import {
 	check_lock,
 	new_transaction_privileges_check,
 	thing_transactions,
+	extract_user_id,
 } from "./utils.js";
 
 export class UnifiedHandlerCore {
@@ -30,7 +31,7 @@ export class UnifiedHandlerCore {
 		);
 	}
 	new_transaction_privileges_check = new_transaction_privileges_check;
-
+	extract_user_id = extract_user_id;
 	check_lock = check_lock;
 
 	onChanges: { transactions: () => void; cache: () => void; time_travel_snapshot: () => void } = {

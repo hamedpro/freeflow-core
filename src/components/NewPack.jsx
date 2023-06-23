@@ -23,7 +23,7 @@ export const NewPack = () => {
 	}
 	var [selected_parent_pack, set_selected_parent_pack] = useState(default_selected_parent_pack);
 
-	var { user_id } = jwtDecode(localStorage.getItem("jwt"));
+	var { user_id } = uhc.active_profile.user_id;
 	var nav = useNavigate();
 
 	async function submit_new_pack() {
