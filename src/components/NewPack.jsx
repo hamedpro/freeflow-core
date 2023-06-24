@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Select from "react-select";
@@ -9,7 +9,7 @@ import { CreateMore } from "./CreateMore";
 export const NewPack = () => {
 	var [create_more, set_create_more] = useState();
 	var { cache } = useContext(UnifiedHandlerClientContext);
-	var [search_params] = useSearchParams();
+	var [search_params, set_search_params] = useSearchParams();
 	var [privileges, set_privileges] = useState();
 	/* if pack_id is present in url query we set default option of parent pack select to that  */
 	var pack_id = Number(search_params.get("pack_id"));
@@ -26,7 +26,18 @@ export const NewPack = () => {
 
 	var user_id = uhc.user_id;
 	var nav = useNavigate();
-
+	function select_parent_pack(value) {
+		set_selected_parent_pack(value);
+		set_search_params((prev) => {
+			var t = {};
+			for (var key of prev.keys()) {
+				t[key] = prev.get(key);
+				// todo it doesnt cover when there is
+				//more than a single value with that key
+			}
+			return { ...t, pack_id: value.value };
+		});
+	}
 	async function submit_new_pack() {
 		var title = document.getElementById("title").value;
 		var description = document.getElementById("description").value;
@@ -77,7 +88,7 @@ export const NewPack = () => {
 			<PrivilegesEditor onChange={set_privileges} />
 			<h1 className="mt-2">choose a parent pack for this pack if you want:</h1>
 			<Select
-				onChange={set_selected_parent_pack}
+				onChange={select_parent_pack}
 				value={selected_parent_pack}
 				options={[
 					{ label: "without a parent", value: null },

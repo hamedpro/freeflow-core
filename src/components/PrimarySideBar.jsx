@@ -1,25 +1,35 @@
 import React, { useContext } from "react";
-import { useMatch, useNavigate } from "react-router-dom";
-import { calc_units_tree, find_unit_parents } from "../../common_helpers";
+import { useMatch, useNavigate, useSearchParams } from "react-router-dom";
+import { calc_units_tree } from "../../common_helpers";
+import { find_unit_parents } from "../../api_dist/api/utils";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 
 function AddNewOptionRow() {
+	var [search_params, set_search_params] = useSearchParams();
 	var nav = useNavigate();
 	var { cache } = useContext(UnifiedHandlerClientContext);
 	function onclick_handler(type) {
 		var { pathname } = window.location;
-		var my_regex = /(?:\/)*dashboard\/(?<thing_id>[0-9]+).*$/g;
-		var tmp = my_regex.exec(pathname);
-		if (tmp) {
-			var pack_id =
-				cache.find((i) => i.thing_id === Number(tmp.groups.thing_id)).thing.type ===
-				"unit/pack"
-					? Number(tmp.groups.thing_id)
-					: find_unit_parents(cache, Number(tmp.groups.thing_id))[0];
+
+		var regex1 = /(?:\/)*dashboard\/(?<thing_id>[0-9]+).*$/g;
+		var regex_result = regex1.exec(pathname);
+		var pack_id;
+		if (regex_result) {
+			if (
+				cache.find((i) => i.thing_id === Number(regex_result.groups.thing_id)).thing
+					.type === "unit/pack"
+			) {
+				var pack_id = Number(regex_result.groups.thing_id);
+			} else {
+				var pack_id = find_unit_parents(cache, Number(regex_result.groups.thing_id))[0];
+			}
+
 			nav(
 				`/dashboard/${type.split("/")[1] + "s"}/new` +
 					(pack_id ? `?pack_id=${pack_id}` : "")
 			);
+		} else if ((pack_id = search_params.get("pack_id"))) {
+			nav(`/dashboard/${type.split("/")[1] + "s"}/new` + `?pack_id=${pack_id}`);
 		} else {
 			nav(`/dashboard/${type.split("/")[1] + "s"}/new`);
 		}
@@ -67,9 +77,10 @@ function AddNewOptionRow() {
 		</div>
 	);
 }
-function Option({ text, indent_level, url, type }) {
+function Option({ text, indent_level, url, type, thing_id }) {
+	var [search_params, set_search_params] = useSearchParams();
 	var nav = useNavigate();
-	var is_selected = useMatch(url);
+	var is_selected = useMatch(url) || Number(search_params.get("pack_id")) === thing_id;
 	return (
 		<div
 			className={[

@@ -20,6 +20,7 @@ import { TimeMachine } from "./TimeMachine";
 import ReactDropdown from "react-dropdown";
 import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext";
 import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
+import { CheckDefaultParentPack } from "./components/CheckDefaultParentPack";
 function ProfilesDropdown() {
 	var { profiles_seed, set_virtual_local_storage } = useContext(VirtualLocalStorageContext);
 	var { cache } = useContext(UnifiedHandlerClientContext);
@@ -132,21 +133,42 @@ export function Dashboard() {
 					<Routes>
 						<Route path="/:thing_id/*" element={<Stage />} />
 
-						<Route path="packs/new" element={<NewPack />} />
 						<Route path="time_machine" element={<TimeMachine />} />
 
 						<Route path="settings" element={<UserSettings />} />
 
-						<Route path="resources/new" element={<NewResource />} />
+						<Route
+							path="packs/new"
+							element={<CheckDefaultParentPack children={<NewPack />} />}
+						/>
+						<Route
+							path="resources/new"
+							element={<CheckDefaultParentPack children={<NewResource />} />}
+						/>
 
-						<Route path="notes/new" element={<NewNote />} />
+						<Route
+							path="notes/new"
+							element={<CheckDefaultParentPack children={<NewNote />} />}
+						/>
 
-						<Route path="tasks/new" element={<NewTask />} />
+						<Route
+							path="tasks/new"
+							element={<CheckDefaultParentPack children={<NewTask />} />}
+						/>
 
-						<Route path="events/new" element={<NewEvent />} />
-						<Route path="chats/new" element={<NewChat />} />
+						<Route
+							path="events/new"
+							element={<CheckDefaultParentPack children={<NewEvent />} />}
+						/>
+						<Route
+							path="chats/new"
+							element={<CheckDefaultParentPack children={<NewChat />} />}
+						/>
 
-						<Route path="asks/new" element={<NewAsk />} />
+						<Route
+							path="asks/new"
+							element={<CheckDefaultParentPack children={<NewAsk />} />}
+						/>
 
 						<Route path="calendar">
 							<Route path="month" element={<MonthCalendar />} />

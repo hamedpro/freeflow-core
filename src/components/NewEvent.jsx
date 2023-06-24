@@ -22,7 +22,7 @@ export const NewEvent = () => {
 	var calendar_categories = cache.filter((i) => i.thing.type === "calendar_category");
 	var [selected_dates, set_selected_dates] = useState({ end: null, start: null });
 	var [privileges, set_privileges] = useState();
-	var [search_params] = useSearchParams();
+	var [search_params, set_search_params] = useSearchParams();
 	var [selected_parent_pack, set_selected_parent_pack] = useState(() => {
 		var pack_id = Number(search_params.get("pack_id"));
 		if (pack_id) {
@@ -35,6 +35,18 @@ export const NewEvent = () => {
 			return { value: null, label: "without a parent pack" };
 		}
 	});
+	function select_parent_pack(value) {
+		set_selected_parent_pack(value);
+		set_search_params((prev) => {
+			var t = {};
+			for (var key of prev.keys()) {
+				t[key] = prev.get(key);
+				// todo it doesnt cover when there is
+				//more than a single value with that key
+			}
+			return { ...t, pack_id: value.value };
+		});
+	}
 	var submit_new_event = async () => {
 		try {
 			var new_event = {
@@ -122,7 +134,7 @@ export const NewEvent = () => {
 			<PrivilegesEditor onChange={set_privileges} />
 			<h1 className="mt-2">select a parent pack for this ask if you want :</h1>
 			<Select
-				onChange={set_selected_parent_pack}
+				onChange={select_parent_pack}
 				value={selected_parent_pack}
 				options={[
 					{ value: null, label: "without a parent pack " },

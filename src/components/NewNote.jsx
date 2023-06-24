@@ -8,12 +8,23 @@ import { PrivilegesEditor } from "./PrivilegesEditor";
 import { CreateMore } from "./CreateMore";
 export const NewNote = () => {
 	var [create_more, set_create_more] = useState();
-
+	function select_parent_pack(value) {
+		set_selected_parent_pack(value);
+		set_search_params((prev) => {
+			var t = {};
+			for (var key of prev.keys()) {
+				t[key] = prev.get(key);
+				// todo it doesnt cover when there is
+				//more than a single value with that key
+			}
+			return { ...t, pack_id: value.value };
+		});
+	}
 	var [privileges, set_privileges] = useState();
 	var nav = useNavigate();
 	var { cache } = useContext(UnifiedHandlerClientContext);
 
-	var [search_params] = useSearchParams();
+	var [search_params, set_search_params] = useSearchParams();
 	var [selected_parent_pack, set_selected_parent_pack] = useState(() => {
 		var pack_id = Number(search_params.get("pack_id"));
 		if (pack_id) {
@@ -70,7 +81,7 @@ export const NewNote = () => {
 			<PrivilegesEditor onChange={set_privileges} />
 			<h1 className="mt-2">select a parent pack for this note if you want :</h1>
 			<Select
-				onChange={set_selected_parent_pack}
+				onChange={select_parent_pack}
 				value={selected_parent_pack}
 				options={[
 					{ value: null, label: "without a parent pack " },

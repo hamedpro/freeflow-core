@@ -365,14 +365,7 @@ export function gen_thing_link(cache, thing_id) {
 		}
 	}
 }
-export function find_unit_parents(cache, thing_id) {
-	var parents = []; // it is sorted from nearest parent to farthest
-	var search_cursor = thing_id;
-	while ((search_cursor = cache.find((i) => i.thing_id === search_cursor).thing.value.pack_id)) {
-		parents.push(search_cursor);
-	}
-	return parents;
-}
+
 export function slice_object(object, ...fields) {
 	var tmp = {};
 	fields.forEach((field) => (tmp[field] = object[field]));

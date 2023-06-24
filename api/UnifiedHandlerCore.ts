@@ -9,6 +9,7 @@ import {
 	new_transaction_privileges_check,
 	thing_transactions,
 	extract_user_id,
+	find_thing_meta,
 } from "./utils.js";
 
 export class UnifiedHandlerCore {
@@ -22,14 +23,7 @@ export class UnifiedHandlerCore {
 		this.calc_user_discoverable_things(user_id)
 			.map((thing_id) => this.thing_transactions(thing_id))
 			.flat();
-	find_thing_meta(thing_id: number) {
-		return this.cache.find(
-			(i) =>
-				i.thing.type === "meta" &&
-				"thing_id" in i.thing.value &&
-				i.thing.value.thing_id === thing_id
-		);
-	}
+	find_thing_meta = (thing_id: number) => find_thing_meta(this.cache, thing_id);
 	new_transaction_privileges_check = new_transaction_privileges_check;
 	extract_user_id = extract_user_id;
 	check_lock = check_lock;

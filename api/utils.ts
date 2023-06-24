@@ -398,3 +398,25 @@ export function extract_user_id(jwt: string): number {
 		throw "failed to get user_id from jwt token";
 	}
 }
+export function find_thing_meta(cache: cache, thing_id: number) {
+	return cache.find(
+		(i) =>
+			i.thing.type === "meta" &&
+			"thing_id" in i.thing.value &&
+			i.thing.value.thing_id === thing_id
+	);
+}
+export function find_unit_parents(cache: cache, thing_id: number) {
+	var parents = []; // it is sorted from nearest parent to farthest
+	var search_cursor = thing_id;
+	while (true) {
+		var t = find_thing_meta(cache, search_cursor);
+		if (t !== undefined && "pack_id" in t.thing.value && t.thing.value.pack_id) {
+			search_cursor = t.thing.value.pack_id;
+			parents.push(search_cursor);
+		} else {
+			break;
+		}
+	}
+	return parents;
+}
