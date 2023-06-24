@@ -98,8 +98,17 @@ export function MessagesBox({ thing_id }) {
 								<i className="bi-three-dots" />
 							</StyledDiv>
 							<p className="text-xs">
-								@
-								{cache.find((i) => i.thing_id === uhc.user_id).thing.value.username}{" "}
+								{uhc.find_first_transaction(cache_item.thing_id).user_id !== 0
+									? uhc.find_first_transaction(cache_item.thing_id).user_id === -1
+										? "(system)"
+										: "@" +
+										  cache.find(
+												(i) =>
+													i.thing_id ===
+													uhc.find_first_transaction(cache_item.thing_id)
+														.user_id
+										  ).thing.value.username
+									: "(anonymous)"}{" "}
 								|{" "}
 								{new Date(
 									uhc.find_first_transaction(cache_item.thing_id).time

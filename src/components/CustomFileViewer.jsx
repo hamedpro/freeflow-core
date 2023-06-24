@@ -5,7 +5,7 @@ import { custom_axios_download } from "../../api/client";
 function RenderedMode({ file_meta }) {
 	var t = file_meta.thing.value.file_mime_type;
 	var l = new URL(
-		`/files/${file_meta.thing.value.file_id}?${jwt && "jwt=" + uhc.jwt}`,
+		`/files/${file_meta.thing.value.file_id}?${uhc.jwt && "jwt=" + uhc.jwt}`,
 		uhc.restful_api_endpoint
 	).href;
 	if (t.startsWith("audio/")) {

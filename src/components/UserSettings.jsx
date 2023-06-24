@@ -112,7 +112,7 @@ export const UserSettings = () => {
 							src={
 								new URL(
 									`/files/${user.thing.value.profile_image_file_id}?${
-										jwt && "jwt=" + uhc.jwt
+										uhc.jwt && "jwt=" + uhc.jwt
 									}`,
 									window.RESTFUL_API_ENDPOINT
 								).href

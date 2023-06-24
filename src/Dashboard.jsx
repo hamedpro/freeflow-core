@@ -19,9 +19,10 @@ import { NewChat } from "./components/NewChat";
 import { TimeMachine } from "./TimeMachine";
 import ReactDropdown from "react-dropdown";
 import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext";
+import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
 function ProfilesDropdown() {
 	var { profiles_seed, set_virtual_local_storage } = useContext(VirtualLocalStorageContext);
-
+	var { cache } = useContext(UnifiedHandlerClientContext);
 	function select_profile(new_user_id) {
 		set_virtual_local_storage((prev) => ({
 			...prev,
@@ -31,11 +32,25 @@ function ProfilesDropdown() {
 			})),
 		}));
 	}
-	var dropdown_options = profiles_seed.map((profile) => ({
-		value: profile.user_id,
-		label: profile.user_id === null ? "ananymous" : `#${profile.user_id}`,
-		is_active: profile.is_active,
-	}));
+	var dropdown_options = profiles_seed.map((profile) => {
+		var label = `user #${profile.user_id}`;
+		if (profile.user_id === 0) {
+			label = "(anonymous)";
+		} else if (profile.user_id === -1) {
+			label = "(system)";
+		} else {
+			var t = cache.find((cache_item) => cache_item.thing_id === profile.user_id);
+			if (t !== undefined) {
+				label = t.thing.value.username;
+			}
+		}
+
+		return {
+			value: profile.user_id,
+			label,
+			is_active: profile.is_active,
+		};
+	});
 	return (
 		<ReactDropdown
 			options={dropdown_options}
