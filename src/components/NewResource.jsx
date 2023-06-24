@@ -5,7 +5,10 @@ import Select from "react-select";
 import { StyledDiv } from "./styled_elements";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { PrivilegesEditor } from "./PrivilegesEditor";
+import { CreateMore } from "./CreateMore";
 export const NewResource = () => {
+	var [create_more, set_create_more] = useState();
+
 	var nav = useNavigate();
 	var { cache } = useContext(UnifiedHandlerClientContext);
 	var [privileges, set_privileges] = useState();
@@ -66,9 +69,11 @@ export const NewResource = () => {
 				}),
 				thing_id: undefined,
 			});
-			
-			alert(`all done! navigating to this new uploaded resource ...`);
-			nav(`/dashboard/${new_resource_id}`);
+
+			alert("all done!");
+			if (!create_more) {
+				nav(`/dashboard/${new_resource_id}`);
+			}
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -106,6 +111,11 @@ export const NewResource = () => {
 			<StyledDiv onClick={upload_files_handler} className="w-fit mt-2">
 				upload this resource
 			</StyledDiv>
+			<CreateMore
+				onchange={(new_state) => {
+					set_create_more(new_state);
+				}}
+			/>
 		</div>
 	);
 };

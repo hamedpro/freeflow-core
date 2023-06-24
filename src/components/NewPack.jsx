@@ -4,9 +4,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Select from "react-select";
 import { StyledDiv } from "./styled_elements";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
-import jwtDecode from "jwt-decode";
 import { PrivilegesEditor } from "./PrivilegesEditor";
+import { CreateMore } from "./CreateMore";
 export const NewPack = () => {
+	var [create_more, set_create_more] = useState();
 	var { cache } = useContext(UnifiedHandlerClientContext);
 	var [search_params] = useSearchParams();
 	var [privileges, set_privileges] = useState();
@@ -23,7 +24,7 @@ export const NewPack = () => {
 	}
 	var [selected_parent_pack, set_selected_parent_pack] = useState(default_selected_parent_pack);
 
-	var { user_id } = uhc.active_profile.user_id;
+	var user_id = uhc.user_id;
 	var nav = useNavigate();
 
 	async function submit_new_pack() {
@@ -50,8 +51,10 @@ export const NewPack = () => {
 					},
 				}),
 			});
-			alert("all done!. navigating to newly created pack's page ...");
-			nav(`/dashboard/${id_of_new_pack}`);
+			alert("all done!");
+			if (!create_more) {
+				nav(`/dashboard/${id_of_new_pack}`);
+			}
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -91,6 +94,11 @@ export const NewPack = () => {
 			<StyledDiv onClick={submit_new_pack} className="w-fit mt-2">
 				create pack
 			</StyledDiv>
+			<CreateMore
+				onchange={(new_state) => {
+					set_create_more(new_state);
+				}}
+			/>
 		</div>
 	);
 };

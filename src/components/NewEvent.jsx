@@ -10,8 +10,11 @@ import { StyledDiv } from "./styled_elements";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { PrivilegesEditor } from "./PrivilegesEditor";
+import { CreateMore } from "./CreateMore";
 
 export const NewEvent = () => {
+	var [create_more, set_create_more] = useState();
+
 	var nav = useNavigate();
 	var { cache } = useContext(UnifiedHandlerClientContext);
 
@@ -63,8 +66,10 @@ export const NewEvent = () => {
 				new_thing_creator: () => new_meta,
 				thing_id: undefined,
 			});
-			nav(`/dashboard/${new_event_id}`);
-			alert("done");
+			alert("all done!");
+			if (!create_more) {
+				nav(`/dashboard/${new_event_id}`);
+			}
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in dev console.");
@@ -135,6 +140,11 @@ export const NewEvent = () => {
 			<StyledDiv onClick={submit_new_event} className="w-fit mt-2">
 				submit this event
 			</StyledDiv>
+			<CreateMore
+				onchange={(new_state) => {
+					set_create_more(new_state);
+				}}
+			/>
 		</div>
 	);
 };

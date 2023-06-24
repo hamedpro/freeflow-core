@@ -8,14 +8,13 @@ export const VirtualLocalStorageContextProvider = ({ children }) => {
 	var [virtual_local_storage, set_virtual_local_storage] = useState({
 		profiles_seed: JSON.parse(window.localStorage.getItem("profiles_seed")),
 	});
-	useEffect(() => {
-		window.localStorage.setItem(
-			"profiles_seed",
-			JSON.stringify(virtual_local_storage.profiles_seed)
-		);
-		window.uhc.profiles_seed = virtual_local_storage.profiles_seed;
-		window.uhc.sync_profiles();
-	}, [virtual_local_storage.profiles_seed]);
+	
+	window.localStorage.setItem(
+		"profiles_seed",
+		JSON.stringify(virtual_local_storage.profiles_seed)
+	);
+	window.uhc.profiles_seed = virtual_local_storage.profiles_seed;
+	window.uhc.sync_profiles();
 	return (
 		<VirtualLocalStorageContext.Provider
 			value={{

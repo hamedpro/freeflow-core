@@ -6,7 +6,10 @@ import { StyledDiv } from "./styled_elements";
 import { Section } from "./section";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { PrivilegesEditor } from "./PrivilegesEditor";
+import { CreateMore } from "./CreateMore";
 export const NewAsk = () => {
+	var [create_more, set_create_more] = useState();
+
 	var nav = useNavigate();
 	var { cache } = useContext(UnifiedHandlerClientContext);
 	var [selected_mode, set_selected_mode] = useState("poll"); //possible modes : "poll" , "multiple_choice" , "text_answer"
@@ -70,8 +73,10 @@ export const NewAsk = () => {
 					},
 				}),
 			});
-			alert("all done. navigating to newly created asks's page");
-			nav(`/dashboard/${new_ask_id}`);
+			alert("all done!");
+			if (!create_more) {
+				nav(`/dashboard/${new_ask_id}`);
+			}
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -174,6 +179,11 @@ export const NewAsk = () => {
 			<StyledDiv onClick={submit_new_ask} className="w-fit mt-2">
 				submit this unit
 			</StyledDiv>
+			<CreateMore
+				onchange={(new_state) => {
+					set_create_more(new_state);
+				}}
+			/>
 		</div>
 	);
 };

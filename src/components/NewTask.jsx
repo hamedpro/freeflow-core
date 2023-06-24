@@ -12,8 +12,11 @@ import { NewCalendarCategorySection } from "./NewCalendarCategorySection";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { PrivilegesEditor } from "./PrivilegesEditor";
 import { sum_array } from "../../common_helpers";
+import { CreateMore } from "./CreateMore";
 //TODO: component re-renders
 export const NewTask = () => {
+	var [create_more, set_create_more] = useState();
+
 	var { cache } = useContext(UnifiedHandlerClientContext);
 	var nav = useNavigate();
 	var [privileges, set_privileges] = useState();
@@ -95,8 +98,10 @@ export const NewTask = () => {
 				}),
 				thing_id: undefined,
 			});
-			alert("all done. navigating to the newly created task's page");
-			nav(`/dashboard/${new_task_id}`);
+			alert("all done!");
+			if (!create_more) {
+				nav(`/dashboard/${new_task_id}`);
+			}
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -194,6 +199,11 @@ export const NewTask = () => {
 			<StyledDiv className="w-fit mt-2" onClick={submit_new_task}>
 				submit
 			</StyledDiv>
+			<CreateMore
+				onchange={(new_state) => {
+					set_create_more(new_state);
+				}}
+			/>
 		</div>
 	);
 };

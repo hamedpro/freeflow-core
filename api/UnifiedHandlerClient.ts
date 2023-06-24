@@ -45,14 +45,17 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 			func();
 		}
 	}
-	get jwt() {
-		return this.active_profile?.jwt;
-	}
 	get active_profile() {
 		return this.profiles.find((profile) => profile.is_active);
 	}
+	get jwt() {
+		return this.active_profile_seed?.jwt;
+	}
+	get active_profile_seed() {
+		return this.profiles_seed.find((profile) => profile.is_active);
+	}
 	get user_id() {
-		return this.active_profile?.user_id;
+		return this.active_profile_seed?.user_id;
 	}
 	get configured_axios(): ReturnType<typeof axios.create> {
 		return axios.create({

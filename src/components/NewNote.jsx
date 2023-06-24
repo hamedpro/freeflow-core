@@ -5,7 +5,10 @@ import Select from "react-select";
 import { StyledDiv } from "./styled_elements";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { PrivilegesEditor } from "./PrivilegesEditor";
+import { CreateMore } from "./CreateMore";
 export const NewNote = () => {
+	var [create_more, set_create_more] = useState();
+
 	var [privileges, set_privileges] = useState();
 	var nav = useNavigate();
 	var { cache } = useContext(UnifiedHandlerClientContext);
@@ -49,8 +52,10 @@ export const NewNote = () => {
 				thing_id: undefined,
 			});
 
-			alert("all done. navigating to newly created note's page");
-			nav(`/dashboard/${new_note_id}`);
+			alert("all done!");
+			if (!create_more) {
+				nav(`/dashboard/${new_note_id}`);
+			}
 		} catch (error) {
 			console.log(error);
 			alert("something went wrong. details in console");
@@ -83,6 +88,11 @@ export const NewNote = () => {
 			<StyledDiv onClick={submit_new_note} className="w-fit mt-2">
 				submit this note
 			</StyledDiv>
+			<CreateMore
+				onchange={(new_state) => {
+					set_create_more(new_state);
+				}}
+			/>
 		</div>
 	);
 };
