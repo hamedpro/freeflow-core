@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { extract_user_id } from "../../api_dist/api/utils";
 import { VirtualLocalStorageContext } from "../VirtualLocalStorageContext";
+import { StyledDiv } from "./styled_elements";
 export const Login = () => {
 	var { profiles_seed, set_virtual_local_storage } = useContext(VirtualLocalStorageContext);
 	var nav = useNavigate();
@@ -62,57 +63,60 @@ export const Login = () => {
 			}
 			set_login_mode(login_mode);
 		} catch (error) {
-			alert("something went wrong");
+			alert("Error! could not send verification code.");
 		}
 	}
 	return (
-		<>
-			<h1>Login</h1>
-			<h1>
-				enter an identifier. it can be one of these : your email address , mobile phone ,
-				username , user_id{" "}
-			</h1>
+		<div className="flex flex-col justify-center items-center p-4 w-1/2 mx-auto">
+			<h1 className="text-4xl mb-2">Login</h1>
+			<div className="text-center">enter an identifier. it can be one of these:</div>
+			<ul>
+				<li>your email address </li>
+				<li>mobile phone</li>
+				<li>username , user_id</li>
+				<li>user_id</li>
+			</ul>
 
 			<input
-				className="border border-blue-400"
+				className="border border-blue-400 w-full rounded mt-5"
 				id="identifier_input"
 				disabled={login_mode !== undefined}
 			/>
 			<br />
 			{login_mode === undefined ? (
-				<>
+				<div className="flex flex-col justify-center items-center">
 					<br />
-					<button
-						className="border border-blue-500"
+					<StyledDiv
+						className="border border-blue-500 w-full text-center"
 						onClick={() => go_step_2("verf_code_mode")}
 					>
 						login using verfication code
-					</button>
-					<br />
-					<button
-						className="border border-blue-500"
+					</StyledDiv>
+
+					<StyledDiv
+						className="border border-blue-500 w-full mt-2 text-center"
 						onClick={() => go_step_2("password_mode")}
 					>
 						login with password
-					</button>
-				</>
+					</StyledDiv>
+				</div>
 			) : (
 				<>
 					<b>
 						{login_mode === "verf_code_mode" &&
 							"if this account has phone number verification code is sent to it and just like that for email address. enter it here and hit the button "}
 					</b>
-					<b>
+					<p>
 						{login_mode === "password_mode" &&
 							"enter your password and hit the button "}
-					</b>
+					</p>
 					<input className="border border-blue-400" id="value_input" />
 					<br />{" "}
-					<button className="border border-blue-500" onClick={login}>
+					<StyledDiv className="border border-blue-500 w-fit" onClick={login}>
 						login{" "}
-					</button>
+					</StyledDiv>
 				</>
 			)}
-		</>
+		</div>
 	);
 };
