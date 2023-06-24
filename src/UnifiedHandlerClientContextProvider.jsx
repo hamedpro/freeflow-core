@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
 import { UnifiedHandlerClient } from "../api_dist/api/UnifiedHandlerClient";
 export const UnifiedHandlerClientContextProvider = ({ children }) => {
@@ -9,8 +9,6 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 	});
 	if (window.uhc === undefined) {
 		window.uhc = new UnifiedHandlerClient(WEBSOCKET_API_ENDPOINT, RESTFUL_API_ENDPOINT);
-	}
-	useEffect(() => {
 		window.uhc.onChanges.cache =
 			window.uhc.onChanges.transactions =
 			window.uhc.onChanges.time_travel_snapshot =
@@ -21,7 +19,7 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
 						time_travel_snapshot: window.uhc.time_travel_snapshot,
 					}));
 				};
-	}, []);
+	}
 
 	return (
 		<UnifiedHandlerClientContext.Provider value={UnifiedHandlerClientContextState}>

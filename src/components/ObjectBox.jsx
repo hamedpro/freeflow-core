@@ -1,8 +1,8 @@
-import { JsonViewer } from "@rich-data/viewer";
+import { JsonViewer } from "@textea/json-viewer";
 import React from "react";
 const ObjectBox = ({ object }) => {
 	if (!object) return null;
-	return <JsonViewer value={object} indentWidth={20} />;
+	return <JsonViewer value={object} />;
 };
 
 export default ObjectBox;

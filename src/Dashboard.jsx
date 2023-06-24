@@ -67,7 +67,6 @@ function ProfilesDropdown() {
 }
 export function Dashboard() {
 	var nav = useNavigate();
-
 	return (
 		<div className="h-full w-full border-black-900 flex-col overflow-hidden">
 			<div className="w-full h-14 bg-blue-600 flex items-center px-3 space-x-3">

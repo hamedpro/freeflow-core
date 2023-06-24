@@ -2,7 +2,6 @@ import React from "react";
 import "./App.css";
 import "./output.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import "@rich-data/viewer/theme/base.css";
 import "react-dropdown/style.css";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { multi_lang_helper as ml } from "../common_helpers.js";
