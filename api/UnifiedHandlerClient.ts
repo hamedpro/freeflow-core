@@ -37,16 +37,22 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 			applyDiff(this.profiles, diff);
 
 			this.transactions = this.active_profile?.transactions || [];
-			console.log(this.transactions);
-			this.onChanges.transactions();
+			this.onChange();
 		});
 	}
-
+	onChange() {
+		for (var func of Object.values(this.onChanges)) {
+			func();
+		}
+	}
 	get jwt() {
 		return this.active_profile?.jwt;
 	}
 	get active_profile() {
 		return this.profiles.find((profile) => profile.is_active);
+	}
+	get user_id() {
+		return this.active_profile?.user_id;
 	}
 	get configured_axios(): ReturnType<typeof axios.create> {
 		return axios.create({

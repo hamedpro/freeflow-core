@@ -6,6 +6,9 @@ export function custom_deepcopy(value: any) {
 	return JSON.parse(JSON.stringify(value));
 }
 export function calc_all_paths(object: object) {
+	//caution : only simple objects are accepted
+	//meaning just these must be in hierarchy :
+	//numbers, simple objects, arrays, strings
 	var results: string[][] = [];
 	function make_path(object: any, base: string[]) {
 		for (var key in object) {
@@ -18,26 +21,9 @@ export function calc_all_paths(object: object) {
 			}
 		}
 	}
-	//caution : only simple objects are accepted
-	//meaning just these must be in hierarchy :
-	//numbers, simple objects, arrays, strings
 	make_path(object, []);
 	return results;
 }
-var test1 = () =>
-	console.log(
-		calc_all_paths({
-			name: "hamed",
-			interests: {
-				coding: 90,
-				sleep: 60,
-				k: {
-					negin: [1, 2, 3, 4],
-				},
-			},
-		})
-	);
-
 export function resolve_path(object: any, paths: string[]) {
 	if (paths.length === 0) {
 		return undefined;
@@ -98,11 +84,11 @@ export function check_lock({
 	paths,
 }: {
 	thing_id: number | undefined;
-	user_id: number | undefined;
+	user_id: number;
 	cache: cache;
 	paths: string[][]; // patchs you want to check if are locked or not
 }): boolean {
-	//returns true if its not locked or is used for passed user
+	//returns true if its not locked or is locked for the passed user
 	if (thing_id === undefined) return true;
 
 	var item = cache.find((i) => i.thing_id === thing_id);
@@ -176,14 +162,14 @@ export function calc_user_discoverable_things(
 		.map((i) => i.thing_id);
 }
 export function new_transaction_privileges_check(
-	user_id: number | undefined,
+	user_id: number,
 	thing_id: number | undefined,
 	transactions: transaction[],
 	transaction_diff: rdiff.rdiffResult[]
 ): boolean {
 	var cache = calc_cache(transactions, undefined);
 	/* returns whether the user has privilege of doing specified "job" to that thing */
-	if (user_id === undefined) return true; /* task is being done by system */
+	if (user_id === -1) return true; /* task is being done by system */
 
 	if (typeof thing_id === "undefined") {
 		var tmp = {};
@@ -398,12 +384,12 @@ export function simple_arrays_are_identical(
 	}
 	return true;
 }
-export function extract_user_id(jwt: string): number | null | undefined {
+export function extract_user_id(jwt: string): number {
 	var decoded_jwt = jwtDecode(jwt);
 	if (decoded_jwt !== null && typeof decoded_jwt === "object" && "user_id" in decoded_jwt) {
 		var v = decoded_jwt.user_id;
 
-		if (typeof v === "number" || typeof v === "undefined" || v === null) {
+		if (typeof v === "number") {
 			return v;
 		} else {
 			throw "extracted user_id has an invalid type.";

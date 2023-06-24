@@ -53,6 +53,7 @@ function custom_express_jwt_middleware(jwt_secret: string) {
 					);
 			}
 		} else {
+			response.locals.user_id = 0;
 			next();
 		}
 	};
@@ -245,7 +246,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				//todo here i must send verf_code to the user through api request to sms web service
 				response.status(503).json("couldnt able to send verification code ");
 				return;
-
+				/* 
 				var verf_code_surface_item = this.cache.filter(
 					(item: any) =>
 						item.thing.type === "verification_code" &&
@@ -277,7 +278,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					});
 				}
 				response.json("verification_code was sent");
-				return;
+				return; */
 			})
 		);
 		this.restful_express_app.get(
@@ -369,7 +370,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 							originalFilename,
 						},
 					}),
-					user_id: undefined,
+					user_id: -1,
 					thing_id: undefined,
 				});
 				response.json(new_file_id);
@@ -425,7 +426,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				},
 			}),
 			thing_id: undefined,
-			user_id: undefined,
+			user_id: -1,
 		});
 		this.new_transaction({
 			new_thing_creator: () => ({
@@ -440,7 +441,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					thing_id: new_user_id,
 				},
 			}),
-			user_id: undefined,
+			user_id: -1,
 			thing_id: undefined,
 		});
 		var user_private_data_thing_id = this.new_transaction({
@@ -524,9 +525,9 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 	}: {
 		new_thing_creator: (current_thing: any) => any;
 		thing_id: ThingId;
-		user_id: number | undefined;
+		user_id: number;
 		/* 
-			if user_id is passed undefined
+			if user_id is passed -1
 			privilege checks are ignored and new transaction
 			is done by system itself.
 		*/
@@ -617,18 +618,16 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		};
 	}
 	sync_websocket_client(websocket_client: websocket_client) {
-		var prev: profiles = [];
-		if (websocket_client.prev_profiles_seed !== undefined) {
-			for (var profile_seed of websocket_client.prev_profiles_seed) {
-				prev.push(this.calc_profile(profile_seed, websocket_client.last_synced_snapshot));
-			}
-		}
+		var prev: profiles = (websocket_client.prev_profiles_seed || []).map((seed) =>
+			this.calc_profile(seed, websocket_client.last_synced_snapshot)
+		);
 
 		var current: profiles = (websocket_client.profiles_seed || []).map((profile_seed) =>
 			this.calc_profile(profile_seed, undefined)
 		);
 
 		websocket_client.socket.emit("syncing_discoverable_transactions", getDiff(prev, current));
+		websocket_client.last_synced_snapshot = Math.max(...this.transactions.map((i) => i.id));
 	}
 	add_socket(socket: Socket) {
 		var new_websocket_client: websocket_client = {

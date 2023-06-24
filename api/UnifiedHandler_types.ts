@@ -10,7 +10,7 @@ export type transaction = {
 	thing_id: number;
 	time: number;
 	diff: rdiff.rdiffResult[];
-	user_id?: number;
+	user_id: number;
 };
 export type paths = string[];
 export type locks = {
@@ -36,7 +36,7 @@ export type meta = {
 				file_privileges: { read: number[] | "*" };
 				modify_privileges: number;
 				file_id: number;
-				file_mime_type: string /* todo : it may not be the exact meme type */;
+				file_mime_type: string /* todo : it may not be the exact mime type */;
 		  };
 };
 export interface unit_chat extends thing_base {
@@ -51,7 +51,6 @@ export interface unit_pack extends thing_base {
 	value: {
 		title: string;
 		description: string;
-
 		default_pack_view_id?: null | number;
 	};
 }
@@ -120,7 +119,6 @@ export interface unit_note extends thing_base {
 	type: "unit/note";
 	value: {
 		title: string;
-
 		data: EditorJS.OutputData;
 	};
 }
@@ -130,7 +128,6 @@ export interface user_private_data extends thing_base {
 		mobile?: string | null;
 		email_address?: string | null;
 		password?: string | null;
-
 		calendar_type?: "persian" | "arabic" | "english" | null;
 		week_starting_day?:
 			| "saturday"
