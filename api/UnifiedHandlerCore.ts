@@ -1,6 +1,6 @@
 //read README file : UnifiedHandlerSystem.md
 
-import { cache_item, meta, transaction } from "./UnifiedHandler_types.js";
+import { cache_item, transaction } from "./UnifiedHandler_types.js";
 import {
 	calc_cache,
 	calc_unresolved_cache,

@@ -57,23 +57,6 @@ export function validate_lock_structure(locks: locks) {
 	}
 	return true;
 }
-export function validate_refs_values(thing: thing) {
-	var all_paths = calc_all_paths(thing);
-	for (var path of all_paths) {
-		for (var i = 0; i < path.length; i++) {
-			if (/^\$(.*)$/.exec(path[i])) {
-				if (
-					/^\$\$ref:(?<snapshot>[0-9]*):(?<thing_id>[0-9]*)$/.exec(
-						resolve_path(thing, path.slice(0, i + 1))
-					) === null
-				) {
-					return false;
-				}
-			}
-		}
-	}
-	return true;
-}
 export function thing_transactions(transactinos: transaction[], thing_id: number) {
 	return transactinos.filter((i) => i.thing_id === thing_id);
 }
@@ -288,36 +271,45 @@ export function resolve_thing(
 	var thing = unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
 
 	for (var path of calc_all_paths(thing)) {
-		var last_path_part = path.at(-1);
-
-		if (last_path_part !== undefined && /^\$(.*)$/.exec(last_path_part)) {
-			var regex_result = /^\$\$ref:(?<snapshot>[0-9]*):(?<thing_id>[0-9]*)$/.exec(
-				resolve_path(thing, path)
-			);
-			if (
-				regex_result &&
-				regex_result.groups !== undefined &&
-				"thing_id" in regex_result.groups &&
-				"snapshot" in regex_result.groups
-			) {
-				var user_has_access_to_ref = transactions.some((i) => {
-					if (
-						regex_result?.groups?.thing_id !== undefined &&
-						i.thing_id === Number(regex_result.groups.thing_id)
-					) {
-						return true;
+		//path in regex must not start or end with / -> valid example : prop1/prop2/prop3
+		var regex_result = /^\$\$ref:(?<snapshot>[0-9]*):(?<thing_id>[0-9]*):*(?<path>(.*))$/.exec(
+			resolve_path(thing, path)
+		);
+		if (
+			regex_result &&
+			regex_result.groups !== undefined &&
+			"thing_id" in regex_result.groups &&
+			"snapshot" in regex_result.groups
+		) {
+			var ref_is_available = transactions.some((i) => {
+				if (
+					regex_result?.groups?.thing_id !== undefined &&
+					i.thing_id === Number(regex_result.groups.thing_id)
+				) {
+					return true;
+				}
+			});
+			var path_last_part = path.at(-1);
+			if (path_last_part !== undefined) {
+				if (ref_is_available === true) {
+					var t = resolve_thing(
+						transactions,
+						Number(regex_result.groups.thing_id),
+						regex_result.groups.snapshot === ""
+							? undefined
+							: Number(regex_result.groups.snapshot)
+					);
+					if ("path" in regex_result.groups && regex_result.groups.path) {
+						resolve_path(thing, path.slice(0, -1))[path_last_part] = resolve_path(
+							t,
+							regex_result.groups.path.split("/")
+						);
+					} else {
+						resolve_path(thing, path.slice(0, -1))[path_last_part] = t;
 					}
-				});
-
-				resolve_path(thing, path.slice(0, -1))[last_path_part] = user_has_access_to_ref
-					? resolve_thing(
-							transactions,
-							Number(regex_result.groups.thing_id),
-							regex_result.groups.snapshot === ""
-								? undefined
-								: Number(regex_result.groups.snapshot)
-					  )
-					: undefined;
+				} else {
+					resolve_path(thing, path.slice(0, -1))[path_last_part] = "ref_not_available";
+				}
 			}
 		}
 	}
@@ -419,4 +411,16 @@ export function find_unit_parents(cache: cache, thing_id: number) {
 		}
 	}
 	return parents;
+}
+
+export function reserved_value_is_used(transactions: transaction[]) {
+	//some values and patterns can set to be forbidden to exist in unresovled cache.
+	for (var cache_item of calc_unresolved_cache(transactions, undefined)) {
+		for (var path of calc_all_paths(cache_item)) {
+			if (resolve_path(cache_item, path) === "ref_not_available") {
+				return true;
+			}
+		}
+	}
+	return false;
 }

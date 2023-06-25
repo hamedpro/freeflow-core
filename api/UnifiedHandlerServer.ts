@@ -25,8 +25,8 @@ import { exit } from "process";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
 import {
 	rdiff_path_to_lock_path_format,
+	reserved_value_is_used,
 	validate_lock_structure,
-	validate_refs_values,
 } from "./utils.js";
 function custom_express_jwt_middleware(jwt_secret: string) {
 	return (request: any, response: any, next: any) => {
@@ -213,10 +213,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					var filtered_user_things: any = this.cache.filter(
 						(item) => item.thing_id === user_id
 					);
-					if (
-						request.body.value ===
-						filtered_user_things[0].thing.value.$user_private_data.value.password
-					) {
+					if (request.body.value === filtered_user_things[0].thing.value.password) {
 						response.json({
 							jwt: jwt_module.sign(
 								{
@@ -476,7 +473,9 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				type: "user",
 				value: {
 					...prev_user.value,
-					$user_private_data: `$$ref::${user_private_data_thing_id}`,
+					password: `$$ref::${user_private_data_thing_id}:value/password`,
+					mobile: `$$ref::${user_private_data_thing_id}:value/mobile`,
+					email_address: `$$ref::${user_private_data_thing_id}:value/email_address`,
 				},
 			}),
 			thing_id: new_user_id,
@@ -491,8 +490,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			all_values.push(
 				...[
 					item.thing.value.username,
-					item.thing.value.$user_private_data.value.mobile,
-					item.thing.value.$user_private_data.value.email_address,
+					item.thing.value.mobile,
+					item.thing.value.email_address,
 					item.thing_id,
 				].filter((i) => i !== undefined && i !== null)
 			);
@@ -505,8 +504,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				return (
 					[
 						item.thing.value.username,
-						item.thing.value.$user_private_data.value.mobile,
-						item.thing.value.$user_private_data.value.email_address,
+						item.thing.value.mobile,
+						item.thing.value.email_address,
 						item.thing_id,
 					].find((i) => i == identifier) !== undefined
 				);
@@ -561,11 +560,6 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			);
 		}
 
-		if (validate_refs_values(new_thing) === false) {
-			throw new Error(
-				"this transaction will make the thing invalid when being tested against refs validation rules"
-			);
-		}
 		if (new_thing.type === "meta" && "locks" in new_thing.value) {
 			if (validate_lock_structure(new_thing.value.locks) === false) {
 				throw new Error(
@@ -594,7 +588,11 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			id: this.transactions.length + 1,
 			user_id,
 		};
-
+		if (reserved_value_is_used([...this.transactions, transaction]) === true) {
+			throw new Error(
+				"applying this requested transaction will make unresolved cache contain a reserved value. dont use reserved values in things."
+			);
+		}
 		this.transactions.push(transaction);
 		fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
 

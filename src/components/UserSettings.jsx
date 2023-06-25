@@ -13,14 +13,14 @@ export const UserSettings = () => {
 		return `thing could not be found :${user_id}`;
 	}
 
-	var values = { ...user.thing.value.$user_private_data.value, ...user.thing.value };
+	var values = user.thing.value;
 	var { calendar_type, week_starting_day, language } = values;
 
 	async function simple_update(key, new_value) {
 		var user_private_data_thing_id = Number(
 			uhc.unresolved_cache
 				.find((i) => i.thing_id === user_id)
-				.thing.value.$user_private_data.split(":")[2]
+				.thing.value.mobile.split(":")[2]
 		);
 		if (
 			["calendar_type", "week_starting_day", "language", "mobile", "email_address"].includes(
