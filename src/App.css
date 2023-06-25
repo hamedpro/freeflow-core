@@ -45,3 +45,9 @@ html,
   transform: translateY(-50%);
   position: absolute;
 }
+
+body {
+  /* prime react  */
+  font-family: var(--font-family);
+}                                        
+      

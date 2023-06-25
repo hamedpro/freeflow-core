@@ -218,7 +218,7 @@ export const DayCalendar = () => {
 
 	if (tmp !== null) {
 		var year = Number(tmp.split("-")[0]);
-		var month = month_names.indexOf(tmp.split("-")[1]) + 1;
+		var month = Number(tmp.split("-")[1]) + 1;
 		var day = Number(tmp.split("-")[2]);
 	} else {
 		var d = new Date();

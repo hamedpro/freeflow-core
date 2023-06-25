@@ -1,4 +1,10 @@
 import React from "react";
+//theme
+import "primereact/resources/themes/lara-light-indigo/theme.css";     
+    
+//core
+import "primereact/resources/primereact.min.css";  
+
 import "./App.css";
 import "./output.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
