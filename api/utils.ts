@@ -424,3 +424,8 @@ export function reserved_value_is_used(transactions: transaction[]) {
 	}
 	return false;
 }
+export function interpret_transaction(tr: transaction): object {
+	var tr_diff = tr.diff;
+	//todo here check if its possible to interpret that tr
+	return { type: "unknown", data: {} };
+}
