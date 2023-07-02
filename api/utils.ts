@@ -1,14 +1,26 @@
-import rdiff from "recursive-diff";
-import { unique_items_of_array } from "../common_helpers.js";
-import { cache, cache_item, locks, meta, thing, transaction } from "./UnifiedHandler_types.js";
+import rdiff, { rdiffResult } from "recursive-diff";
+import { custom_find_unique, unique_items_of_array } from "../common_helpers.js";
+import {
+	cache,
+	cache_item,
+	complete_diff,
+	locks,
+	meta,
+	thing,
+	transaction,
+} from "./UnifiedHandler_types.js";
 import jwtDecode from "jwt-decode";
 export function custom_deepcopy(value: any) {
 	return JSON.parse(JSON.stringify(value));
 }
-export function calc_all_paths(object: object) {
+export function calc_all_paths(value: object | undefined) {
 	//caution : only simple objects are accepted
 	//meaning just these must be in hierarchy :
 	//numbers, simple objects, arrays, strings
+	//todo add early terminations for the above limit
+
+	if (value === undefined) return [];
+
 	var results: string[][] = [];
 	function make_path(object: any, base: string[]) {
 		for (var key in object) {
@@ -21,15 +33,17 @@ export function calc_all_paths(object: object) {
 			}
 		}
 	}
-	make_path(object, []);
+	make_path(value, []);
 	return results;
 }
 export function resolve_path(object: any, paths: string[]) {
+	if (object === undefined) return undefined;
 	if (paths.length === 0) {
 		return undefined;
 	}
 	var result = object[paths[0]];
 	for (var i = 1; i < paths.length; i++) {
+		if (result === undefined) break;
 		result = result[paths[i]];
 	}
 	return result;
@@ -424,8 +438,92 @@ export function reserved_value_is_used(transactions: transaction[]) {
 	}
 	return false;
 }
-export function interpret_transaction(tr: transaction): object {
-	var tr_diff = tr.diff;
-	//todo here check if its possible to interpret that tr
-	return { type: "unknown", data: {} };
+export function calc_complete_transaction_diff(
+	transactions: transaction[],
+	transaction_id: number
+): complete_diff {
+	var transaction = transactions.find((tr) => tr.id === transaction_id);
+	if (transaction === undefined) throw "internal Error! transaction does not exist with that id";
+	var thing_id = transaction.thing_id;
+	var thing_before_change: undefined | object;
+	if (
+		transactions.find((tr) => tr.thing_id === thing_id && tr.id < transaction_id) !== undefined
+	) {
+		thing_before_change = calc_unresolved_thing(
+			transactions,
+			thing_id,
+			transaction_id - 1
+		).thing;
+	} else {
+		thing_before_change = undefined;
+	}
+
+	var thing_after_change = calc_unresolved_thing(transactions, thing_id, transaction_id).thing;
+
+	return custom_find_unique(
+		[...calc_all_paths(thing_before_change), ...calc_all_paths(thing_after_change)],
+		(i1: string[], i2: string[]) => simple_arrays_are_identical(i1, i2)
+	).map((path) => {
+		var t = path as string[]; //todo using as i think is not a good way to go
+		return {
+			path: t,
+			before: resolve_path(thing_before_change, path),
+			after: resolve_path(thing_after_change, path),
+		};
+	});
+}
+
+export class TransactionInterpreter {
+	tr: transaction;
+	all_patterns: (() =>
+		| false /* return this for when this pattern doesnt match */
+		| { short: string; verbose: string })[] = [
+		() => {
+			var change = this.find_change("value", "title");
+			if (change.before !== undefined && change.after !== undefined) {
+				return {
+					short: `changed title from ${change.before} to ${change.after}`,
+					verbose: `verbose mode is not added.`,
+				};
+			}
+			return false;
+		},
+	];
+	get matching_patterns_results() {
+		var results: { short: string; verbose: string }[] = [];
+		this.all_patterns.forEach((patt) => {
+			var result = patt();
+			if (result !== false) {
+				results.push(result);
+			}
+		});
+		return results;
+	}
+	get complete_diff() {
+		return calc_complete_transaction_diff(this.transactions, this.tr.id);
+	}
+	transactions: transaction[];
+	constructor(transactions: transaction[], tr_id: number) {
+		this.transactions = transactions;
+		var t = transactions.find((tr) => tr.id === tr_id);
+		if (t === undefined) throw "there is not any transaction with that id to interpret.";
+
+		this.tr = t;
+	}
+	find_change(...path: string[]) {
+		var t = calc_complete_transaction_diff(this.transactions, this.tr.id);
+		var wanted_diff = t.find((i) => simple_arrays_are_identical(i.path, path));
+		if (wanted_diff === undefined) {
+			return {
+				path,
+				before: undefined,
+				after: undefined,
+			};
+		}
+		return {
+			path,
+			before: wanted_diff.before,
+			after: wanted_diff.after,
+		};
+	}
 }
