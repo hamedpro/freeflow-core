@@ -52,7 +52,5 @@ also there is a label "clear" there. an issue is just an idea, when its clear en
 
 <h1>stable checks</h1>
 there are few things that may happen any time that code changes. they have to be considered but may be forgotten.
-list of them is attached here: 
+list of them is always kept in stablility_tests.txt
 when you want to say something is stable these must be checked. for example before each stable release or merge something to stable branch. 
-
-// todo complete here 

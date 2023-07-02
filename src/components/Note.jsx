@@ -29,10 +29,6 @@ export const Note = ({ cache_item }) => {
 			alert("something went wrong when saving the new edited note data. details in console");
 		}
 		alert("saved!");
-		/* 
-      TODO: auto save : pass onChange prop to editor_js_configs before initializing and save changes in that onChange
-      and also show an indicator which whenever the data changes it shows loading until the data changes is uploaded succeessfuly
-    */
 	};
 	async function change_note_handler(type) {
 		var meta = uhc.find_thing_meta(cache_item.thing_id);

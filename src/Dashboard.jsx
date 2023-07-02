@@ -171,8 +171,6 @@ export function Dashboard() {
 
 						<Route path="calendar">
 							<Route path="month" element={<MonthCalendar />} />
-
-							{/* todo : test all calendar sub routes */}
 							<Route path="day" element={<DayCalendar />} />
 						</Route>
 					</Routes>

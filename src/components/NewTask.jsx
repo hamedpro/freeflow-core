@@ -13,7 +13,6 @@ import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 import { PrivilegesEditor } from "./PrivilegesEditor";
 import { sum_array } from "../../common_helpers";
 import { CreateMore } from "./CreateMore";
-//TODO: component re-renders
 export const NewTask = () => {
 	var [create_more, set_create_more] = useState();
 
@@ -39,8 +38,6 @@ export const NewTask = () => {
 			var t = {};
 			for (var key of prev.keys()) {
 				t[key] = prev.get(key);
-				// todo it doesnt cover when there is
-				//more than a single value with that key
 			}
 			return { ...t, pack_id: value.value };
 		});
@@ -48,7 +45,6 @@ export const NewTask = () => {
 	const [title_input, set_title_input] = useState("");
 	var [steps, set_steps] = useState([]);
 	const [description_input, set_description_input] = useState("");
-	//TODO: check _locale for possible option to output the _d(date) object in jalaali's format
 	const [selected_dates, set_selected_dates] = useState({
 		end: null,
 		start: null,

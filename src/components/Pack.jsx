@@ -59,7 +59,6 @@ export const Pack = ({ thing_id, cache }) => {
 	async function delete_this_pack() {
 		alert("this feature will come soon");
 		return;
-		//todo implement deletion functionality for everything
 		/* if (pack.collaborators.find((i) => i.user_id === user_id).is_owner === false) {
 			alert("access denied! only owner of this pack can do this.");
 			return;

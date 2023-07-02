@@ -14,11 +14,6 @@ export function custom_deepcopy(value: any) {
 	return JSON.parse(JSON.stringify(value));
 }
 export function calc_all_paths(value: object | undefined) {
-	//caution : only simple objects are accepted
-	//meaning just these must be in hierarchy :
-	//numbers, simple objects, arrays, strings
-	//todo add early terminations for the above limit
-
 	if (value === undefined) return [];
 
 	var results: string[][] = [];
@@ -355,7 +350,6 @@ export function calc_unresolved_thing(
 	thing_id: number,
 	snapshot: number | undefined
 ) {
-	//todo check here if that thing even exists
 	var cache_item = { thing_id, thing: {} };
 	for (var transaction of transactions.filter(
 		(i) => i.thing_id === thing_id && (snapshot === undefined ? true : i.id <= snapshot)
@@ -365,7 +359,6 @@ export function calc_unresolved_thing(
 	return cache_item;
 }
 export function rdiff_path_to_lock_path_format(rdiff_path: rdiff.rdiffResult["path"]) {
-	//todo make sure numbers only are used as array indexes
 	var result = [];
 	for (var item of rdiff_path) {
 		if (typeof item === "number") {
@@ -464,7 +457,7 @@ export function calc_complete_transaction_diff(
 		[...calc_all_paths(thing_before_change), ...calc_all_paths(thing_after_change)],
 		(i1: string[], i2: string[]) => simple_arrays_are_identical(i1, i2)
 	).map((path) => {
-		var t = path as string[]; //todo using as i think is not a good way to go
+		var t = path as string[];
 		return {
 			path: t,
 			before: resolve_path(thing_before_change, path),

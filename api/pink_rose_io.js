@@ -20,8 +20,6 @@ export async function freeflow_export({ db, unit_context, unit_id, uploads_dir_p
 
 	//saving connected uploaded files
 
-	//todo keep its algo synced with new uploading related features
-	//now we just include resources files
 
 	var connected_files_ids = [];
 	var tms = order_not_guranteed_tree_members(tree);

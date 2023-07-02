@@ -2,13 +2,11 @@ export function is_there_any_conflict({ start, end, items }) {
 	//what it does : it checks whether there is any conflicts between that range and any of those items or not
 	//items is an array of items that contain start_date and end_date (both are unix timestamps)
 	//range is an object of 2 unix timestamps : {start : number,end : number}
-	//todo instead of working on items, deep clone it first and work on that becuse may that change while filtering
+
 	return (
-		/* todo make sure about this function 
-		(conflict_situations are completely tested) */
+		/* (conflict_situations are completely tested) */
 		/* note if end of one task or event is equal to 
-		start of the next one we do not consider it as a conflict 
-		(todo make sure this rule is respected everywhere)*/
+		start of the next one we do not consider it as a conflict */
 		items.filter((item) => {
 			var item_start = item.thing.value.start_date;
 			var item_end = item.thing.value.end_date;
@@ -104,16 +102,8 @@ export function clone_simple_object(object_to_clone) {
 	});
 	return cloned_object;
 }
-export function multi_lang_helper({ en, fa }) {
-	var lang = window.localStorage.getItem("language");
-	if (lang === null) {
-		return fa; //defalt lang is set here
-		//todo get default lang from user in the first setup page
-	}
-	return lang === "fa" ? fa : en;
-}
 
-//todo do detecting if access is denied or not server side
+
 export function shuffle(array) {
 	let currentIndex = array.length,
 		randomIndex;
@@ -286,7 +276,7 @@ export var check_being_collaborator = (item, user_id) =>
 	item.collaborators.map((collaborator) => collaborator.user_id).includes(user_id);
 
 export var unique_items_of_array = (
-	array //todo : it may not work for array containing anything other than numbers or string
+	array
 ) => array.filter((i, index) => array.indexOf(i) === index);
 
 export var custom_find_unique = (array, custom_compare_function) => {

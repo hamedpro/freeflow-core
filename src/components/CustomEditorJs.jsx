@@ -8,7 +8,6 @@ import React from "react";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 
 export class CustomEditorJs extends React.Component {
-	/* todo make sure this lifecycle if working fine  */
 	static contextType = UnifiedHandlerClientContext;
 	constructor(props) {
 		super(props);
@@ -43,21 +42,11 @@ export class CustomEditorJs extends React.Component {
 		this.editor_js_instance = new EditorJS(editor_js_configs);
 		this.props.pass_ref(this.editor_js_instance);
 		this.refresh_editor();
-		/* todo correct this error : 
-			editor.js:2 addRange(): The given range isn't in document.
-			steps to reproduce :
-				open a note and wait a second 
-				click "open note commits" button and wait 
-				click browser back button and go back
-				it shows up there
-			*/
 	};
 	find_note_data = () => {
 		return this.context.cache.find((i) => i.thing_id === this.props.note_id).thing.value.data;
 	};
 	refresh_editor = async () => {
-		//todo maybe a js lock is required because this
-		//function may be called twice parallel
 		var tmp = uhc
 			.find_thing_meta(this.props.note_id)
 			.thing.value.locks.find((i) => i.path[0] == "data");

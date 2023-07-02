@@ -217,7 +217,6 @@ export var update_note = ({ note_id, update_set }) =>
 		},
 		update_set,
 	});
-//todo test from here to the bottom (in current commit)
 export var get_tasks = ({ filters = {}, global_data }) =>
 	get_collection({
 		collection_name: "tasks",

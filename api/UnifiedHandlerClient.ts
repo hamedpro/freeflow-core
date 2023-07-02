@@ -70,11 +70,6 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 		this.websocket.emit("sync_profiles", this.profiles_seed);
 	}
 
-	// todo when discoverable transactions are
-	// not fetched (at the first time) we must
-	// have it equal to undefined instead of []
-	// catch websocket errors and disconnects
-
 	async request_new_transaction({
 		new_thing_creator,
 		thing_id,

@@ -5,7 +5,6 @@ import html_react_parser from "html-react-parser";
 import editorjs_to_html from "editorjs-html";
 import { Fragment } from "react";
 export var custom_editorjs_to_jsx = (exported_data) => {
-	//todo : using this function may have security vulnerability because it uses renderToString
 	//typeof exported_data : complete return value of .save method of editor js
 
 	var custom_editorjs_to_html = editorjs_to_html({

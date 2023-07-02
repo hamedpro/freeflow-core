@@ -25,15 +25,12 @@ export const NewAsk = () => {
 
 	var [search_params, set_search_params] = useSearchParams();
 
-	var user_id = uhc.user_id;
 	function select_parent_pack(value) {
 		set_selected_parent_pack(value);
 		set_search_params((prev) => {
 			var t = {};
 			for (var key of prev.keys()) {
 				t[key] = prev.get(key);
-				// todo it doesnt cover when there is
-				//more than a single value with that key
 			}
 			return { ...t, pack_id: value.value };
 		});

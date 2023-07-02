@@ -42,7 +42,6 @@ function custom_express_jwt_middleware(jwt_secret: string) {
 				var payload = jwt_module.verify(jwt, jwt_secret);
 				if (typeof payload !== "string") {
 					response.locals.user_id = payload.user_id;
-					//todo disconnect websocket when jwt expires
 					next();
 				}
 			} catch (error) {
@@ -194,9 +193,6 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
 							user_id: user_id,
 						});
-						/* todo new transaction must not repeat type = x when trying to update a thing 
-					maybe type must be inside current value
-					*/
 						response.json({
 							jwt: jwt_module.sign(
 								{
@@ -240,7 +236,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					return;
 				}
 
-				//todo here i must send verf_code to the user through api request to sms web service
+				//here send verf_code to the user through api request to sms web service
 				response.status(503).json("couldnt able to send verification code ");
 				return;
 				/* 

@@ -10,7 +10,6 @@ import "./output.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "react-dropdown/style.css";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
-import { multi_lang_helper as ml } from "../common_helpers.js";
 import { SubscribtionPage } from "./components/subscribtionPage";
 import { Terms } from "./components/Terms";
 import { Root } from "./components/Root.jsx";
@@ -23,8 +22,6 @@ import { Login } from "./components/Login";
 import { VirtualLocalStorageContextProvider } from "./VirtualLocalStorageContextProvider";
 
 function App() {
-	window.ml = ml;
-
 	return (
 		<UnifiedHandlerClientContextProvider>
 			<VirtualLocalStorageContextProvider>
