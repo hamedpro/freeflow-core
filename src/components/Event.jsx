@@ -8,23 +8,23 @@ export const Event = ({ cache_item }) => {
 		id: "options_context_menu",
 	});
 	async function change_event_handler(type) {
-		var user_input = window.prompt(`enter new value for ${type}`);
-		if (user_input === null) return;
-		if (user_input === "") {
-			alert("invalid value : your input was an empty string");
-			return;
-		}
+        var user_input = window.prompt(`enter new value for ${type}`)
+        if (user_input === null) return
+        if (user_input === "") {
+            alert("invalid value : your input was an empty string")
+            return
+        }
 
-		await uhc.request_new_transaction({
-			new_thing_creator: (prev) => ({
-				...prev,
-				value: { ...prev.value, [type]: user_input },
-			}),
-			thing_id: cache_item.thing_id,
-		});
+        await uhc.request_new_transaction({
+            new_thing_creator: (prev) => ({
+                ...prev,
+                value: { ...prev.value, [type]: user_input },
+            }),
+            thing_id: cache_item.thing_id,
+        })
 
-		alert("all done ");
-	}
+        alert("all done ")
+    }
 
 	async function export_unit_handler() {
 		alert("feature coming soon !");

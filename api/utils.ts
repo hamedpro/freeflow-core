@@ -465,58 +465,150 @@ export function calc_complete_transaction_diff(
 		};
 	});
 }
-
-export class TransactionInterpreter {
-	tr: transaction;
-	all_patterns: (() =>
-		| false /* return this for when this pattern doesnt match */
-		| { short: string; verbose: string })[] = [
-		() => {
-			var change = this.find_change("value", "title");
-			if (change.before !== undefined && change.after !== undefined) {
-				return {
-					short: `changed title from ${change.before} to ${change.after}`,
-					verbose: `verbose mode is not added.`,
-				};
-			}
-			return false;
-		},
-	];
-	get matching_patterns_results() {
-		var results: { short: string; verbose: string }[] = [];
-		this.all_patterns.forEach((patt) => {
-			var result = patt();
-			if (result !== false) {
-				results.push(result);
-			}
-		});
-		return results;
-	}
-	get complete_diff() {
-		return calc_complete_transaction_diff(this.transactions, this.tr.id);
-	}
-	transactions: transaction[];
-	constructor(transactions: transaction[], tr_id: number) {
-		this.transactions = transactions;
-		var t = transactions.find((tr) => tr.id === tr_id);
-		if (t === undefined) throw "there is not any transaction with that id to interpret.";
-
-		this.tr = t;
-	}
-	find_change(...path: string[]) {
-		var t = calc_complete_transaction_diff(this.transactions, this.tr.id);
-		var wanted_diff = t.find((i) => simple_arrays_are_identical(i.path, path));
-		if (wanted_diff === undefined) {
-			return {
-				path,
-				before: undefined,
-				after: undefined,
-			};
-		}
-		return {
-			path,
-			before: wanted_diff.before,
-			after: wanted_diff.after,
-		};
-	}
+export interface TransactionInterpreterTypes {
+    all_patterns: (() => void | {
+        short: string
+        verbose: string
+    })[]
+}
+export class TransactionInterpreter implements TransactionInterpreterTypes {
+    tr: transaction
+    all_patterns = [
+        () => {
+            var change = this.find_change("value", "email_is_verified")
+            if (change !== undefined) {
+                return {
+                    short:
+                        change.after === true
+                            ? `email was verified`
+                            : `email is not verified anymore`,
+                    verbose: `verbose mode is not added.`,
+                }
+            }
+        },
+        () => {
+            var change = this.find_change("value", "mobile_is_verified")
+            if (change !== undefined) {
+                return {
+                    short:
+                        change.after === true
+                            ? `mobile was verified`
+                            : `mobile is not verified anymore`,
+                    verbose: `verbose mode is not added.`,
+                }
+            }
+        },
+        () => {
+            var change = this.find_change("type")
+            if (change !== undefined && change.before === undefined) {
+                return {
+                    short: `this "${change.after}" was created`,
+                    verbose: "verbose mode is not supported yet",
+                }
+            }
+        },
+        ...["password", "email_address", "mobile"].map((key) => () => {
+            var change = this.find_change("value", key)
+            if (change !== undefined) {
+                return {
+                    short: `${key} pointer changed : now points to ${change.after}`,
+                    verbose: "verbose mode is not supported yet",
+                }
+            }
+        }),
+        ...["title", "description"].map((key) => () => {
+            var change = this.find_change("value", key)
+            if (change !== undefined) {
+                return {
+                    short: `${key} of this thing changed to ${change.after}`,
+                    verbose: "verbose mode is not supported yet",
+                }
+            }
+        }),
+        () => {
+            var change = this.find_change("value", "text")
+            if (
+                change !== undefined &&
+                "type" in this.cache_item_after_change.thing &&
+                this.cache_item_after_change.thing.type === "message"
+            ) {
+                return {
+                    short: `text of this message was changed to ${change.after}`,
+                    verbose: `verbose mode is not supported yet`,
+                }
+            }
+        },
+        () => {
+            var change = this.find_change("value", "data")
+            if (
+                change !== undefined &&
+                "type" in this.cache_item_after_change.thing &&
+                this.cache_item_after_change.thing.type === "unit/note"
+            ) {
+                return {
+                    short: "content of this note was changed",
+                    verbose: "verbose mode is not supproted",
+                }
+            }
+        },
+    ]
+    get matching_patterns_results() {
+        var results: { short: string; verbose: string }[] = []
+        this.all_patterns.forEach((patt) => {
+            var result = patt()
+            if (result !== undefined) {
+                results.push(result)
+            }
+        })
+        return results
+    }
+    get complete_diff() {
+        return calc_complete_transaction_diff(this.transactions, this.tr.id)
+    }
+    transactions: transaction[]
+    constructor(transactions: transaction[], tr_id: number) {
+        this.transactions = transactions
+        var t = transactions.find((tr) => tr.id === tr_id)
+        if (t === undefined)
+            throw "there is not any transaction with that id to interpret."
+        this.tr = t
+    }
+    get cache_item_before_change() {
+        return calc_unresolved_thing(
+            this.transactions,
+            this.tr.thing_id,
+            this.tr.id - 1
+        )
+    }
+    get cache_item_after_change() {
+        return calc_unresolved_thing(
+            this.transactions,
+            this.tr.thing_id,
+            this.tr.id
+        )
+    }
+    find_change(...path: string[]) {
+        var t = calc_complete_transaction_diff(
+            this.transactions,
+            this.tr.id
+        ).filter((complete_diff_item) => {
+            return (
+                simple_arrays_are_identical(
+                    [complete_diff_item.before],
+                    [complete_diff_item.after]
+                ) === false
+            )
+        })
+        var wanted_diff = t.find((i) =>
+            simple_arrays_are_identical(i.path, path)
+        )
+        if (wanted_diff === undefined) {
+            return undefined
+        }
+        return {
+            path,
+            before: wanted_diff.before,
+            after: wanted_diff.after,
+        }
+    }
 }
