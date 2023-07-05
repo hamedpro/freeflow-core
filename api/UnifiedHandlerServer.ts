@@ -465,18 +465,19 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			user_id: new_user_id,
 		});
 		this.new_transaction({
-			new_thing_creator: (prev_user) => ({
-				type: "user",
-				value: {
-					...prev_user.value,
-					password: `$$ref::${user_private_data_thing_id}:value/password`,
-					mobile: `$$ref::${user_private_data_thing_id}:value/mobile`,
-					email_address: `$$ref::${user_private_data_thing_id}:value/email_address`,
-				},
-			}),
-			thing_id: new_user_id,
-			user_id: new_user_id,
-		});
+            new_thing_creator: (prev_user) => ({
+                type: "user",
+                value: {
+                    ...prev_user.value,
+                    password: `$$ref::${user_private_data_thing_id}:value/password`,
+                    mobile: `$$ref::${user_private_data_thing_id}:value/mobile`,
+                    email_address: `$$ref::${user_private_data_thing_id}:value/email_address`,
+                    language: `$$ref::${user_private_data_thing_id}:value/language`,
+                },
+            }),
+            thing_id: new_user_id,
+            user_id: new_user_id,
+        })
 		return new_user_id;
 	}
 	flexible_user_finder(identifier: string): number | undefined /* (no match) */ {
