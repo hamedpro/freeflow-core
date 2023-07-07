@@ -1,16 +1,17 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { Section } from "./section";
-
+import React, { useContext } from "react"
+import { Link } from "react-router-dom"
+import { Section } from "./section"
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 export const Root = () => {
-	return (
-		<>
-			<h1>here is root route of the website</h1>
-			<Section title="options">
-				<Link to="/login">i want to login in my account</Link>
-				<br />
-				<Link to="/register">i want to create a new account</Link>
-			</Section>
-		</>
-	);
-};
+    var { strings } = useContext(UnifiedHandlerClientContext)
+    return (
+        <>
+            <h1>{strings[1]}</h1>
+            <Section title={strings[4]}>
+                <Link to="/login">{strings[2]}</Link>
+                <br />
+                <Link to="/register">{strings[3]}</Link>
+            </Section>
+        </>
+    )
+}

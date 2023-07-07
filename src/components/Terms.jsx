@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useContext } from "react"
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 
 export const Terms = () => {
-  return (
-    <div>Terms</div>
-  )
+    var { strings } = useContext(UnifiedHandlerClientContext)
+    return <div>{strings[44]}</div>
 }

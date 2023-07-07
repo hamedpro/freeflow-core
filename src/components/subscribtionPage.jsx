@@ -1,5 +1,7 @@
+import { useContext } from "react"
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
+
 export function SubscribtionPage() {
-    return (
-        <h1>subscribtion panel will be here</h1>
-    )
+    var { strings } = useContext(UnifiedHandlerClientContext)
+    return <h1>{strings[45]}</h1>
 }

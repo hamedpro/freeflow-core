@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Select from "react-select";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
 export const PrivilegesEditor = ({ onChange }) => {
-	var { cache } = useContext(UnifiedHandlerClientContext);
+	var { cache, strings } = useContext(UnifiedHandlerClientContext)
 	var users = cache.filter((i) => i.thing.type === "user");
 	var [privileges, set_privileges] = useState({
 		read: [],
@@ -15,58 +15,64 @@ export const PrivilegesEditor = ({ onChange }) => {
 		onChange(privileges);
 	}, [privileges]);
 	return (
-		<>
-			<h1>PrivilegesEditor</h1>
-			{["read", "write"].map((key) => (
-				<div key={key}>
-					<div>
-						<h1>{key} : </h1>
-						<i
-							className={
-								typeof privileges[key] === "string"
-									? "bi-toggle-on"
-									: "bi-toggle-off"
-							}
-							onClick={() => change_privilegs_mode(key, "all")}
-						>
-							all
-						</i>
-						<i
-							className={
-								typeof privileges[key] !== "string"
-									? "bi-toggle-on"
-									: "bi-toggle-off"
-							}
-							onClick={() => change_privilegs_mode(key, "not_all")}
-						>
-							specific users
-						</i>
-					</div>
-					<div>
-						{typeof privileges[key] !== "string" && (
-							<Select
-								isMulti
-								options={users.map((i) => ({
-									value: i.thing_id,
-									label: i.thing.value.username,
-								}))}
-								value={users
-									.filter((i) => privileges[key].includes(i.thing_id))
-									.map((i) => ({
-										value: i.thing_id,
-										label: i.thing.value.username,
-									}))}
-								onChange={(newValue) =>
-									set_privileges((prev) => ({
-										...prev,
-										[key]: newValue.map((i) => i.value),
-									}))
-								}
-							/>
-						)}
-					</div>
-				</div>
-			))}
-		</>
-	);
+        <>
+            <h1>{strings[197]}</h1>
+            {["read", "write"].map((key) => (
+                <div key={key}>
+                    <div>
+                        <h1>
+                            {key === "read" ? strings[198] : strings[199]} :{" "}
+                        </h1>
+                        <i
+                            className={
+                                typeof privileges[key] === "string"
+                                    ? "bi-toggle-on"
+                                    : "bi-toggle-off"
+                            }
+                            onClick={() => change_privilegs_mode(key, "all")}
+                        >
+                            {strings[200]}
+                        </i>
+                        <i
+                            className={
+                                typeof privileges[key] !== "string"
+                                    ? "bi-toggle-on"
+                                    : "bi-toggle-off"
+                            }
+                            onClick={() =>
+                                change_privilegs_mode(key, "not_all")
+                            }
+                        >
+                            {strings[201]}
+                        </i>
+                    </div>
+                    <div>
+                        {typeof privileges[key] !== "string" && (
+                            <Select
+                                isMulti
+                                options={users.map((i) => ({
+                                    value: i.thing_id,
+                                    label: i.thing.value.username,
+                                }))}
+                                value={users
+                                    .filter((i) =>
+                                        privileges[key].includes(i.thing_id)
+                                    )
+                                    .map((i) => ({
+                                        value: i.thing_id,
+                                        label: i.thing.value.username,
+                                    }))}
+                                onChange={(newValue) =>
+                                    set_privileges((prev) => ({
+                                        ...prev,
+                                        [key]: newValue.map((i) => i.value),
+                                    }))
+                                }
+                            />
+                        )}
+                    </div>
+                </div>
+            ))}
+        </>
+    )
 };

@@ -15,6 +15,7 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
         transactions: [],
         cache: [],
         time_travel_snapshot: undefined,
+        strings: translation_packs[lang],
     })
     if (window.uhc === undefined) {
         window.uhc = new UnifiedHandlerClient(
@@ -26,6 +27,7 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
             window.uhc.onChanges.time_travel_snapshot =
                 () => {
                     setUnifiedHandlerClientContextState((prev) => ({
+                        ...prev,
                         transactions: window.uhc.transactions,
                         cache: window.uhc.cache,
                         time_travel_snapshot: window.uhc.time_travel_snapshot,
@@ -37,7 +39,10 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
         window.uhc.sync_profiles()
     }, [profiles_seed])
     useEffect(() => {
-        window.strings = translation_packs[lang]
+        setUnifiedHandlerClientContextState((prev) => ({
+            ...prev,
+            strings: translation_packs[lang],
+        }))
     }, [lang])
 
     useEffect(() => {
@@ -47,12 +52,16 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
         var user_selected_lang = UnifiedHandlerClientContextState.cache.find(
             (cache_item) => cache_item.thing_id === window.uhc.user_id
         )?.thing.value.language
-        if (user_selected_lang !== undefined && user_selected_lang !== lang) {
+        if (
+            user_selected_lang !== undefined &&
+            user_selected_lang !== null &&
+            user_selected_lang !== lang &&
+            user_selected_lang !== "ref_not_available"
+        ) {
             set_virtual_local_storage((prev) => ({
                 ...prev,
                 lang: user_selected_lang,
             }))
-            console.log(strings)
         }
     }, [UnifiedHandlerClientContextState.cache, profiles_seed])
 
