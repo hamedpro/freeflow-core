@@ -268,10 +268,7 @@ export const PackView = ({
                     {sort === "timestamp_asce" && strings[92]}
                     {sort === "timestamp_desc" && strings[93]}
                 </h1>
-                <button
-                    className="items-center flex"
-                    onClick={(event) => show({ event })}
-                >
+                <button className="items-center flex">
                     <i className="bi-list text-lg" />{" "}
                 </button>
             </div>

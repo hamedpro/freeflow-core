@@ -38,7 +38,7 @@ export function resolve_path(object: any, paths: string[]) {
 	}
 	var result = object[paths[0]];
 	for (var i = 1; i < paths.length; i++) {
-		if (result === undefined) break;
+		if (!(typeof result === "object" && result !== null)) break
 		result = result[paths[i]];
 	}
 	return result;
@@ -458,6 +458,9 @@ export function calc_complete_transaction_diff(
 		(i1: string[], i2: string[]) => simple_arrays_are_identical(i1, i2)
 	).map((path) => {
 		var t = path as string[];
+		if (thing_before_change !== undefined) {
+            console.log(path, `from`, JSON.stringify(thing_before_change))
+        }
 		return {
 			path: t,
 			before: resolve_path(thing_before_change, path),

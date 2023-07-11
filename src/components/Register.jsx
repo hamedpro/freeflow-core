@@ -7,12 +7,13 @@ import validator from "validator";
 import { Section } from "./section";
 import { StyledDiv } from "./styled_elements";
 export const Register = () => {
-	var { profiles_seed, set_virtual_local_storage, strings } = useContext(
+	var { profiles_seed, set_virtual_local_storage } = useContext(
         VirtualLocalStorageContext
     )
 
+
     var nav = useNavigate()
-    var { cache } = useContext(UnifiedHandlerClientContext)
+    var { cache, strings } = useContext(UnifiedHandlerClientContext)
     var [username_input_value, set_username_input_value] = useState("")
     var [password_input_value, set_password_input_value] = useState("")
     async function create_new_account() {
