@@ -171,7 +171,6 @@ export const PrimarySideBar = () => {
                             ...(active_item_id === cache_item.thing_id && {
                                 backgroundColor: "#f0f0f0",
                             }),
-                            paddingLeft: indent_level * 20 + "px",
                         },
                     }
                 } else {
@@ -193,7 +192,7 @@ export const PrimarySideBar = () => {
                             active_item_id === cache_item.thing_id
                                 ? "selected"
                                 : undefined,
-                        style: { paddingLeft: indent_level * 20 + "px" },
+                        style: {},
                     }
                 }
             })
@@ -206,7 +205,7 @@ export const PrimarySideBar = () => {
     }, [cache, loc.pathname])
 
     return (
-        <>
+        <div className="primary_side_bar">
             <AddNewUnitPanelMenu />
 
             <PanelMenu
@@ -214,6 +213,6 @@ export const PrimarySideBar = () => {
                 model={units_panel_menu_model}
                 transitionOptions={{ disabled: true }}
             />
-        </>
+        </div>
     )
 }

@@ -1,7 +1,15 @@
-.p-panelmenu-panel.selected .p-panelmenu-header .p-panelmenu-header-link{
+.primary_side_bar .p-panelmenu-panel.selected .p-panelmenu-header .p-panelmenu-header-link{
     background-color: #f0f0f0;
 }
 
-.p-panelmenu-panel * .p-menuitem.selected{
+.primary_side_bar .p-panelmenu-panel * .p-menuitem.selected{
     background-color: #f0f0f0;
+}/* 
+.primary_side_bar * .p-menuitem, .primary_side_bar * .p-menuitem-link{
+    height: 40px;
 }
+.primary_side_bar * .p-menuitem-text {
+}
+.primary_side_bar * .p-panelmenu-header-link {
+    height: 50px ;
+} */
