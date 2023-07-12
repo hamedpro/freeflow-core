@@ -173,8 +173,9 @@ export type thing =
 	| message
 	| calendar_category;
 export interface cache_item {
-	thing_id: number;
-	thing: thing;
+    thing_id: number
+    thing: thing
+    its_meta_cache_item?: cache_item
 }
 export type cache = cache_item[];
 export interface websocket_client {

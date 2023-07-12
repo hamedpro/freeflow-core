@@ -46,7 +46,8 @@ export const NewResource = () => {
         try {
             var f = new FormData()
             f.append("file", file)
-            var file_id = (
+
+            var { new_file_id, meta_id_of_file } = (
                 await uhc.configured_axios({
                     data: f,
                     url: "/files",
@@ -60,7 +61,7 @@ export const NewResource = () => {
                     value: {
                         description,
                         title,
-                        file_id,
+                        file_id: new_file_id,
                     },
                 }),
                 thing_id: undefined,
@@ -77,6 +78,19 @@ export const NewResource = () => {
                     },
                 }),
                 thing_id: undefined,
+            })
+
+            //now lets update file_privileges of that file's meta
+            //from now its a link to thing_privileges of meta of this resource
+            await uhc.request_new_transaction({
+                diff: [
+                    {
+                        op: "update",
+                        path: ["value", "file_privileges", "read"],
+                        val: `$$ref::${new_meta_id}:value/thing_privileges/read`,
+                    },
+                ],
+                thing_id: meta_id_of_file,
             })
 
             alert("all done!")

@@ -250,26 +250,26 @@ export var get_resources = ({ filters = {}, global_data }) =>
 		filters,
 		global_data,
 	});
-export var custom_axios_download = async ({ configured_axios, url, file_name }) => {
-	var response = await configured_axios({
-		url,
-		method: "GET",
-		responseType: "blob",
-	});
-	// create file link in browser's memory
-	const href = URL.createObjectURL(response.data);
+export var custom_axios_download = async ({ configured_axios, url }) => {
+    var response = await configured_axios({
+        url,
+        method: "GET",
+        responseType: "blob",
+    })
+    // create file link in browser's memory
+    const href = URL.createObjectURL(response.data)
 
-	// create "a" HTML element with href to file & click
-	const link = document.createElement("a");
-	link.href = href;
-	link.setAttribute("download", file_name); //file name should have extension, ex : fileff.pdf
-	document.body.appendChild(link);
-	link.click();
+    // create "a" HTML element with href to file & click
+    const link = document.createElement("a")
+    link.href = href
+    link.toggleAttribute("download", "")
+    document.body.appendChild(link)
+    link.click()
 
-	// clean up "a" element & remove ObjectURL
-	document.body.removeChild(link);
-	URL.revokeObjectURL(href);
-};
+    // clean up "a" element & remove ObjectURL
+    document.body.removeChild(link)
+    URL.revokeObjectURL(href)
+}
 
 export var new_comment = ({ date, text, user_id, context, id }) =>
 	new_document({

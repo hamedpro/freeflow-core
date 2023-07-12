@@ -56,17 +56,20 @@ export const UserSettings = () => {
         }
         var f = new FormData()
         f.append("file", file)
-        var profile_image_file_id = (
+        f.append("file_privileges", JSON.stringify({ read: "*" }))
+        var { new_file_id, meta_id_of_file } = (
             await uhc.configured_axios({
                 url: "/files",
                 data: f,
                 method: "post",
             })
         ).data
+        //file is uploaded, now give its access to everyone
+
         await uhc.request_new_transaction({
             new_thing_creator: (prev) => ({
                 ...prev,
-                value: { ...prev.value, profile_image_file_id },
+                value: { ...prev.value, profile_image_file_id: new_file_id },
             }),
             thing_id: user_id,
         })

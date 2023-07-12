@@ -51,21 +51,31 @@ export const Resource = ({ cache_item }) => {
         }
         var f = new FormData()
         f.append("file", file)
-        var file_id = (
+        var { new_file_id, meta_id_of_file } = (
             await uhc.configured_axios({
                 data: f,
                 url: "/files",
                 method: "post",
             })
         ).data
-
+        await uhc.request_new_transaction({
+            diff: [
+                {
+                    op: "update",
+                    path: ["value", "file_privileges", "read"],
+                    val: `$$ref::${cache_item.its_meta_cache_item.thing_id}:value/thing_privileges/read`,
+                },
+            ],
+            thing_id: meta_id_of_file,
+        })
         await uhc.request_new_transaction({
             new_thing_creator: (prev) => ({
                 ...prev,
-                value: { ...prev.value, file_id },
+                value: { ...prev.value, file_id: new_file_id },
             }),
             thing_id: cache_item.thing_id,
         })
+
         alert(strings[64])
     }
     return (
@@ -98,10 +108,7 @@ export const Resource = ({ cache_item }) => {
                         <i className="bi-list text-lg" />{" "}
                     </button>
                 </div>
-                <CustomFileViewer
-                    file_id={cache_item.thing.value.file_id}
-                    download_file_name={cache_item.thing.value.title}
-                />
+                <CustomFileViewer file_id={cache_item.thing.value.file_id} />
                 <h1>
                     {strings[112]} : {cache_item.thing.value.title}
                 </h1>

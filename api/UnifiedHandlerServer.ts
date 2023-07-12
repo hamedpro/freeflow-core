@@ -275,100 +275,130 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			})
 		);
 		this.restful_express_app.get(
-			"/files/:file_id",
-			this.gen_lock_safe_request_handler(async (request: any, response: any) => {
-				var assosiated_meta = this.cache.find(
-					(i) =>
-						i.thing.type === "meta" &&
-						"file_id" in i.thing.value &&
-						i.thing.value.file_id === Number(request.params.file_id)
-				);
-				if (
-					assosiated_meta !== undefined &&
-					"file_id" in assosiated_meta.thing.value &&
-					"file_privileges" in assosiated_meta.thing.value
-				) {
-					if (
-						assosiated_meta.thing.value.file_privileges.read === "*" ||
-						assosiated_meta.thing.value.file_privileges.read.includes(
-							response.locals.user_id
-						)
-					) {
-						response.sendFile(
-							path.resolve(
-								path.join(
-									this.absolute_paths.uploads_dir,
-									`${fs
-										.readdirSync(this.absolute_paths.uploads_dir)
-										.find((i) => i.startsWith(request.params.file_id))}`
-								)
-							)
-						);
-					} else {
-						response.status(403).json("you have not access to that file ");
-					}
-				} else {
-					response.status(400).json("couldnt find assosiated meta for this file_id");
-				}
-			})
-		);
-		this.restful_express_app.post(
-			"/files",
-			this.gen_lock_safe_request_handler(async (request, response) => {
-				//saves the file with key = "file" inside sent form inside ./uploads directory
-				//returns json : {file_id : string }
-				//saved file name + extension is {file_id}-{original file name with extension }
+            "/files/:file_id",
+            this.gen_lock_safe_request_handler(
+                async (request: any, response: any) => {
+                    var assosiated_meta = this.cache.find(
+                        (i) =>
+                            i.thing.type === "meta" &&
+                            "file_id" in i.thing.value &&
+                            i.thing.value.file_id ===
+                                Number(request.params.file_id)
+                    )
 
-				if (response.locals.user_id === undefined) {
-					response.status(403).json("jwt is not provided in request's headers");
-					return;
-				}
-				var { new_file_id, file_mime_type, originalFilename } = await new Promise<{
-					file_mime_type: string;
-					new_file_id: number;
-					originalFilename: string;
-				}>((resolve, reject) => {
-					var f = formidable({
-						uploadDir: path.resolve(this.absolute_paths.uploads_dir),
-					});
-					f.parse(request, (err: any, fields: any, files: any) => {
-						if (err) {
-							reject(err);
-							return;
-						}
-						var tmp = this.cache.length + 1;
-						var new_file_path = path.resolve(
-							this.absolute_paths.uploads_dir,
-							`${tmp}-${files["file"].originalFilename}`
-						);
-						fs.renameSync(files["file"].filepath, new_file_path);
-						resolve({
-							new_file_id: tmp,
-							file_mime_type: files["file"].mimetype,
-							originalFilename: files["file"].originalFilename,
-						});
-						return;
-					});
-				});
-				this.new_transaction({
-					new_thing_creator: (prev) => ({
-						type: "meta",
-						value: {
-							file_id: new_file_id,
-							file_privileges: {
-								read: [response.locals.user_id],
-							},
-							modify_privileges: response.locals.user_id,
-							file_mime_type,
-							originalFilename,
-						},
-					}),
-					user_id: -1,
-					thing_id: undefined,
-				});
-				response.json(new_file_id);
-			})
-		);
+                    if (
+                        assosiated_meta !== undefined &&
+                        "file_id" in assosiated_meta.thing.value &&
+                        "file_privileges" in assosiated_meta.thing.value
+                    ) {
+                        if (
+                            assosiated_meta.thing.value.file_privileges.read ===
+                                "*" ||
+                            assosiated_meta.thing.value.file_privileges.read.includes(
+                                response.locals.user_id
+                            )
+                        ) {
+                            response.download(
+                                path.resolve(
+                                    path.join(
+                                        this.absolute_paths.uploads_dir,
+                                        `${fs
+                                            .readdirSync(
+                                                this.absolute_paths.uploads_dir
+                                            )
+                                            .find((i) =>
+                                                i.startsWith(
+                                                    request.params.file_id
+                                                )
+                                            )}`
+                                    )
+                                )
+                            )
+                        } else {
+                            response
+                                .status(403)
+                                .json("you have not access to that file ")
+                        }
+                    } else {
+                        response
+                            .status(400)
+                            .json(
+                                "couldnt find assosiated meta for this file_id"
+                            )
+                    }
+                }
+            )
+        )
+        this.restful_express_app.post(
+            "/files",
+            this.gen_lock_safe_request_handler(async (request, response) => {
+                //saves the file with key = "file" inside sent form inside ./uploads directory
+                //returns json : {file_id : string }
+                //saved file name + extension is {file_id}-{original file name with extension }
+
+                if (response.locals.user_id === undefined) {
+                    response
+                        .status(403)
+                        .json("jwt is not provided in request's headers")
+                    return
+                }
+                var {
+                    new_file_id,
+                    file_mime_type,
+                    originalFilename,
+                    file_privileges,
+                } = await new Promise<{
+                    file_mime_type: string
+                    new_file_id: number
+                    originalFilename: string
+                    file_privileges: string
+                }>((resolve, reject) => {
+                    var f = formidable({
+                        uploadDir: path.resolve(
+                            this.absolute_paths.uploads_dir
+                        ),
+                    })
+                    f.parse(request, (err: any, fields: any, files: any) => {
+                        if (err) {
+                            reject(err)
+                            return
+                        }
+                        var tmp = this.cache.length + 1
+                        var new_file_path = path.resolve(
+                            this.absolute_paths.uploads_dir,
+                            `${tmp}-${files["file"].originalFilename}`
+                        )
+                        fs.renameSync(files["file"].filepath, new_file_path)
+                        resolve({
+                            new_file_id: tmp,
+                            file_mime_type: files["file"].mimetype,
+                            originalFilename: files["file"].originalFilename,
+                            file_privileges:
+                                fields["file_privileges"] &&
+                                JSON.parse(fields["file_privileges"]),
+                        })
+                        return
+                    })
+                })
+                var meta_id_of_file = this.new_transaction({
+                    new_thing_creator: (prev) => ({
+                        type: "meta",
+                        value: {
+                            file_id: new_file_id,
+                            file_privileges: file_privileges || {
+                                read: [response.locals.user_id],
+                            },
+                            modify_privileges: response.locals.user_id,
+                            file_mime_type,
+                            originalFilename,
+                        },
+                    }),
+                    user_id: -1,
+                    thing_id: undefined,
+                })
+                response.json({ new_file_id, meta_id_of_file })
+            })
+        )
 		this.restful_express_app.post("/new_transaction", (request, response) => {
 			if (!("user_id" in response.locals) || response.locals.user_id === undefined) {
 				response

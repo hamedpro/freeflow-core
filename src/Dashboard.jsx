@@ -21,6 +21,7 @@ import ReactDropdown from "react-dropdown";
 import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext";
 import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
 import { CheckDefaultParentPack } from "./components/CheckDefaultParentPack";
+import { Dropdown } from "primereact/dropdown"
 function ProfilesDropdown() {
     var { profiles_seed, set_virtual_local_storage } = useContext(
         VirtualLocalStorageContext
@@ -50,24 +51,55 @@ function ProfilesDropdown() {
             }
         }
         return {
-            value: profile.user_id,
+            code: profile.user_id,
             label,
             is_active: profile.is_active,
         }
     })
+    function template(option) {
+        var profile_image_file_id = cache.find(
+            (cache_item) => cache_item.thing_id === option.code
+        )?.thing.value?.profile_image_file_id
+        return (
+            <div className="flex items-center px-2 space-x-2">
+                {option.code === -1 && <i className="bi-person-fill pr-2"> </i>}
+                {option.code === 0 && <i className="bi-people pr-2"> </i>}
+                {option.code > 0 &&
+                    (profile_image_file_id ? (
+                        <img
+                            src={
+                                new URL(
+                                    `/files/${profile_image_file_id}?${
+                                        uhc.jwt && "jwt=" + uhc.jwt
+                                    }`,
+                                    window.RESTFUL_API_ENDPOINT
+                                ).href
+                            }
+                            style={{
+                                width: "25px",
+                                height: "25px",
+                                borderRadius: "100%",
+                            }}
+                        />
+                    ) : (
+                        <i className="bi-person pr-2"></i>
+                    ))}
+                <span>{option.label}</span>
+            </div>
+        )
+    }
     return (
-        <ReactDropdown
+        <Dropdown
             options={dropdown_options}
             value={dropdown_options.find(
                 (profile) => profile.is_active === true
             )}
-            onChange={(option) => select_profile(option.value)}
-        >
-            <i
-                style={{ color: "white" }}
-                className="text-3xl bi-person-fill-gear hover:bg-blue-900 duration-300 rounded-lg p-1"
-            />
-        </ReactDropdown>
+            onChange={(option) => select_profile(option.value.code)}
+            optionLabel="label"
+            valueTemplate={template}
+            itemTemplate={template}
+            className="w-fit"
+        ></Dropdown>
     )
 }
 export function Dashboard() {

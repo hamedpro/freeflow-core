@@ -60,32 +60,32 @@ function AddNewUnitPanelMenu() {
                 {
                     label: "New Task",
                     icon: <i className="bi-clipboard-fill pr-2"></i>,
-                    command: () => onclick_handler("unit/pack"),
+                    command: () => onclick_handler("unit/task"),
                 },
                 {
                     label: "New Resource",
                     icon: <i className="bi-cloud-upload-fill pr-2"></i>,
-                    command: () => onclick_handler("unit/pack"),
+                    command: () => onclick_handler("unit/resource"),
                 },
                 {
                     label: "New Note",
                     icon: <i className="bi-card-text pr-2"></i>,
-                    command: () => onclick_handler("unit/pack"),
+                    command: () => onclick_handler("unit/note"),
                 },
                 {
                     label: "New Event",
                     icon: <i className="bi-calendar4-event pr-2"></i>,
-                    command: () => onclick_handler("unit/pack"),
+                    command: () => onclick_handler("unit/event"),
                 },
                 {
                     label: "New Ask",
                     icon: <i className="bi-patch-question-fill pr-2"></i>,
-                    command: () => onclick_handler("unit/pack"),
+                    command: () => onclick_handler("unit/ask"),
                 },
                 {
                     label: "New Chat",
                     icon: <i className="bi-chat-dots-fill pr-2" />,
-                    command: () => onclick_handler("unit/pack"),
+                    command: () => onclick_handler("unit/chat"),
                 },
             ],
         },

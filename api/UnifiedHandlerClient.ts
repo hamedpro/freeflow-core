@@ -1,94 +1,115 @@
-import jwtDecode from "jwt-decode";
-import { io } from "socket.io-client";
-import axios from "axios";
-import rdiff from "recursive-diff";
-import { UnifiedHandlerCore } from "./UnifiedHandlerCore";
-import { profile, profile_seed } from "./UnifiedHandler_types";
-var { applyDiff } = rdiff;
+import jwtDecode from "jwt-decode"
+import { io } from "socket.io-client"
+import axios from "axios"
+import rdiff from "recursive-diff"
+import { UnifiedHandlerCore } from "./UnifiedHandlerCore"
+import { profile, profile_seed } from "./UnifiedHandler_types"
+var { applyDiff } = rdiff
 
 export class UnifiedHandlerClient extends UnifiedHandlerCore {
-	websocket: ReturnType<typeof io>;
-	websocket_api_endpoint: string;
-	restful_api_endpoint: string;
-	profiles_seed: profile_seed[] = [];
-	profiles: profile[] = [];
-	constructor(
-		websocket_api_endpoint: string,
-		restful_api_endpoint: string,
-		onChanges_functions:
-			| {
-					transactions: () => void;
-					cache: () => void;
-					time_travel_snapshot: () => void;
-			  }
-			| undefined
-	) {
-		super();
-		if (onChanges_functions !== undefined) {
-			this.onChanges = onChanges_functions;
-		}
+    websocket: ReturnType<typeof io>
+    websocket_api_endpoint: string
+    restful_api_endpoint: string
+    profiles_seed: profile_seed[] = []
+    profiles: profile[] = []
+    constructor(
+        websocket_api_endpoint: string,
+        restful_api_endpoint: string,
+        onChanges_functions:
+            | {
+                  transactions: () => void
+                  cache: () => void
+                  time_travel_snapshot: () => void
+              }
+            | undefined
+    ) {
+        super()
+        if (onChanges_functions !== undefined) {
+            this.onChanges = onChanges_functions
+        }
 
-		this.websocket_api_endpoint = websocket_api_endpoint;
-		this.restful_api_endpoint = restful_api_endpoint;
-		//console.log("a new uhclient is created ");
+        this.websocket_api_endpoint = websocket_api_endpoint
+        this.restful_api_endpoint = restful_api_endpoint
+        //console.log("a new uhclient is created ");
 
-		this.websocket = io(websocket_api_endpoint);
-		this.websocket.on("syncing_discoverable_transactions", (diff: rdiff.rdiffResult[]) => {
-			applyDiff(this.profiles, diff);
+        this.websocket = io(websocket_api_endpoint)
+        this.websocket.on(
+            "syncing_discoverable_transactions",
+            (diff: rdiff.rdiffResult[]) => {
+                applyDiff(this.profiles, diff)
 
-			this.transactions = this.active_profile?.transactions || [];
-			this.onChange();
-		});
-	}
-	onChange() {
-		for (var func of Object.values(this.onChanges)) {
-			func();
-		}
-	}
-	get active_profile() {
-		return this.profiles.find((profile) => profile.is_active);
-	}
-	get jwt() {
-		return this.active_profile_seed?.jwt;
-	}
-	get active_profile_seed() {
-		return this.profiles_seed.find((profile) => profile.is_active);
-	}
-	get user_id() {
-		return this.active_profile_seed?.user_id;
-	}
-	get configured_axios(): ReturnType<typeof axios.create> {
-		return axios.create({
-			baseURL: this.restful_api_endpoint,
-			headers: {
-				...(this.jwt === undefined ? {} : { jwt: this.jwt }),
-			},
-		});
-	}
+                this.transactions = this.active_profile?.transactions || []
+                this.onChange()
+            }
+        )
+    }
+    onChange() {
+        for (var func of Object.values(this.onChanges)) {
+            func()
+        }
+    }
+    get active_profile() {
+        return this.profiles.find((profile) => profile.is_active)
+    }
+    get jwt() {
+        return this.active_profile_seed?.jwt
+    }
+    get active_profile_seed() {
+        return this.profiles_seed.find((profile) => profile.is_active)
+    }
+    get user_id() {
+        return this.active_profile_seed?.user_id
+    }
+    get configured_axios(): ReturnType<typeof axios.create> {
+        return axios.create({
+            baseURL: this.restful_api_endpoint,
+            headers: {
+                ...(this.jwt === undefined ? {} : { jwt: this.jwt }),
+            },
+        })
+    }
 
-	sync_profiles() {
-		this.websocket.emit("sync_profiles", this.profiles_seed);
-	}
+    sync_profiles() {
+        this.websocket.emit("sync_profiles", this.profiles_seed)
+    }
 
-	async request_new_transaction({
-		new_thing_creator,
-		thing_id,
-	}: {
-		thing_id: undefined | number;
-		new_thing_creator: (current_thing: any) => any;
-	}) {
-		var thing =
-			thing_id === undefined
-				? {}
-				: this.unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
-		var response = await this.configured_axios({
-			data: {
-				diff: rdiff.getDiff(thing, new_thing_creator(JSON.parse(JSON.stringify(thing)))),
-				thing_id,
-			},
-			method: "post",
-			url: "/new_transaction",
-		});
-		return response.data;
-	}
+    async request_new_transaction({
+        new_thing_creator,
+        thing_id,
+        diff,
+    }: {
+        thing_id: undefined | number
+        new_thing_creator?: (current_thing: any) => any
+        diff?: rdiff.rdiffResult[]
+    }) {
+        if (
+            (new_thing_creator === undefined && diff === undefined) ||
+            (new_thing_creator !== undefined && diff !== undefined)
+        ) {
+            throw "only one of these must be not undefined : `new_thing_creator` or `diff`"
+        }
+
+        var data: any = { thing_id }
+        if (new_thing_creator === undefined && diff !== undefined) {
+            data.diff = diff
+        }
+        if (diff === undefined && new_thing_creator !== undefined) {
+            var thing =
+                thing_id === undefined
+                    ? {}
+                    : this.unresolved_cache.filter(
+                          (i) => i.thing_id === thing_id
+                      )[0].thing
+            data.diff = rdiff.getDiff(
+                thing,
+                new_thing_creator(JSON.parse(JSON.stringify(thing)))
+            )
+        }
+        var response = await this.configured_axios({
+            data,
+            method: "post",
+            url: "/new_transaction",
+        })
+        return response.data
+    }
 }
