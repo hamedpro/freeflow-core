@@ -1,0 +1,7 @@
+.p-panelmenu-panel.selected .p-panelmenu-header .p-panelmenu-header-link{
+    background-color: #f0f0f0;
+}
+
+.p-panelmenu-panel * .p-menuitem.selected{
+    background-color: #f0f0f0;
+}

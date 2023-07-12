@@ -457,10 +457,7 @@ export function calc_complete_transaction_diff(
 		[...calc_all_paths(thing_before_change), ...calc_all_paths(thing_after_change)],
 		(i1: string[], i2: string[]) => simple_arrays_are_identical(i1, i2)
 	).map((path) => {
-		var t = path as string[];
-		if (thing_before_change !== undefined) {
-            console.log(path, `from`, JSON.stringify(thing_before_change))
-        }
+		var t = path as string[]
 		return {
 			path: t,
 			before: resolve_path(thing_before_change, path),
