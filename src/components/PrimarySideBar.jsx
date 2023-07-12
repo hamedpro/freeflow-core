@@ -105,14 +105,19 @@ export const PrimarySideBar = () => {
             { path: "/dashboard/:thing_id/*" },
             loc.pathname
         )
-        if (match_path_result !== null) {
+
+        if (
+            match_path_result !== null &&
+            !isNaN(Number(match_path_result.params.thing_id)) &&
+            Number(match_path_result.params.thing_id) !== 0
+        ) {
             return Number(match_path_result.params.thing_id)
         } else if (search_params.get("pack_id")) {
             return Number(search_params.get("pack_id"))
         } else {
             return undefined
         }
-    }, [loc.pathname])
+    }, [loc.pathname, loc.search])
     function make_tree_prime_react_compatible(tree, indent_level = 0) {
         var expanded_items =
             (active_item_id &&
@@ -202,7 +207,7 @@ export const PrimarySideBar = () => {
     }
     useEffect(() => {
         update_panelmenu_model()
-    }, [cache, loc.pathname])
+    }, [cache, loc.pathname, loc.search])
 
     return (
         <div className="primary_side_bar">
