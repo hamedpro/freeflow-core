@@ -4,11 +4,13 @@
 	"version": "0.0.0",
 	"type": "module",
 	"scripts": {
-		"install": "napa primefaces/sakai-react#1a572b512bd0588998af0361f72acdd2a19f8e8b",
+		"install": "napa https://github.com/primefaces/sakai-react",
 		"dev": "./dev_script.bash",
 		"start": "./start_script.bash"
 	},
-	
+	"napa-config": {
+		"cache": false
+	},
 	"dependencies": {
 		"@date-io/jalaali": "^2.16.1",
 		"@editorjs/checklist": "^1.4.0",
