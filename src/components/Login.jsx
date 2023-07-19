@@ -109,9 +109,19 @@ var Login = () => {
                                 matching_user.thing.value
                                     .profile_image_file_id ? (
                                     <img
+                                        src={
+                                            new URL(
+                                                `/files/${
+                                                    matching_user.thing.value
+                                                        .profile_image_file_id
+                                                }?${
+                                                    uhc.jwt && "jwt=" + uhc.jwt
+                                                }`,
+                                                window.RESTFUL_API_ENDPOINT
+                                            ).href
+                                        }
                                         alt="Image"
                                         className="w-full h-full"
-                                        src="https://images.squarespace-cdn.com/content/v1/5a99d01c5ffd206cdde00bec/7e125d62-e859-41ff-aa04-23e4e0040a33/image-asset.jpeg?format=1500w"
                                     />
                                 ) : (
                                     <i className="bi-person-fill  text-6xl" />
