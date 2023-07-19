@@ -47,7 +47,10 @@ function ProfilesDropdown() {
                 (cache_item) => cache_item.thing_id === profile.user_id
             )
             if (t !== undefined) {
-                label = t.thing.value.username
+                label =
+                    t.thing.value.email_address ||
+                    t.thing.value.mobile ||
+                    t.thing.value.full_name 
             }
         }
         return {

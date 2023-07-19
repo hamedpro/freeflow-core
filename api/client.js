@@ -224,26 +224,16 @@ export var get_tasks = ({ filters = {}, global_data }) =>
 		global_data,
 	});
 export var update_user = ({ kind, new_value, user_id }) => {
-	var update_set = {};
-	update_set[kind] = new_value;
-	return update_document({
-		collection: "users",
-		update_filter: {
-			_id: user_id,
-		},
-		update_set,
-	});
-};
-
-export var flexible_user_finder = async ({ value }) =>
-	//this one search for that value in all of these values : user_ids, usernames, email_addresses, mobiles
-	//and returns that user which matches
-	await custom_axios({
-		task: "flexible_user_finder",
-		body: {
-			value,
-		},
-	});
+    var update_set = {}
+    update_set[kind] = new_value
+    return update_document({
+        collection: "users",
+        update_filter: {
+            _id: user_id,
+        },
+        update_set,
+    })
+}
 export var get_resources = ({ filters = {}, global_data }) =>
 	get_collection({
 		collection_name: "resources",

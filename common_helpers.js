@@ -405,3 +405,6 @@ export function calc_units_tree(cache, pack_id) {
 		return tree;
 	}
 }
+export function is_digit(string) {
+    return string.length !== 0 && !isNaN(Number(string))
+}

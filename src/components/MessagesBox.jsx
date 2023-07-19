@@ -115,14 +115,20 @@ export function MessagesBox({ thing_id }) {
                                           cache_item.thing_id
                                       ).user_id === -1
                                         ? strings[48]
-                                        : "@" +
+                                        : cache.find(
+                                              (i) =>
+                                                  i.thing_id ===
+                                                  uhc.find_first_transaction(
+                                                      cache_item.thing_id
+                                                  ).user_id
+                                          ).thing.value.email_address ||
                                           cache.find(
                                               (i) =>
                                                   i.thing_id ===
                                                   uhc.find_first_transaction(
                                                       cache_item.thing_id
                                                   ).user_id
-                                          ).thing.value.username
+                                          ).thing.value.mobile
                                     : strings[47]}{" "}
                                 |{" "}
                                 {new Date(

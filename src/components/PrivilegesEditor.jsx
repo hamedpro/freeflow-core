@@ -52,7 +52,9 @@ export const PrivilegesEditor = ({ onChange }) => {
                                 isMulti
                                 options={users.map((i) => ({
                                     value: i.thing_id,
-                                    label: i.thing.value.username,
+                                    label:
+                                        i.thing.value.email_address ||
+                                        i.thing.value.mobile,
                                 }))}
                                 value={users
                                     .filter((i) =>
@@ -60,7 +62,9 @@ export const PrivilegesEditor = ({ onChange }) => {
                                     )
                                     .map((i) => ({
                                         value: i.thing_id,
-                                        label: i.thing.value.username,
+                                        label:
+                                            i.thing.value.email_address ||
+                                            i.thing.value.mobile,
                                     }))}
                                 onChange={(newValue) =>
                                     set_privileges((prev) => ({

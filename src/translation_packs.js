@@ -42,7 +42,7 @@ var pack1 = {
     28: ["username validation", "اعتبار سنجی نام کاربری"],
     29: ["create new account", "ساختن حساب کاربری جدید"],
     30: ["input can not be empty", "ورودی نمیتواند خالی باشد"],
-    31: ["auth could not be done", "احراز هویت انجام نشد"],
+    31: ["access denied", "دسترسی رد شد"],
     32: [
         "identifier input can not be empty.",
         "ورودی شناسه نمیتواند خالی باشد ",

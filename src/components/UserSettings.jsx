@@ -22,15 +22,7 @@ export const UserSettings = () => {
                 .find((i) => i.thing_id === user_id)
                 .thing.value.mobile.split(":")[2]
         )
-        if (
-            [
-                "calendar_type",
-                "week_starting_day",
-                "language",
-                "mobile",
-                "email_address",
-            ].includes(key)
-        ) {
+        if (["calendar_type", "week_starting_day", "language"].includes(key)) {
             await uhc.request_new_transaction({
                 new_thing_creator: (prev) => ({
                     ...prev,
@@ -38,7 +30,7 @@ export const UserSettings = () => {
                 }),
                 thing_id: user_private_data_thing_id,
             })
-        } else if (["username", "full_name"].includes(key)) {
+        } else if (["mobile", "email_address", "full_name"].includes(key)) {
             await uhc.request_new_transaction({
                 new_thing_creator: (prev) => ({
                     ...prev,
@@ -226,7 +218,6 @@ export const UserSettings = () => {
                 {[
                     { key: "email_address", label: strings[185] },
                     { key: "mobile", label: strings[186] },
-                    { key: "username", label: strings[187] },
                     { key: "full_name", label: strings[188] },
                 ].map((i, index) => {
                     return (

@@ -682,3 +682,39 @@ export class TransactionInterpreter implements TransactionInterpreterTypes {
         }
     }
 }
+export function flexible_user_finder(
+    cache: cache_item[],
+    identifier: string
+): number | undefined /* (no match) */ {
+    var tmp: any = cache.filter(
+        (item: cache_item) => item.thing.type === "user"
+    )
+    var all_values: string[] = []
+    tmp.forEach((item: any) => {
+        all_values.push(
+            ...[
+                item.thing.value.mobile,
+                item.thing.value.email_address,
+                item.thing_id,
+            ].filter((i) => i !== undefined && i !== null)
+        )
+    })
+    var matches_count = all_values.filter((value) => value == identifier).length
+    if (matches_count === 0) {
+        return undefined
+    } else if (matches_count === 1) {
+        var matched_user = tmp.find((item: any) => {
+            return (
+                [
+                    item.thing.value.mobile,
+                    item.thing.value.email_address,
+                    item.thing_id,
+                ].find((i) => i == identifier) !== undefined
+            )
+        })
+
+        return matched_user.thing_id
+    } else {
+        throw "there is more than one match in valid search resources"
+    }
+}

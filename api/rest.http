@@ -1,0 +1,6 @@
+POST http://localhost:5001/send_verification_code
+Content-Type: application/json
+
+{
+    "identifier" : "hamedpro"
+}

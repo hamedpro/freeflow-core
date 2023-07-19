@@ -99,12 +99,11 @@ export interface message extends thing_base {
 	};
 }
 export interface verification_code extends thing_base {
-	type: "verification_code";
-	value: {
-		kind: "email_address" | "mobile";
-		value: number;
-		user_id: number;
-	};
+    type: "verification_code"
+    value: {
+        value: number
+        email: string
+    }
 }
 export interface unit_ask extends thing_base {
 	type: "unit/ask";
@@ -123,34 +122,35 @@ export interface unit_note extends thing_base {
 	};
 }
 export interface user_private_data extends thing_base {
-	type: "user_private_data";
-	value: {
-		mobile?: string | null;
-		email_address?: string | null;
-		password?: string | null;
-		calendar_type?: "persian" | "arabic" | "english" | null;
-		week_starting_day?:
-			| "saturday"
-			| "sunday"
-			| "monday"
-			| "tuesday"
-			| "wednesday"
-			| "thursday"
-			| "friday"
-			| null;
-		language?: "english" | "persian";
-		email_is_verified?: boolean;
-		mobile_is_verified?: boolean;
-	};
+    type: "user_private_data"
+    value: {
+        mobile?: string | null
+        email_address?: string | null
+        password?: string | null
+        calendar_type?: "persian" | "arabic" | "english" | null
+        week_starting_day?:
+            | "saturday"
+            | "sunday"
+            | "monday"
+            | "tuesday"
+            | "wednesday"
+            | "thursday"
+            | "friday"
+            | null
+        language?: "english" | "persian"
+        email_is_verified?: boolean
+    }
 }
 export interface user extends thing_base {
-	type: "user";
-	value: {
-		$user_private_date: user_private_data;
-		username?: string;
-		profile_image_file_id?: number | null;
-		full_name?: string | null;
-	};
+    type: "user"
+    value: {
+        password: string /* a ref */
+        email_address: string
+        language: string /* a ref */
+        mobile: string
+        profile_image_file_id?: number | null
+        full_name?: string | null
+    }
 }
 export interface calendar_category extends thing_base {
 	type: "calendar_category";
