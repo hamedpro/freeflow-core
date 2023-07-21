@@ -331,31 +331,19 @@ export function simple_find_duplicates(...arrays) {
 	}
 }
 export function makeid(length) {
-	let result = "";
-	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	const charactersLength = characters.length;
-	let counter = 0;
-	while (counter < length) {
-		result += characters.charAt(Math.floor(Math.random() * charactersLength));
-		counter += 1;
-	}
-	return result;
+    let result = ""
+    const characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    const charactersLength = characters.length
+    let counter = 0
+    while (counter < length) {
+        result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+        )
+        counter += 1
+    }
+    return result
 }
-export function gen_thing_link(cache, thing_id) {
-	//for example you wanna that absolute link
-	//which point to a unit/pack with thing_id = 2
-	var thing_type = cache.find((i) => i.thing_id === thing_id).thing.type;
-	if (!thing_type.startsWith("unit/") && !thing_type === "user") {
-		throw new Error("we couldnt generate thing link for this thing_id");
-	} else {
-		if (thing_type.startsWith("unit/")) {
-			return `/dashboard/${thing_type.split("/")[1] + "s"}/${thing_id}`;
-		} else {
-			return `/dashboard/users/${thing_id}`;
-		}
-	}
-}
-
 export function slice_object(object, ...fields) {
 	var tmp = {};
 	fields.forEach((field) => (tmp[field] = object[field]));

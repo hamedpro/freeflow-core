@@ -4,6 +4,7 @@ import Select from "react-select";
 import { StyledDiv } from "./styled_elements";
 import axios from "axios";
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
+import { GoBackRow } from "./GoBackRow"
 export const UserSettings = () => {
 	var { cache, strings } = useContext(UnifiedHandlerClientContext)
 
@@ -104,6 +105,7 @@ export const UserSettings = () => {
     return (
         <>
             <div className="p-2">
+                <GoBackRow />
                 <h1>{strings[162]}</h1>
                 <div style={{ width: "200px", height: "200px" }}>
                     {user.thing.value.profile_image_file_id ? (

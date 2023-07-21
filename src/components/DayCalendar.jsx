@@ -284,7 +284,7 @@ export const DayCalendar = () => {
             alert(strings[268])
             return
         }
-        nav(`/dashboard/${item.thing_id}`)
+        nav(`/${item.thing_id}`)
     }
 
     return (

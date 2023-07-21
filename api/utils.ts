@@ -718,3 +718,4 @@ export function flexible_user_finder(
         throw "there is more than one match in valid search resources"
     }
 }
+export function upload_new_resource() {}

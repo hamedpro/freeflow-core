@@ -72,7 +72,7 @@ export const NewPack = () => {
             })
             alert(strings[64])
             if (!create_more) {
-                nav(`/dashboard/${id_of_new_pack}`)
+                nav(`/${id_of_new_pack}`)
             }
         } catch (error) {
             console.log(error)

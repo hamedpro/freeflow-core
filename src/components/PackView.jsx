@@ -12,7 +12,7 @@ function PackViewNote({ cache_item }) {
     return (
         <Section
             title={`${strings[81]} ${cache_item.thing_id}`}
-            onClick={() => nav(`/dashboard/${cache_item.thing_id}`)}
+            onClick={() => nav(`/${cache_item.thing_id}`)}
             className="cursor-pointer "
         >
             <p>
@@ -48,7 +48,7 @@ function PackViewResource({ cache_item }) {
     return (
         <Section
             title={`${strings[84]} #${cache_item.thing_id}`}
-            onClick={() => nav(`/dashboard/${cache_item.thing_id}`)}
+            onClick={() => nav(`/${cache_item.thing_id}`)}
             className="cursor-pointer "
         >
             <p>
@@ -80,7 +80,7 @@ function PackViewTask({ cache_item }) {
     return (
         <Section
             title={`${strings[85]} #${cache_item.thing_id}`}
-            onClick={() => nav(`/dashboard/${cache_item.thing_id}`)}
+            onClick={() => nav(`/${cache_item.thing_id}`)}
             className="cursor-pointer "
         >
             <p>
@@ -113,7 +113,7 @@ function PackViewPack({ cache_item }) {
     return (
         <Section
             title={`${strings[86]} #${cache_item.thing_id}`}
-            onClick={() => nav(`/dashboard/${cache_item.thing_id}`)}
+            onClick={() => nav(`/${cache_item.thing_id}`)}
             className="cursor-pointer "
         >
             <p>

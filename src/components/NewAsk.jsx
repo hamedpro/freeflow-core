@@ -85,7 +85,7 @@ export const NewAsk = () => {
             })
             alert(strings[64])
             if (!create_more) {
-                nav(`/dashboard/${new_ask_id}`)
+                nav(`/${new_ask_id}`)
             }
         } catch (error) {
             console.log(error)

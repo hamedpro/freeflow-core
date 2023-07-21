@@ -15,10 +15,10 @@ import { Thing } from "./Thing"
 import { TabMenu } from "primereact/tabmenu"
 export const Stage = () => {
     var urls = [
-        "/dashboard/:thing_id",
-        "/dashboard/:thing_id/timeline",
-        "/dashboard/:thing_id/raw",
-        "/dashboard/:thing_id/raw_timeline",
+        "/:thing_id",
+        "/:thing_id/timeline",
+        "/:thing_id/raw",
+        "/:thing_id/raw_timeline",
     ]
     var active_url
     for (var url of urls) {
@@ -67,7 +67,7 @@ export const Stage = () => {
                             icon={
                                 <i className="bi-arrow-up-left-circle-fill mr-2" />
                             }
-                            onClick={() => nav(`/dashboard/${meta_id}`)}
+                            onClick={() => nav(`/${meta_id}`)}
                         >
                             {strings[57]}
                         </Button>
@@ -78,7 +78,7 @@ export const Stage = () => {
                             icon={
                                 <i className="bi-arrow-up-left-circle-fill mr-2" />
                             }
-                            onClick={() => nav(`/dashboard/${parent_pack_id}`)}
+                            onClick={() => nav(`/${parent_pack_id}`)}
                         >
                             {strings[58]}
                         </Button>

@@ -19,6 +19,14 @@ import { Dashboard } from "./Dashboard"
 import { UnifiedHandlerClientContextProvider } from "./UnifiedHandlerClientContextProvider"
 import { Login } from "./components/Login"
 import { VirtualLocalStorageContextProvider } from "./VirtualLocalStorageContextProvider"
+import { TimeMachine } from "./TimeMachine"
+import { UserSettings } from "./components/UserSettings"
+import { CheckDefaultParentPack } from "./components/CheckDefaultParentPack"
+import { NewPack } from "./components/NewPack"
+import { NewResource } from "./components/NewResource"
+import { NewNote } from "./components/NewNote"
+import { NewAsk } from "./components/NewAsk"
+import { Stage } from "./components/Stage"
 
 function App() {
     return (
@@ -27,17 +35,53 @@ function App() {
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Root />} />
+                        <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/terms" element={<Terms />} />
                         <Route
-                            path="/subscribtion"
+                            path="/subscription"
                             element={<SubscribtionPage />}
                         />
+
+                        <Route path="time_machine" element={<TimeMachine />} />
+
+                        <Route path="settings" element={<UserSettings />} />
+
                         <Route
-                            path="/dashboard/*"
-                            element={<Dashboard />}
-                        ></Route>
+                            path="packs/new"
+                            element={
+                                <CheckDefaultParentPack
+                                    children={<NewPack />}
+                                />
+                            }
+                        />
+
+                        <Route
+                            path="resources/new"
+                            element={
+                                <CheckDefaultParentPack
+                                    children={<NewResource />}
+                                />
+                            }
+                        />
+
+                        <Route
+                            path="notes/new"
+                            element={
+                                <CheckDefaultParentPack
+                                    children={<NewNote />}
+                                />
+                            }
+                        />
+
+                        <Route
+                            path="asks/new"
+                            element={
+                                <CheckDefaultParentPack children={<NewAsk />} />
+                            }
+                        />
+                        <Route path="/:thing_id/*" element={<Stage />} />
                     </Routes>
                 </BrowserRouter>
             </UnifiedHandlerClientContextProvider>

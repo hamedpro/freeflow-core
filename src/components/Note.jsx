@@ -133,7 +133,7 @@ export const Note = ({ cache_item }) => {
                         <span>{strings[99]}</span>
                         <StyledDiv
                             className="w-fit mt-2 text-xs break-keep flex items-center justify-center text-center"
-                            onClick={() => nav(`/dashboard/time_machine`)}
+                            onClick={() => nav(`/time_machine`)}
                         >
                             <i className="bi-clock-history text-lg" />
                             {strings[100]}

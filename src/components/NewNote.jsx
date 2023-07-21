@@ -63,7 +63,7 @@ export const NewNote = () => {
 
             alert(strings[64])
             if (!create_more) {
-                nav(`/dashboard/${new_note_id}`)
+                nav(`/${new_note_id}`)
             }
         } catch (error) {
             console.log(error)

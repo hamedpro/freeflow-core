@@ -65,7 +65,7 @@ export const NewChat = () => {
 
             alert(strings[64])
             if (!create_more) {
-                nav(`/dashboard/${new_chat_id}`)
+                nav(`/${new_chat_id}`)
             }
         } catch (error) {
             console.log(error)

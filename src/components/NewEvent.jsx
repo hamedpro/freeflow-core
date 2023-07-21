@@ -84,7 +84,7 @@ export const NewEvent = () => {
             })
             alert(strings[64])
             if (!create_more) {
-                nav(`/dashboard/${new_event_id}`)
+                nav(`/${new_event_id}`)
             }
         } catch (error) {
             console.log(error)

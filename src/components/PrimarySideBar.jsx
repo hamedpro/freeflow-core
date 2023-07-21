@@ -17,7 +17,7 @@ function AddNewUnitPanelMenu() {
     function onclick_handler(type) {
         var { pathname } = window.location
 
-        var regex1 = /(?:\/)*dashboard\/(?<thing_id>[0-9]+).*$/g
+        var regex1 = /\/(?<thing_id>[0-9]+).*$/g
         var regex_result = regex1.exec(pathname)
         var pack_id
         if (regex_result) {
@@ -35,16 +35,13 @@ function AddNewUnitPanelMenu() {
             }
 
             nav(
-                `/dashboard/${type.split("/")[1] + "s"}/new` +
+                `/${type.split("/")[1] + "s"}/new` +
                     (pack_id ? `?pack_id=${pack_id}` : "")
             )
         } else if ((pack_id = search_params.get("pack_id"))) {
-            nav(
-                `/dashboard/${type.split("/")[1] + "s"}/new` +
-                    `?pack_id=${pack_id}`
-            )
+            nav(`/${type.split("/")[1] + "s"}/new` + `?pack_id=${pack_id}`)
         } else {
-            nav(`/dashboard/${type.split("/")[1] + "s"}/new`)
+            nav(`/${type.split("/")[1] + "s"}/new`)
         }
     }
     var model = [
@@ -102,7 +99,7 @@ export const PrimarySideBar = () => {
     var units_tree = useMemo(() => calc_units_tree(cache, undefined), [cache])
     var active_item_id = useMemo(() => {
         var match_path_result = matchPath(
-            { path: "/dashboard/:thing_id/*" },
+            { path: "/:thing_id/*" },
             loc.pathname
         )
 
@@ -166,7 +163,7 @@ export const PrimarySideBar = () => {
                     return {
                         icon,
                         command: (e) => {
-                            nav(`/dashboard/${cache_item.thing_id}`)
+                            nav(`/${cache_item.thing_id}`)
                         },
                         label:
                             cache_item.thing.type === "unit/ask"
@@ -189,7 +186,7 @@ export const PrimarySideBar = () => {
                         ),
                         expanded: expanded_items.includes(cache_item.thing_id),
                         command: (event) => {
-                            nav(`/dashboard/${cache_item.thing_id}`)
+                            nav(`/${cache_item.thing_id}`)
                         },
                         //separator: true,
                         icon: <i className="bi-box-fill pr-2"></i>,

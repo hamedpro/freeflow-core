@@ -112,7 +112,7 @@ export const NewTask = () => {
             })
             alert(strings[64])
             if (!create_more) {
-                nav(`/dashboard/${new_task_id}`)
+                nav(`/${new_task_id}`)
             }
         } catch (error) {
             console.log(error)

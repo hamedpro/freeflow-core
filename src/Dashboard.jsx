@@ -1,27 +1,13 @@
-import React, { useContext } from "react";
-import "./App.css";
-import "./output.css";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
-import { month_names } from "../common_helpers.js";
-import { NewNote } from "./components/NewNote";
-import { NewTask } from "./components/NewTask";
-import { MonthCalendar } from "./components/MonthCalendar.jsx";
-import { DayCalendar } from "./components/DayCalendar";
-import { PrimarySideBar } from "./components/PrimarySideBar";
-import { NewResource } from "./components/NewResource";
-import { UserSettings } from "./components/UserSettings";
-import { NewEvent } from "./components/NewEvent";
-import { NewPack } from "./components/NewPack";
-import "react-contexify/ReactContexify.css";
-import { NewAsk } from "./components/NewAsk";
-import { Stage } from "./components/Stage";
-import { NewChat } from "./components/NewChat";
-import { TimeMachine } from "./TimeMachine";
-import ReactDropdown from "react-dropdown";
-import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext";
-import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext";
-import { CheckDefaultParentPack } from "./components/CheckDefaultParentPack";
+import React, { useContext, useState } from "react"
+import "./App.css"
+import "./output.css"
+import { useNavigate } from "react-router-dom"
+import "react-contexify/ReactContexify.css"
+import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext"
+import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext"
 import { Dropdown } from "primereact/dropdown"
+import { Calendar } from "primereact/calendar"
+import { FileUpload } from "primereact/fileupload"
 function ProfilesDropdown() {
     var { profiles_seed, set_virtual_local_storage } = useContext(
         VirtualLocalStorageContext
@@ -50,7 +36,7 @@ function ProfilesDropdown() {
                 label =
                     t.thing.value.email_address ||
                     t.thing.value.mobile ||
-                    t.thing.value.full_name 
+                    t.thing.value.full_name
             }
         }
         return {
@@ -105,153 +91,82 @@ function ProfilesDropdown() {
         ></Dropdown>
     )
 }
+function MetroButton({ bi, text, link }) {
+    var nav = useNavigate()
+    return (
+        <button
+            className={[
+                "bg-blue-500",
+                "h-20",
+                "text-white",
+                "flex",
+                "items-center",
+                "justify-center",
+                "w-56",
+                "hover:bg-blue-600",
+                "duration-200",
+            ].join(" ")}
+            onClick={() => nav(link)}
+        >
+            <i
+                className={`text-3xl ${bi} hover:bg-blue-900 duration-300 rounded-lg p-1`}
+            />
+            <span className="">{text}</span>
+        </button>
+    )
+}
 export function Dashboard() {
+    var [date, setDate] = useState()
     var { strings } = useContext(UnifiedHandlerClientContext)
     var nav = useNavigate()
     return (
-        <div className="h-full w-full border-black-900 flex-col overflow-hidden">
-            <div className="w-full h-14 bg-blue-600 flex items-center px-3 space-x-3">
-                <div className="w-fit flex space-x-2">
-                    <ProfilesDropdown />
+        <div className="h-full w-full border-black-900 flex flex-col overflow-hidden">
+            <ProfilesDropdown />
+            <MetroButton
+                bi={"bi-person-fill-gear"}
+                text="Settings"
+                link={`/settings`}
+            />
+            <MetroButton
+                bi={"bi-person-lines-fill"}
+                text="My Active Profile"
+                link={`/${uhc.user_id}`}
+            />
+            <MetroButton
+                bi={"bi-clock-history"}
+                text={strings[49]}
+                link={"/time_machine"}
+            />
 
-                    <Link to={`/dashboard/settings`}>
-                        <i
-                            style={{ color: "white" }}
-                            className="text-3xl bi-person-fill-gear hover:bg-blue-900 duration-300 rounded-lg p-1"
-                        />
-                    </Link>
-                    <Link to={`/dashboard/${uhc.user_id}`}>
-                        <i
-                            style={{ color: "white" }}
-                            className="text-3xl bi-person-lines-fill hover:bg-blue-900 duration-300 rounded-lg p-1"
-                        />
-                    </Link>
-                    <Link to={`/dashboard/`}>
-                        <i
-                            style={{ color: "white" }}
-                            className="bi-house-fill text-2xl hover:bg-blue-900 duration-300 rounded-lg p-1"
-                        />
-                    </Link>
-                </div>
-                <div className="w-full flex justify-between items-center h-full ">
-                    <button
-                        onClick={() => nav("/dashboard/time_machine")}
-                        className="h-full text-white flex items-center space-x-2 hover:bg-blue-500 duration-300 px-2"
-                    >
-                        <i className="bi-clock-history" />
-                        <b>{strings[49]}</b>
-                    </button>
-                    <div className="h-full text-white flex items-center space-x-2 hover:bg-blue-500 duration-300 px-2">
-                        <i className="bi-calendar4"></i>
-                        <div>
-                            {new Date().getFullYear()} /{" "}
-                            <Link to={`/dashboard/calendar/month`}>
-                                {month_names[new Date().getMonth()]}
-                            </Link>{" "}
-                            /{" "}
-                            {
-                                <Link to={`/dashboard/calendar/day`}>
-                                    {new Date().getDate()}
-                                </Link>
-                            }
-                        </div>
-                    </div>
-                    <div className="flex items-center space-x-3 h-5/6 my-2 py-2">
-                        <i
-                            style={{ color: "white" }}
-                            className="text-2xl bi-bell-fill hover:bg-blue-900 duration-300 rounded-lg p-1"
-                        />
-                        <button className="px-2 rounded h-full flex justify-center items-center text-white bg-green-500">
-                            <span>{strings[50]}</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div className="w-full flex" style={{ height: "92%" }}>
-                <div
-                    className=" bg-blue-500 overflow-y-auto h-full"
-                    style={{ width: "13rem" }}
-                >
-                    <PrimarySideBar />
-                </div>
-                <div
-                    className=" bg-blue-200 h-full overflow-y-auto h-9/10"
-                    style={{ width: "calc(100% - 13rem)" }}
-                >
-                    <Routes>
-                        <Route path="/:thing_id/*" element={<Stage />} />
+            <MetroButton
+                bi={"bi-bell-fill"}
+                text="Changes Feed"
+                link={"/feed"}
+            />
 
-                        <Route path="time_machine" element={<TimeMachine />} />
+            <MetroButton
+                bi={strings[50]}
+                text={"Go Premium"}
+                link={"/subscription"}
+            />
 
-                        <Route path="settings" element={<UserSettings />} />
-
-                        <Route
-                            path="packs/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewPack />}
-                                />
-                            }
-                        />
-
-                        <Route
-                            path="resources/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewResource />}
-                                />
-                            }
-                        />
-
-                        <Route
-                            path="notes/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewNote />}
-                                />
-                            }
-                        />
-
-                        <Route
-                            path="tasks/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewTask />}
-                                />
-                            }
-                        />
-
-                        <Route
-                            path="events/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewEvent />}
-                                />
-                            }
-                        />
-                        <Route
-                            path="chats/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewChat />}
-                                />
-                            }
-                        />
-
-                        <Route
-                            path="asks/new"
-                            element={
-                                <CheckDefaultParentPack children={<NewAsk />} />
-                            }
-                        />
-
-                        <Route path="calendar">
-                            <Route path="month" element={<MonthCalendar />} />
-                            <Route path="day" element={<DayCalendar />} />
-                        </Route>
-                    </Routes>
-                </div>
-            </div>
+            <Calendar
+                value={date}
+                onChange={(e) => setDate(e.value)}
+                inline
+                showWeek
+                className="m-3 w-1/2"
+            />
+            <FileUpload
+                name="file"
+                url={window.RESTFUL_API_ENDPOINT}
+                multiple
+                emptyTemplate={
+                    <p className="m-0">
+                        Drag and drop files to here to upload.
+                    </p>
+                }
+            />
         </div>
     )
 }
