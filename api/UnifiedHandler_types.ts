@@ -21,82 +21,87 @@ export type thing_privileges = {
 	read: number[] | "*";
 	write: number[] | "*";
 };
-export type meta = {
-	type: "meta";
-	value:
-		| {
-				thing_privileges: thing_privileges;
-				locks: locks;
-				modify_thing_privileges: number /* user_id */;
-				thing_id: number;
-				pack_id: null | number;
-				points_to: number;
-		  }
-		| {
-				file_privileges: { read: number[] | "*" };
-				modify_privileges: number;
-				file_id: number;
-				file_mime_type: string;
-		  };
-};
+export type file_meta_value = {
+    file_privileges: { read: number[] | "*" }
+    modify_privileges: number
+    file_id: number
+    file_mime_type: string
+}
+export type non_file_meta_value = {
+    thing_privileges: thing_privileges
+    locks: locks
+    modify_thing_privileges: number /* user_id */
+    thing_id: number
+    pack_id: null | number
+    points_to: number
+}
+export type meta<Value> = {
+    type: "meta"
+    value: Value
+}
 export interface unit_chat extends thing_base {
-	type: "unit/chat";
-	value: {
-		title: string;
-		description: string;
-	};
+    type: "unit/chat"
+    value: {
+        title: string
+        description: string
+    }
 }
 export interface unit_pack extends thing_base {
-	type: "unit/pack";
-	value: {
-		title: string;
-		description: string;
-		default_pack_view_id?: null | number;
-	};
+    type: "unit/pack"
+    value: {
+        title: string
+        description: string
+        default_pack_view_id?: null | number
+    }
 }
 export interface ask_result extends thing_base {
-	type: "ask_result";
-	value: {
-		user_id: number;
-		ask_id: number;
-		result: number | string;
-	};
+    type: "ask_result"
+    value: {
+        user_id: number
+        ask_id: number
+        result: number | string
+    }
 }
 export interface unit_resource extends thing_base {
-	type: "unit/resource";
-	value: {
-		description: string;
-		title: string;
-		file_id: number;
-	};
+    type: "unit/resource"
+    value: {
+        description: string
+        title: string
+        file_id: number
+    }
 }
 export interface unit_task extends thing_base {
-	type: "unit/task";
-	value: {
-		end_date: number;
-		start_date: number;
-		title: string;
-		category_id?: number | null;
-		description: string;
-		steps: { title: string; description: string; percent: number; is_done: boolean }[];
-	};
+    type: "unit/task"
+    value: {
+        end_date: number
+        start_date: number
+        title: string
+        category_id?: number | null
+        description: string
+        steps: {
+            title: string
+            description: string
+            percent: number
+            is_done: boolean
+        }[]
+    }
 }
 export interface unit_event extends thing_base {
-	type: "unit/event";
-	value: {
-		end_date: number;
-		start_date: number;
-		title: string;
-		category_id?: number | null;
-		description?: string | null;
-	};
+    type: "unit/event"
+    value: {
+        end_date: number
+        start_date: number
+        title: string
+        category_id?: number | null
+        description?: string | null
+    }
 }
 export interface message extends thing_base {
-	type: "message";
-	value: {
-		text: string;
-		points_to: number /* thing_id  */;
-	};
+    type: "message"
+    value: {
+        text: string
+        points_to: number /* thing_id  */
+    }
 }
 export interface verification_code extends thing_base {
     type: "verification_code"
@@ -106,20 +111,20 @@ export interface verification_code extends thing_base {
     }
 }
 export interface unit_ask extends thing_base {
-	type: "unit/ask";
-	value: {
-		question: string;
-		mode: "poll" | "multiple_choice" | "text_answer";
-		options?: string[];
-		correct_option_index?: number;
-	};
+    type: "unit/ask"
+    value: {
+        question: string
+        mode: "poll" | "multiple_choice" | "text_answer"
+        options?: string[]
+        correct_option_index?: number
+    }
 }
 export interface unit_note extends thing_base {
-	type: "unit/note";
-	value: {
-		title: string;
-		data: EditorJS.OutputData;
-	};
+    type: "unit/note"
+    value: {
+        title: string
+        data: EditorJS.OutputData
+    }
 }
 export interface user_private_data extends thing_base {
     type: "user_private_data"
@@ -150,34 +155,35 @@ export interface user extends thing_base {
         mobile: string
         profile_image_file_id?: number | null
         full_name?: string | null
+        watching?: null | number[] // an array ofthing ids this user "watches"
     }
 }
 export interface calendar_category extends thing_base {
-	type: "calendar_category";
-	value: {
-		name: string;
-		color: string;
-	};
+    type: "calendar_category"
+    value: {
+        name: string
+        color: string
+    }
 }
 export type thing =
-	| unit_chat
-	| meta
-	| unit_pack
-	| unit_resource
-	| unit_task
-	| unit_event
-	| unit_ask
-	| unit_note
-	| user
-	| verification_code
-	| message
-	| calendar_category;
-export interface cache_item {
+    | unit_chat
+    | meta<non_file_meta_value | file_meta_value>
+    | unit_pack
+    | unit_resource
+    | unit_task
+    | unit_event
+    | unit_ask
+    | unit_note
+    | user
+    | verification_code
+    | message
+    | calendar_category
+export interface cache_item<ThingType> {
     thing_id: number
-    thing: thing
-    its_meta_cache_item?: cache_item
+    thing: ThingType
+    its_meta_cache_item?: cache_item<non_file_meta_value>
 }
-export type cache = cache_item[];
+export type cache = cache_item<thing>[]
 export interface websocket_client {
 	socket: Socket;
 	profiles_seed?: profile_seed[];

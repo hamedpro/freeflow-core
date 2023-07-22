@@ -3,7 +3,17 @@ import { io } from "socket.io-client"
 import axios from "axios"
 import rdiff from "recursive-diff"
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore"
-import { profile, profile_seed } from "./UnifiedHandler_types"
+import {
+    cache_item,
+    non_file_meta_value,
+    profile,
+    profile_seed,
+    thing,
+    user,
+} from "./UnifiedHandler_types"
+import { useNavigate } from "react-router-dom"
+import { OutputData, SavedData } from "@editorjs/editorjs/types/data-formats"
+import { getRandomSubarray } from "./utils"
 var { applyDiff } = rdiff
 
 export class UnifiedHandlerClient extends UnifiedHandlerCore {
@@ -12,6 +22,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
     restful_api_endpoint: string
     profiles_seed: profile_seed[] = []
     profiles: profile[] = []
+    strings: (Function | string)[]
     constructor(
         websocket_api_endpoint: string,
         restful_api_endpoint: string,
@@ -21,9 +32,11 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
                   cache: () => void
                   time_travel_snapshot: () => void
               }
-            | undefined
+            | undefined,
+        strings: (Function | string)[]
     ) {
         super()
+        this.strings = strings
         if (onChanges_functions !== undefined) {
             this.onChanges = onChanges_functions
         }
@@ -73,7 +86,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         this.websocket.emit("sync_profiles", this.profiles_seed)
     }
 
-    async request_new_transaction({
+    request_new_transaction = async ({
         new_thing_creator,
         thing_id,
         diff,
@@ -81,7 +94,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         thing_id: undefined | number
         new_thing_creator?: (current_thing: any) => any
         diff?: rdiff.rdiffResult[]
-    }) {
+    }) => {
         if (
             (new_thing_creator === undefined && diff === undefined) ||
             (new_thing_creator !== undefined && diff !== undefined)
@@ -105,11 +118,183 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
                 new_thing_creator(JSON.parse(JSON.stringify(thing)))
             )
         }
+
         var response = await this.configured_axios({
             data,
             method: "post",
             url: "/new_transaction",
         })
         return response.data
+    }
+    async upload_files_handler({
+        file,
+        description,
+        title,
+        create_more,
+        nav,
+        thing_privileges,
+        pack_id,
+    }: {
+        file: File
+        description: string
+        title: string
+        create_more: boolean
+        nav: ReturnType<typeof useNavigate>
+        thing_privileges: non_file_meta_value["thing_privileges"]
+        pack_id: non_file_meta_value["pack_id"]
+    }) {
+        if (!file) {
+            alert(this.strings[204])
+            return
+        }
+        var f = new FormData()
+        f.append("file", file)
+        var { new_file_id, meta_id_of_file } = (
+            await this.configured_axios({
+                data: f,
+                url: "/files",
+                method: "post",
+            })
+        ).data
+        var new_resource_id = await this.request_new_transaction({
+            new_thing_creator: () => ({
+                type: "unit/resource",
+                value: {
+                    description,
+                    title,
+                    file_id: new_file_id,
+                },
+            }),
+            thing_id: undefined,
+        })
+        var new_meta_id = await this.request_new_transaction({
+            new_thing_creator: () => ({
+                type: "meta",
+                value: {
+                    thing_privileges,
+                    modify_thing_privileges: this.user_id,
+                    locks: [],
+                    thing_id: new_resource_id,
+                    pack_id,
+                },
+            }),
+            thing_id: undefined,
+        })
+        //now lets update file_privileges of that file's meta
+        //from now its a link to thing_privileges of meta of this resource
+        await this.request_new_transaction({
+            diff: [
+                {
+                    op: "update",
+                    path: ["value", "file_privileges", "read"],
+                    val: `$$ref::${new_meta_id}:value/thing_privileges/read`,
+                },
+            ],
+            thing_id: meta_id_of_file,
+        })
+
+        alert(
+            `all done! new file with id = ${new_file_id} is now linked to this new resource : ${new_resource_id}`
+        )
+        if (!create_more) {
+            nav(`/${new_resource_id}`)
+        }
+    }
+    async bootstrap_a_writing({
+        text,
+        nav,
+    }: {
+        text: string
+        nav: ReturnType<typeof useNavigate>
+    }) {
+        console.log("started bootstraping a writing")
+        var data: OutputData = {
+            blocks: [
+                {
+                    type: "paragraph",
+                    data: {
+                        text,
+                    },
+                },
+            ],
+        }
+
+        //create the note itself
+        var new_note_id = await this.request_new_transaction({
+            new_thing_creator: () => ({
+                type: "unit/note",
+                value: {
+                    data,
+                    title: "bootstraped note",
+                },
+            }),
+            thing_id: undefined,
+        })
+
+        //create its meta
+        await this.request_new_transaction({
+            new_thing_creator: () => ({
+                type: "meta",
+                value: {
+                    thing_privileges: {
+                        read: [this.user_id],
+                        write: [this.user_id],
+                    },
+                    modify_thing_privileges: this.user_id,
+                    thing_id: new_note_id,
+                    locks: [],
+                },
+            }),
+            thing_id: undefined,
+        })
+        console.log(
+            "bootstraping a writing is done. navigating to new created writing."
+        )
+
+        //continue with this new created note
+        nav(`/${new_note_id}`)
+    }
+    recommend_to_me(): number[] {
+        /* returns discoverable thing_ids sorted
+        for this user. 
+        sorted by how its likely to be liked by the user */
+
+        //its planned to be done
+        //track github repo
+        return getRandomSubarray(
+            this.cache.map((ci) => ci.thing_id),
+            this.cache.length
+        )
+    }
+    calc_reputations(): number[] {
+        /* returns discoverable thing_ids sorted
+        from more important to less  */
+
+        //its planned to be done
+        //track github issues
+        return getRandomSubarray(
+            this.cache.map((ci) => ci.thing_id),
+            this.cache.length
+        )
+    }
+    get user(): cache_item<user> | undefined {
+        var tmp = this.cache.find((ci) => ci.thing_id === this.user_id)
+        function is_user(
+            cache_item: cache_item<thing> | undefined
+        ): cache_item is cache_item<user> {
+            if (cache_item) {
+                return cache_item.thing.type === "user"
+            } else {
+                return false
+            }
+        }
+        if (is_user(tmp)) {
+            return tmp
+        } else {
+            return undefined
+        }
+    }
+    get things_i_watch(): number[] {
+        return this.user?.thing.value.watching || []
     }
 }

@@ -20,7 +20,9 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
     if (window.uhc === undefined) {
         window.uhc = new UnifiedHandlerClient(
             WEBSOCKET_API_ENDPOINT,
-            RESTFUL_API_ENDPOINT
+            RESTFUL_API_ENDPOINT,
+            undefined,
+            translation_packs[lang]
         )
         window.uhc.onChanges.cache =
             window.uhc.onChanges.transactions =
@@ -39,6 +41,7 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
         window.uhc.sync_profiles()
     }, [profiles_seed])
     useEffect(() => {
+        window.uhc.strings = translation_packs[lang]
         setUnifiedHandlerClientContextState((prev) => ({
             ...prev,
             strings: translation_packs[lang],

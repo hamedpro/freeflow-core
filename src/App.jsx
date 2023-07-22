@@ -27,6 +27,9 @@ import { NewResource } from "./components/NewResource"
 import { NewNote } from "./components/NewNote"
 import { NewAsk } from "./components/NewAsk"
 import { Stage } from "./components/Stage"
+import { Feed } from "./components/Feed"
+import { WhatsHappening } from "./components/WhatsHappening"
+import { Units } from "./components/Units"
 
 function App() {
     return (
@@ -34,19 +37,40 @@ function App() {
             <UnifiedHandlerClientContextProvider>
                 <BrowserRouter>
                     <Routes>
-                        <Route path="/" element={<Root />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/register" element={<Register />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/terms" element={<Terms />} />
+                        <Route
+                            path="/"
+                            element={<Root />}
+                        />
+                        <Route
+                            path="/dashboard"
+                            element={<Dashboard />}
+                        />
+                        <Route
+                            path="/register"
+                            element={<Register />}
+                        />
+                        <Route
+                            path="/login"
+                            element={<Login />}
+                        />
+                        <Route
+                            path="/terms"
+                            element={<Terms />}
+                        />
                         <Route
                             path="/subscription"
                             element={<SubscribtionPage />}
                         />
 
-                        <Route path="time_machine" element={<TimeMachine />} />
+                        <Route
+                            path="time_machine"
+                            element={<TimeMachine />}
+                        />
 
-                        <Route path="settings" element={<UserSettings />} />
+                        <Route
+                            path="settings"
+                            element={<UserSettings />}
+                        />
 
                         <Route
                             path="packs/new"
@@ -81,7 +105,24 @@ function App() {
                                 <CheckDefaultParentPack children={<NewAsk />} />
                             }
                         />
-                        <Route path="/:thing_id/*" element={<Stage />} />
+
+                        <Route
+                            path="feed"
+                            element={<Feed />}
+                        />
+                        <Route
+                            path="whats-happening"
+                            element={<WhatsHappening />}
+                        />
+                        <Route
+                            path="units"
+                            element={<Units />}
+                        />
+
+                        <Route
+                            path="/:thing_id/*"
+                            element={<Stage />}
+                        />
                     </Routes>
                 </BrowserRouter>
             </UnifiedHandlerClientContextProvider>

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom"
 import rdiff, { rdiffResult } from "recursive-diff"
 import { custom_find_unique, unique_items_of_array } from "../common_helpers.js"
 import {
@@ -6,10 +7,13 @@ import {
     complete_diff,
     locks,
     meta,
+    non_file_meta_value,
     thing,
     transaction,
 } from "./UnifiedHandler_types.js"
 import jwtDecode from "jwt-decode"
+import axios from "axios"
+import { UnifiedHandlerClient } from "./UnifiedHandlerClient.js"
 export function custom_deepcopy(value: any) {
     return JSON.parse(JSON.stringify(value))
 }
@@ -718,4 +722,17 @@ export function flexible_user_finder(
         throw "there is more than one match in valid search resources"
     }
 }
-export function upload_new_resource() {}
+export function getRandomSubarray<T>(arr: T[], size: number): T[] {
+    //this function was copied from stackoverflow
+    var shuffled = arr.slice(0),
+        i = arr.length,
+        temp,
+        index
+    while (i--) {
+        index = Math.floor((i + 1) * Math.random())
+        temp = shuffled[index]
+        shuffled[index] = shuffled[i]
+        shuffled[i] = temp
+    }
+    return shuffled.slice(0, size)
+}

@@ -243,7 +243,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                         (item) => item.thing_id === user_id
                     )
                     function is_user(
-                        cache_item: cache_item | undefined
+                        cache_item: cache_item<thing> | undefined
                     ): cache_item is { thing_id: number; thing: user } {
                         if (cache_item && cache_item.thing.type === "user") {
                             return true
@@ -262,7 +262,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                         //first, checking if user has sent a correct verification code:
                         //then setting x_is_verified
                         var latest_verf_code_ci = this.cache
-                            .filter((i: cache_item) => {
+                            .filter((i: cache_item<thing>) => {
                                 return (
                                     i.thing.type === "verification_code" &&
                                     is_user(user) &&
@@ -273,7 +273,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                             .at(-1)
 
                         function is_verification_code_ci(
-                            ci: cache_item | undefined
+                            ci: cache_item<thing> | undefined
                         ): ci is {
                             thing_id: number
                             thing: verification_code
@@ -432,7 +432,6 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 //saves the file with key = "file" inside sent form inside ./uploads directory
                 //returns json : {file_id : string }
                 //saved file name + extension is {file_id}-{original file name with extension }
-
                 if (response.locals.user_id === undefined) {
                     response
                         .status(403)

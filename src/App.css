@@ -49,5 +49,6 @@ html,
 body {
   /* prime react  */
   font-family: var(--font-family);
+  background-color: var(--surface-ground);
 }                                        
       
