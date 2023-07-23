@@ -736,3 +736,47 @@ export function getRandomSubarray<T>(arr: T[], size: number): T[] {
     }
     return shuffled.slice(0, size)
 }
+export function range_helper_compress(array: number[]): string {
+    //just pass int[]. without duplicate
+    var sorted = [...array]
+    sorted.sort((n1, n2) => n1 - n2)
+
+    //console.log(sorted)
+    var parts: number[][] = [] // like [[1,5],[6,9]] (containing both start and end)
+    function compute_parts(array: number[]) {
+        let start = sorted[0]
+        let end = sorted[0]
+        array.splice(0, 1)
+        while (array[0] === end + 1) {
+            end++
+            array.splice(0, 1)
+        }
+        parts.push([start, end])
+        array.length !== 0 && compute_parts(array)
+    }
+    compute_parts(sorted)
+
+    var result = ""
+    var part
+    for (part of parts) {
+        result += `${result.length !== 0 ? "," : ""}${part[0]}-${part[1]}`
+    }
+    return result
+}
+
+export function range_helper_decompress(value: string): number[] {
+    var parts = value
+        .split(",")
+        .map((i) => i.split("-"))
+        .map((i) => [Number(i[0]), Number(i[1])])
+    var result: number[] = []
+    var part
+    for (part of parts) {
+        var i = part[0]
+        while (i <= part[1]) {
+            result.push(i)
+            i++
+        }
+    }
+    return result
+}
