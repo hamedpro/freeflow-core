@@ -1,11 +1,11 @@
-import { useContext } from "react";
+import { useContext } from "react"
 
-import { Section } from "./section";
-import { StyledDiv } from "./styled_elements";
-import { Item, Menu, useContextMenu } from "react-contexify";
-import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
+import { Section } from "./section"
+import { StyledDiv } from "./styled_elements"
+import { Item, Menu, useContextMenu } from "react-contexify"
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 export function MessagesBox({ thing_id }) {
-	var { cache, strings } = useContext(UnifiedHandlerClientContext)
+    var { cache, strings } = useContext(UnifiedHandlerClientContext)
 
     var messages_to_show = cache.filter((i) => {
         return (
@@ -121,14 +121,7 @@ export function MessagesBox({ thing_id }) {
                                                   uhc.find_first_transaction(
                                                       cache_item.thing_id
                                                   ).user_id
-                                          ).thing.value.email_address ||
-                                          cache.find(
-                                              (i) =>
-                                                  i.thing_id ===
-                                                  uhc.find_first_transaction(
-                                                      cache_item.thing_id
-                                                  ).user_id
-                                          ).thing.value.mobile
+                                          ).thing.value.email_address
                                     : strings[47]}{" "}
                                 |{" "}
                                 {new Date(

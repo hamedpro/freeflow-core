@@ -1,12 +1,12 @@
-import React, { useContext } from "react";
-import { Section } from "./section";
-import Select from "react-select";
-import { StyledDiv } from "./styled_elements";
-import axios from "axios";
-import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
+import React, { useContext } from "react"
+import { Section } from "./section"
+import Select from "react-select"
+import { StyledDiv } from "./styled_elements"
+import axios from "axios"
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { GoBackRow } from "./GoBackRow"
 export const UserSettings = () => {
-	var { cache, strings } = useContext(UnifiedHandlerClientContext)
+    var { cache, strings } = useContext(UnifiedHandlerClientContext)
 
     var user_id = uhc.user_id
     var user = cache.find((i) => i.thing_id === user_id)
@@ -21,7 +21,7 @@ export const UserSettings = () => {
         var user_private_data_thing_id = Number(
             uhc.unresolved_cache
                 .find((i) => i.thing_id === user_id)
-                .thing.value.mobile.split(":")[2]
+                .thing.value.password.split(":")[2]
         )
         if (["calendar_type", "week_starting_day", "language"].includes(key)) {
             await uhc.request_new_transaction({
@@ -31,7 +31,7 @@ export const UserSettings = () => {
                 }),
                 thing_id: user_private_data_thing_id,
             })
-        } else if (["mobile", "email_address", "full_name"].includes(key)) {
+        } else if (["email_address", "full_name"].includes(key)) {
             await uhc.request_new_transaction({
                 new_thing_creator: (prev) => ({
                     ...prev,
@@ -129,12 +129,18 @@ export const UserSettings = () => {
                     id="new_profile_image_input"
                     className="mt-2 block "
                 />
-                <StyledDiv onClick={set_profile_picture} className="w-fit mt-2">
+                <StyledDiv
+                    onClick={set_profile_picture}
+                    className="w-fit mt-2"
+                >
                     {strings[163]}
                 </StyledDiv>
             </div>
             <Section title={strings[164]}>
-                <input type="file" id="importing_exported_unit" />
+                <input
+                    type="file"
+                    id="importing_exported_unit"
+                />
                 <StyledDiv
                     className="w-fit mt-2"
                     onClick={import_exported_unit}
@@ -219,11 +225,13 @@ export const UserSettings = () => {
             <Section title={strings[184]}>
                 {[
                     { key: "email_address", label: strings[185] },
-                    { key: "mobile", label: strings[186] },
                     { key: "full_name", label: strings[188] },
                 ].map((i, index) => {
                     return (
-                        <div key={index} className="block">
+                        <div
+                            key={index}
+                            className="block"
+                        >
                             {values[i.key] ? (
                                 <>
                                     <span>{i.label}</span> : {values[i.key]}
@@ -251,4 +259,4 @@ export const UserSettings = () => {
             </Section>
         </>
     )
-};
+}

@@ -30,6 +30,7 @@ import { Stage } from "./components/Stage"
 import { Feed } from "./components/Feed"
 import { WhatsHappening } from "./components/WhatsHappening"
 import { Units } from "./components/Units"
+import { ForgetPassword } from "./components/ForgetPassword"
 
 function App() {
     return (
@@ -117,6 +118,10 @@ function App() {
                         <Route
                             path="units"
                             element={<Units />}
+                        />
+                        <Route
+                            path="forget-password"
+                            element={<ForgetPassword />}
                         />
 
                         <Route

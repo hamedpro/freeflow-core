@@ -1,26 +1,26 @@
-import EditorJS from "@editorjs/editorjs";
-import { Socket } from "socket.io";
+import EditorJS from "@editorjs/editorjs"
+import { Socket } from "socket.io"
 
 export interface thing_base {
-	type: string;
-	value: any;
+    type: string
+    value: any
 }
 export type transaction = {
-	id: number;
-	thing_id: number;
-	time: number;
-	diff: rdiff.rdiffResult[];
-	user_id: number;
-};
-export type paths = string[];
+    id: number
+    thing_id: number
+    time: number
+    diff: rdiff.rdiffResult[]
+    user_id: number
+}
+export type paths = string[]
 export type locks = {
-	path: string[];
-	value: number | undefined;
-}[]; /* maybe it only contain existing locks */
+    path: string[]
+    value: number | undefined
+}[] /* maybe it only contain existing locks */
 export type thing_privileges = {
-	read: number[] | "*";
-	write: number[] | "*";
-};
+    read: number[] | "*"
+    write: number[] | "*"
+}
 export type file_meta_value = {
     file_privileges: { read: number[] | "*" }
     modify_privileges: number
@@ -129,8 +129,6 @@ export interface unit_note extends thing_base {
 export interface user_private_data extends thing_base {
     type: "user_private_data"
     value: {
-        mobile?: string | null
-        email_address?: string | null
         password?: string | null
         calendar_type?: "persian" | "arabic" | "english" | null
         week_starting_day?:
@@ -143,7 +141,6 @@ export interface user_private_data extends thing_base {
             | "friday"
             | null
         language?: "english" | "persian"
-        email_is_verified?: boolean
     }
 }
 export interface user extends thing_base {
@@ -152,7 +149,7 @@ export interface user extends thing_base {
         password: string /* a ref */
         email_address: string
         language: string /* a ref */
-        mobile: string
+        email_is_verified?: boolean
         profile_image_file_id?: number | null
         full_name?: string | null
         watching?: null | number[] // an array ofthing ids this user "watches"
@@ -181,23 +178,23 @@ export type thing =
 export interface cache_item<ThingType> {
     thing_id: number
     thing: ThingType
-    its_meta_cache_item?: cache_item<non_file_meta_value>
+    its_meta_cache_item?: cache_item<meta<non_file_meta_value>>
 }
 export type cache = cache_item<thing>[]
 export interface websocket_client {
-	socket: Socket;
-	profiles_seed?: profile_seed[];
-	prev_profiles_seed?: profile_seed[];
-	last_synced_snapshot: number | undefined /*  a transaction_id  */;
+    socket: Socket
+    profiles_seed?: profile_seed[]
+    prev_profiles_seed?: profile_seed[]
+    last_synced_snapshot: number | undefined /*  a transaction_id  */
 }
 export type profile_data = {
-	transactions: transaction[];
-};
+    transactions: transaction[]
+}
 export type profile_seed = {
-	user_id: number;
-	jwt?: string;
-	is_active: boolean;
-};
-export type profile = profile_data & profile_seed;
-export type profiles = profile[];
-export type complete_diff = { path: string[]; after: any; before: any }[];
+    user_id: number
+    jwt?: string
+    is_active: boolean
+}
+export type profile = profile_data & profile_seed
+export type profiles = profile[]
+export type complete_diff = { path: string[]; after: any; before: any }[]

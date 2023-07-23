@@ -5,6 +5,7 @@ import {
     cache,
     cache_item,
     complete_diff,
+    file_meta_value,
     locks,
     meta,
     non_file_meta_value,
@@ -100,7 +101,7 @@ export function check_lock({
         return true
     } else {
         var meta = cache.find(
-            (i: cache_item) =>
+            (i: cache_item<thing>) =>
                 i.thing.type === "meta" &&
                 "locks" in i.thing.value &&
                 i.thing.value.thing_id === thing_id
@@ -154,20 +155,20 @@ export function calc_user_discoverable_things(
                     )
                 } else {
                     function is_meta(
-                        cache_item: cache_item
-                    ): cache_item is { thing_id: number; thing: meta } {
+                        cache_item: cache_item<thing>
+                    ): cache_item is {
+                        thing_id: number
+                        thing: meta<non_file_meta_value>
+                    } {
                         return cache_item.thing.type === "meta"
                     }
                     if (is_meta(meta)) {
-                        if ("locks" in meta.thing.value) {
-                            /* just a typeguard */ return (
-                                meta.thing.value.thing_privileges.read ===
-                                    "*" ||
-                                meta.thing.value.thing_privileges.read.includes(
-                                    user_id
-                                )
+                        return (
+                            meta.thing.value.thing_privileges.read === "*" ||
+                            meta.thing.value.thing_privileges.read.includes(
+                                user_id
                             )
-                        }
+                        )
                     }
                 }
             }
@@ -187,7 +188,9 @@ export function new_transaction_privileges_check(
     if (typeof thing_id === "undefined") {
         var tmp = {}
         rdiff.applyDiff(tmp, transaction_diff)
-        function is_thing_meta(thing: any): thing is meta {
+        function is_thing_meta(
+            thing: any
+        ): thing is meta<non_file_meta_value | file_meta_value> {
             return "type" in thing && thing.type === "meta"
         }
         if (is_thing_meta(tmp)) {
@@ -211,8 +214,11 @@ export function new_transaction_privileges_check(
     var targeted_thing_cache_item = cache.find((i) => i.thing_id === thing_id)
     if (targeted_thing_cache_item !== undefined) {
         function is_cache_item_meta(
-            cache_item: cache_item
-        ): cache_item is { thing_id: number; thing: meta } {
+            cache_item: cache_item<thing>
+        ): cache_item is {
+            thing_id: number
+            thing: meta<non_file_meta_value | file_meta_value>
+        } {
             return cache_item.thing.type === "meta"
         }
         if (is_cache_item_meta(targeted_thing_cache_item)) {
@@ -374,12 +380,21 @@ export function calc_cache(
         )
     }
     for (var cache_item of resolved_cache) {
-        cache_item.its_meta_cache_item = resolved_cache.find(
+        var tmp = resolved_cache.find(
             (i) =>
                 i.thing.type === "meta" &&
                 "thing_id" in i.thing.value &&
                 i.thing.value.thing_id === cache_item.thing_id
         )
+        //checking if this thing is a cache item containg a non file meta
+        if (
+            ((
+                T: cache_item<thing> | undefined
+            ): T is cache_item<meta<non_file_meta_value>> =>
+                T ? "locks" in T.thing.value : false)(tmp)
+        ) {
+            cache_item.its_meta_cache_item = tmp
+        }
     }
 
     return resolved_cache
@@ -560,18 +575,7 @@ export class TransactionInterpreter implements TransactionInterpreterTypes {
                 }
             }
         },
-        () => {
-            var change = this.find_change("value", "mobile_is_verified")
-            if (change !== undefined) {
-                return {
-                    short:
-                        change.after === true
-                            ? `mobile was verified`
-                            : `mobile is not verified anymore`,
-                    verbose: `verbose mode is not added.`,
-                }
-            }
-        },
+
         () => {
             var change = this.find_change("type")
             if (change !== undefined && change.before === undefined) {
@@ -581,7 +585,7 @@ export class TransactionInterpreter implements TransactionInterpreterTypes {
                 }
             }
         },
-        ...["password", "email_address", "mobile"].map((key) => () => {
+        ...["password", "email_address"].map((key) => () => {
             var change = this.find_change("value", key)
             if (change !== undefined) {
                 return {
@@ -687,20 +691,18 @@ export class TransactionInterpreter implements TransactionInterpreterTypes {
     }
 }
 export function flexible_user_finder(
-    cache: cache_item[],
+    cache: cache_item<thing>[],
     identifier: string
 ): number | undefined /* (no match) */ {
     var tmp: any = cache.filter(
-        (item: cache_item) => item.thing.type === "user"
+        (item: cache_item<thing>) => item.thing.type === "user"
     )
     var all_values: string[] = []
     tmp.forEach((item: any) => {
         all_values.push(
-            ...[
-                item.thing.value.mobile,
-                item.thing.value.email_address,
-                item.thing_id,
-            ].filter((i) => i !== undefined && i !== null)
+            ...[item.thing.value.email_address, item.thing_id].filter(
+                (i) => i !== undefined && i !== null
+            )
         )
     })
     var matches_count = all_values.filter((value) => value == identifier).length
@@ -709,11 +711,9 @@ export function flexible_user_finder(
     } else if (matches_count === 1) {
         var matched_user = tmp.find((item: any) => {
             return (
-                [
-                    item.thing.value.mobile,
-                    item.thing.value.email_address,
-                    item.thing_id,
-                ].find((i) => i == identifier) !== undefined
+                [item.thing.value.email_address, item.thing_id].find(
+                    (i) => i == identifier
+                ) !== undefined
             )
         })
 

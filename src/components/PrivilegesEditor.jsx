@@ -1,20 +1,23 @@
-import React, { useContext, useEffect, useState } from "react";
-import Select from "react-select";
-import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
+import React, { useContext, useEffect, useState } from "react"
+import Select from "react-select"
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 export const PrivilegesEditor = ({ onChange }) => {
-	var { cache, strings } = useContext(UnifiedHandlerClientContext)
-	var users = cache.filter((i) => i.thing.type === "user");
-	var [privileges, set_privileges] = useState({
-		read: [],
-		write: [],
-	});
-	function change_privilegs_mode(job, new_value) {
-		set_privileges((prev) => ({ ...prev, [job]: new_value === "not_all" ? [] : "*" }));
-	}
-	useEffect(() => {
-		onChange(privileges);
-	}, [privileges]);
-	return (
+    var { cache, strings } = useContext(UnifiedHandlerClientContext)
+    var users = cache.filter((i) => i.thing.type === "user")
+    var [privileges, set_privileges] = useState({
+        read: [],
+        write: [],
+    })
+    function change_privilegs_mode(job, new_value) {
+        set_privileges((prev) => ({
+            ...prev,
+            [job]: new_value === "not_all" ? [] : "*",
+        }))
+    }
+    useEffect(() => {
+        onChange(privileges)
+    }, [privileges])
+    return (
         <>
             <h1>{strings[197]}</h1>
             {["read", "write"].map((key) => (
@@ -52,9 +55,7 @@ export const PrivilegesEditor = ({ onChange }) => {
                                 isMulti
                                 options={users.map((i) => ({
                                     value: i.thing_id,
-                                    label:
-                                        i.thing.value.email_address ||
-                                        i.thing.value.mobile,
+                                    label: i.thing.value.email_address,
                                 }))}
                                 value={users
                                     .filter((i) =>
@@ -62,9 +63,7 @@ export const PrivilegesEditor = ({ onChange }) => {
                                     )
                                     .map((i) => ({
                                         value: i.thing_id,
-                                        label:
-                                            i.thing.value.email_address ||
-                                            i.thing.value.mobile,
+                                        label: i.thing.value.email_address,
                                     }))}
                                 onChange={(newValue) =>
                                     set_privileges((prev) => ({
@@ -79,4 +78,4 @@ export const PrivilegesEditor = ({ onChange }) => {
             ))}
         </>
     )
-};
+}

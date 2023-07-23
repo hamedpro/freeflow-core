@@ -7,7 +7,6 @@ import { Checkbox } from "primereact/checkbox"
 import { Button } from "primereact/button"
 import { Password } from "primereact/password"
 import { InputText } from "primereact/inputtext"
-import { is_digit } from "../../api_dist/common_helpers"
 import { flexible_user_finder } from "../../api_dist/api/utils"
 var Login = () => {
     const [verf_code_or_password, set_verf_code_or_password] = useState()
@@ -37,20 +36,25 @@ var Login = () => {
             ).data
             alert(strings[7])
             var user_id = extract_user_id(jwt)
-            if (
-                !profiles_seed.map((p_seed) => p_seed.user_id).includes(user_id)
-            ) {
-                set_virtual_local_storage((prev) => ({
-                    ...prev,
-                    profiles_seed: [
-                        ...prev.profiles_seed.map((i) => ({
-                            ...i,
-                            is_active: false,
-                        })),
-                        { user_id, jwt, is_active: true },
-                    ],
-                }))
-            }
+
+            // if this user is logged in before we delete its former profile seed
+            set_virtual_local_storage((prev) => ({
+                ...prev,
+                profiles_seed: prev.profiles_seed.filter(
+                    (ps) => ps.user_id !== user_id
+                ),
+            }))
+
+            set_virtual_local_storage((prev) => ({
+                ...prev,
+                profiles_seed: [
+                    ...prev.profiles_seed.map((i) => ({
+                        ...i,
+                        is_active: false,
+                    })),
+                    { user_id, jwt, is_active: true },
+                ],
+            }))
             nav("/dashboard")
         } catch (error) {
             console.log(error)
@@ -129,7 +133,12 @@ var Login = () => {
                             </div>
 
                             <div className="text-900 text-3xl font-medium mb-3">
-                                Welcome !
+                                Welcome{" "}
+                                {matching_user &&
+                                    (matching_user.thing.value.full_name ||
+                                        matching_user.thing.value
+                                            .email_address)}
+                                !
                             </div>
                             <span className="text-600 font-medium">
                                 Sign in to continue
@@ -147,7 +156,7 @@ var Login = () => {
                             <InputText
                                 inputid="identifier"
                                 type="text"
-                                placeholder="a number or email"
+                                placeholder="your user id or email"
                                 className={`w-full md:w-30rem ${
                                     no_matching_user && "p-invalid"
                                 } `}
@@ -205,7 +214,7 @@ var Login = () => {
                                 </div>
                                 <button
                                     onClick={() => {
-                                        alert("Feature coming...")
+                                        nav("/forget-password")
                                     }}
                                     className="font-medium no-underline ml-2 text-right cursor-pointer"
                                     style={{ color: "var(--primary-color)" }}

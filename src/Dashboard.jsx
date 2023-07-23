@@ -30,8 +30,8 @@ export function Dashboard() {
     var nav = useNavigate()
     return (
         <>
-            <h1 className="lg:hidden">a larger screen is required.</h1>
-            <div className="h-full w-full border-black-900 flex-col hidden lg:grid">
+            <h1 className="md:hidden">a larger screen is required.</h1>
+            <div className="h-full w-full border-black-900 flex-col hidden md:grid">
                 <div
                     className="grid grid-cols-3 grid-rows-2 gap-4 p-4"
                     style={{ height: "500px" }}
