@@ -80,7 +80,7 @@ function NewNote() {
 }
 export const NewUnitShortcuts = () => {
     return (
-        <div className="grid grid-cols-2 grid-rows-1 gap-x-4 p-4">
+        <div className="grid grid-cols-2 grid-rows-1 gap-x-4">
             <div className="grid col-span-1">
                 <NewNote />
             </div>
