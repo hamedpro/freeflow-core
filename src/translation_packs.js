@@ -78,8 +78,6 @@ var pack1 = {
     ],
     53: ["thing", "تینگ"],
     54: ["thing timeline", "تایم لاین"],
-    55: ["raw thing", "اطلاعات خام"],
-    56: ["raw thing timeline", "تایم لاین  اطلاعات خام"],
     57: ["open its meta", "برو به متا دیتای این"],
     58: ["open its parent pack", "برو به پک پدر این"],
     59: ["thing type is not supported!", "این نوع تینگ فعلا پشتیبانی نمیشود"],
@@ -216,7 +214,6 @@ var pack1 = {
         "options with users who have selected that : ",
         "گزینه های سوال به همراه کسانی که آن را انتخاب کرده اند : ",
     ],
-    142: ["chat title :", "عنوان این چت"],
     143: [
         "enter new text for this message :",
         "متن جدید این پیام را وارد کنید",
@@ -379,8 +376,6 @@ var pack1 = {
         (type) => `زمان ${type} این رویداد را انتخاب کنید`,
     ],
     234: ["submit this event", "ثبت این رویداد"],
-    235: ["NewChat", "چت جدید"],
-    236: ["submit this chat", "ثبت این چت"],
     237: [
         'in "multiple choice" mode you must select correct option',
         "در حالت سوال چند گزینه باید گزینه ای را به عنوان گزینه صحیح علامت بزنید",
