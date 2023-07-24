@@ -39,13 +39,6 @@ export type meta<Value> = {
     type: "meta"
     value: Value
 }
-export interface unit_chat extends thing_base {
-    type: "unit/chat"
-    value: {
-        title: string
-        description: string
-    }
-}
 export interface unit_pack extends thing_base {
     type: "unit/pack"
     value: {
@@ -70,32 +63,7 @@ export interface unit_resource extends thing_base {
         file_id: number
     }
 }
-export interface unit_task extends thing_base {
-    type: "unit/task"
-    value: {
-        end_date: number
-        start_date: number
-        title: string
-        category_id?: number | null
-        description: string
-        steps: {
-            title: string
-            description: string
-            percent: number
-            is_done: boolean
-        }[]
-    }
-}
-export interface unit_event extends thing_base {
-    type: "unit/event"
-    value: {
-        end_date: number
-        start_date: number
-        title: string
-        category_id?: number | null
-        description?: string | null
-    }
-}
+
 export interface message extends thing_base {
     type: "message"
     value: {
@@ -163,12 +131,9 @@ export interface calendar_category extends thing_base {
     }
 }
 export type thing =
-    | unit_chat
     | meta<non_file_meta_value | file_meta_value>
     | unit_pack
     | unit_resource
-    | unit_task
-    | unit_event
     | unit_ask
     | unit_note
     | user
