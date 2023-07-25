@@ -1,9 +1,9 @@
 import React, { useContext, useState } from "react"
-import { TransactionsTimeline } from "./TransactionsTimeline"
 import { Section } from "./section"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
-
-export const ThingTimeline = ({ thing_transactions, cache_item }) => {
+import { Timeline } from "primereact/timeline"
+import { InlineTransaction } from "./InlineTransaction"
+export const ThingTimeline = ({ transactions, cache_item }) => {
     var [tr_timeline_mode, set_tr_timeline_mode] = useState("short")
     var { strings } = useContext(UnifiedHandlerClientContext)
     return (
@@ -13,7 +13,10 @@ export const ThingTimeline = ({ thing_transactions, cache_item }) => {
             </p>
             <Section title={strings[150]}>
                 {["short", "verbose"].map((mode) => (
-                    <div onClick={() => set_tr_timeline_mode(mode)} key={mode}>
+                    <div
+                        onClick={() => set_tr_timeline_mode(mode)}
+                        key={mode}
+                    >
                         <i
                             className={
                                 mode === tr_timeline_mode
@@ -27,9 +30,17 @@ export const ThingTimeline = ({ thing_transactions, cache_item }) => {
                     </div>
                 ))}
             </Section>
-            <TransactionsTimeline
-                transactions={thing_transactions}
-                mode={tr_timeline_mode}
+            <Timeline
+                className="w-full"
+                value={transactions}
+                align="left"
+                opposite={(tr) => `#${tr.id}`}
+                content={(tr) => (
+                    <InlineTransaction
+                        transaction_id={tr.id}
+                        mode={tr_timeline_mode}
+                    />
+                )}
             />
         </>
     )

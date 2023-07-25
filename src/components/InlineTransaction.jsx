@@ -1,8 +1,11 @@
-import React, { Fragment, useContext, useState } from "react";
-import { Section } from "./section";
-import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
-import { JsonViewer } from "@textea/json-viewer";
-import { TransactionInterpreter, calc_complete_transaction_diff } from "../../api_dist/api/utils";
+import React, { Fragment, useContext, useState } from "react"
+import { Section } from "./section"
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
+import { JsonViewer } from "@textea/json-viewer"
+import {
+    TransactionInterpreter,
+    calc_complete_transaction_diff,
+} from "../../api_dist/api/utils"
 function TransactionContent({ tr, mode }) {
     var { transactions } = useContext(UnifiedHandlerClientContext)
     var interpreted_tr = new TransactionInterpreter(transactions, tr.id)
@@ -46,17 +49,23 @@ function TransactionContent({ tr, mode }) {
         })
     }
 }
-export const Transaction = ({ transaction_id, mode /* raw | short | verbose */ }) => {
-	var { transactions } = useContext(UnifiedHandlerClientContext);
-	var tr = transactions.find((tr) => tr.id === transaction_id);
+export const InlineTransaction = ({
+    transaction_id,
+    mode /* raw | short | verbose */,
+}) => {
+    var { transactions } = useContext(UnifiedHandlerClientContext)
+    var tr = transactions.find((tr) => tr.id === transaction_id)
 
-	return (
-		<Section>
-			{tr ? (
-				<TransactionContent tr={tr} mode={mode} />
-			) : (
-				"requested transaction could not be found to be interpret."
-			)}
-		</Section>
-	);
-};
+    return (
+        <Section>
+            {tr ? (
+                <TransactionContent
+                    tr={tr}
+                    mode={mode}
+                />
+            ) : (
+                "requested transaction could not be found to be interpret."
+            )}
+        </Section>
+    )
+}

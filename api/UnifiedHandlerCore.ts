@@ -2,15 +2,15 @@
 
 import { cache_item, thing, transaction } from "./UnifiedHandler_types.js"
 import {
-	calc_cache,
-	calc_unresolved_cache,
-	calc_user_discoverable_things,
-	check_lock,
-	new_transaction_privileges_check,
-	thing_transactions,
-	extract_user_id,
-	find_thing_meta,
-} from "./utils.js";
+    calc_cache,
+    calc_unresolved_cache,
+    calc_user_discoverable_things,
+    check_lock,
+    new_transaction_privileges_check,
+    thing_transactions,
+    extract_user_id,
+    find_thing_meta,
+} from "./utils.js"
 
 export class UnifiedHandlerCore {
     thing_transactions = (thing_id: number) =>

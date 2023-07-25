@@ -19,7 +19,6 @@ import { Dashboard } from "./Dashboard"
 import { UnifiedHandlerClientContextProvider } from "./UnifiedHandlerClientContextProvider"
 import { Login } from "./components/Login"
 import { VirtualLocalStorageContextProvider } from "./VirtualLocalStorageContextProvider"
-import { TimeMachine } from "./TimeMachine"
 import { UserSettings } from "./components/UserSettings"
 import { CheckDefaultParentPack } from "./components/CheckDefaultParentPack"
 import { NewPack } from "./components/NewPack"
@@ -61,11 +60,6 @@ function App() {
                         <Route
                             path="/subscription"
                             element={<SubscribtionPage />}
-                        />
-
-                        <Route
-                            path="time_machine"
-                            element={<TimeMachine />}
                         />
 
                         <Route

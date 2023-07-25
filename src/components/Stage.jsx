@@ -11,6 +11,7 @@ import { ThingTimeline } from "./ThingTimeline"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { Thing } from "./Thing"
 import { TabMenu } from "primereact/tabmenu"
+import { MessagesBox } from "./MessagesBox"
 export const Stage = () => {
     var urls = ["/:thing_id", "/:thing_id/timeline"]
     var active_url
@@ -81,14 +82,20 @@ export const Stage = () => {
                 <Route
                     path=""
                     element={
-                        <Thing {...{ cache_item, thing_transactions, cache }} />
+                        <>
+                            <Thing thing_id={cache_item.thing_id} />
+                            {<MessagesBox thing_id={cache_item.thing_id} />}
+                        </>
                     }
                 />
                 <Route
                     path="timeline"
                     element={
                         <ThingTimeline
-                            {...{ cache_item, thing_transactions }}
+                            {...{
+                                cache_item,
+                                transactions: thing_transactions,
+                            }}
                         />
                     }
                 />

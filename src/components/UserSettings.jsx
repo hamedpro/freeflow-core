@@ -107,36 +107,42 @@ export const UserSettings = () => {
             <div className="p-2">
                 <GoBackRow />
                 <h1>{strings[162]}</h1>
-                <div style={{ width: "200px", height: "200px" }}>
-                    {user.thing.value.profile_image_file_id ? (
-                        <img
-                            src={
-                                new URL(
-                                    `/files/${
-                                        user.thing.value.profile_image_file_id
-                                    }?${uhc.jwt && "jwt=" + uhc.jwt}`,
-                                    window.RESTFUL_API_ENDPOINT
-                                ).href
-                            }
-                            className="w-full h-full"
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-blue-600"></div>
-                    )}
+                <div id="profile_picture">
+                    <div style={{ width: "200px", height: "200px" }}>
+                        {user.thing.value.profile_image_file_id ? (
+                            <img
+                                src={
+                                    new URL(
+                                        `/files/${
+                                            user.thing.value
+                                                .profile_image_file_id
+                                        }?${uhc.jwt && "jwt=" + uhc.jwt}`,
+                                        window.RESTFUL_API_ENDPOINT
+                                    ).href
+                                }
+                                className="w-full h-full"
+                            />
+                        ) : (
+                            <div className="w-full h-full bg-blue-600"></div>
+                        )}
+                    </div>
+                    <input
+                        type="file"
+                        id="new_profile_image_input"
+                        className="mt-2 block "
+                    />
+                    <StyledDiv
+                        onClick={set_profile_picture}
+                        className="w-fit mt-2"
+                    >
+                        {strings[163]}
+                    </StyledDiv>
                 </div>
-                <input
-                    type="file"
-                    id="new_profile_image_input"
-                    className="mt-2 block "
-                />
-                <StyledDiv
-                    onClick={set_profile_picture}
-                    className="w-fit mt-2"
-                >
-                    {strings[163]}
-                </StyledDiv>
             </div>
-            <Section title={strings[164]}>
+            <Section
+                title={strings[164]}
+                id="export_backup"
+            >
                 <input
                     type="file"
                     id="importing_exported_unit"
@@ -148,67 +154,76 @@ export const UserSettings = () => {
                     {strings[165]}
                 </StyledDiv>
             </Section>
-            <Section title={strings[166]}>
-                <Select
-                    onChange={(e) => simple_update("calendar_type", e.value)}
-                    options={[
-                        { value: null, label: strings[167] },
-                        {
-                            value: "english",
-                            label: strings[170],
-                        },
-                        {
-                            value: "arabic",
-                            label: strings[169],
-                        },
-                        {
-                            value: "persian",
-                            label: strings[168],
-                        },
-                    ]}
-                    value={{
-                        value: calendar_type || null,
-                        label: !calendar_type ? strings[167] : calendar_type,
-                    }}
-                />
-            </Section>
+            <div id="calendar_related">
+                <Section title={strings[166]}>
+                    <Select
+                        onChange={(e) =>
+                            simple_update("calendar_type", e.value)
+                        }
+                        options={[
+                            { value: null, label: strings[167] },
+                            {
+                                value: "english",
+                                label: strings[170],
+                            },
+                            {
+                                value: "arabic",
+                                label: strings[169],
+                            },
+                            {
+                                value: "persian",
+                                label: strings[168],
+                            },
+                        ]}
+                        value={{
+                            value: calendar_type || null,
+                            label: !calendar_type
+                                ? strings[167]
+                                : calendar_type,
+                        }}
+                    />
+                </Section>
 
-            <Section title={strings[171]}>
-                <Select
-                    onChange={(e) =>
-                        simple_update("week_starting_day", e.value)
-                    }
-                    options={[
-                        { value: null, label: strings[167] },
-                        {
-                            label: strings[172],
-                            options: [
-                                { value: "saturday", label: strings[173] },
-                                { value: "sunday", label: strings[174] },
-                                { value: "monday", label: strings[175] },
-                            ],
-                        },
+                <Section title={strings[171]}>
+                    <Select
+                        onChange={(e) =>
+                            simple_update("week_starting_day", e.value)
+                        }
+                        options={[
+                            { value: null, label: strings[167] },
+                            {
+                                label: strings[172],
+                                options: [
+                                    { value: "saturday", label: strings[173] },
+                                    { value: "sunday", label: strings[174] },
+                                    { value: "monday", label: strings[175] },
+                                ],
+                            },
 
-                        {
-                            label: strings[180],
+                            {
+                                label: strings[180],
 
-                            options: [
-                                { value: "tuesday", label: strings[176] },
-                                { value: "wednesday", label: strings[177] },
-                                { value: "thursday", label: strings[178] },
-                                { value: "friday", label: strings[179] },
-                            ],
-                        },
-                    ]}
-                    value={{
-                        value: week_starting_day || null,
-                        label: !week_starting_day
-                            ? strings[167]
-                            : week_starting_day,
-                    }}
-                />
-            </Section>
-            <Section title={strings[181]}>
+                                options: [
+                                    { value: "tuesday", label: strings[176] },
+                                    { value: "wednesday", label: strings[177] },
+                                    { value: "thursday", label: strings[178] },
+                                    { value: "friday", label: strings[179] },
+                                ],
+                            },
+                        ]}
+                        value={{
+                            value: week_starting_day || null,
+                            label: !week_starting_day
+                                ? strings[167]
+                                : week_starting_day,
+                        }}
+                    />
+                </Section>
+            </div>
+            <Section
+                title={strings[181]}
+                id="change_language"
+            >
                 <Select
                     onChange={(e) => simple_update("language", e.value)}
                     options={[
@@ -222,7 +237,10 @@ export const UserSettings = () => {
                     }}
                 />
             </Section>
-            <Section title={strings[184]}>
+            <Section
+                title={strings[184]}
+                id="change_credentials"
+            >
                 {[
                     { key: "email_address", label: strings[185] },
                     { key: "full_name", label: strings[188] },

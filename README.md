@@ -52,9 +52,9 @@ its time to discuss the `problems` we wanna solve and providing a `comparison` w
 <br />
 <b>🕰️ 🧙‍♂️ Time Machine</b>
 <br /> 
-always keep track of changes instead of keeping latest chagnes. <b>no overwrite at all ! </b>. <mark>it means we exactly now what is happening now and has happened before all over the network.</mark> it enables a set of features such as the awesome <b>"Time Machine"</b> ! you can go back in time  to match any previous state of anything you want. also you can see raw and <mark>human readable interpreted timelines</mark> of changes. 
+always keep track of changes instead of keeping latest chagnes. <b>no overwrite at all ! </b>. <mark>it means we exactly know what is happening now and has happened before all over the network.</mark> it enables a set of features such as the awesome <b>"Time Machine"</b> ! you can go back in time  to match any previous state of anything you want. also <mark>human readable interpreted timelines</mark> are available.
 
-so any time you delete something, it will not actually delet. just another 📝`transaction` says that thing is gone. so dont be worried about mistakenly deletions at all any more.
+so any time you delete something, it will not actually delete. just another 📝`transaction` says that thing is gone. so dont be worried about mistakenly deletions at all any more.
 <br />
 <br />
 
