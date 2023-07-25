@@ -13,6 +13,11 @@ import { Thing } from "./Thing"
 import { TabMenu } from "primereact/tabmenu"
 import { InlineTransaction } from "./InlineTransaction"
 import { Button } from "primereact/button"
+import { InputSwitch } from "primereact/inputswitch"
+
+import { InputNumber } from "primereact/inputnumber"
+import { custom_deepcopy } from "../../api_dist/api/utils"
+
 function NewResource() {
     var nav = useNavigate()
     async function uploadHandler(event) {
@@ -327,5 +332,88 @@ export function MetroButton({ bi, text, link, ...props }) {
         >
             <span>{text}</span>
         </Button>
+    )
+}
+export function SyncCentreWidget() {
+    var { cache } = useContext(UnifiedHandlerClientContext)
+    var { profiles_seed, set_virtual_local_storage } = useContext(
+        VirtualLocalStorageContext
+    )
+    function change_max_sync_depth(new_value) {
+        if (
+            !(
+                new_value === undefined ||
+                (typeof new_value === "number" && new_value >= 1)
+            )
+        ) {
+            return
+        }
+
+        set_virtual_local_storage((prev) => {
+            var clone = custom_deepcopy(prev)
+            clone.profiles_seed.find(
+                (profile_seed) => profile_seed.is_active === true
+            ).max_sync_depth = new_value
+            return clone
+        })
+    }
+    var active_profile = profiles_seed.find(
+        (profile_seed) => profile_seed.is_active === true
+    )
+    return (
+        <Panel
+            className="h-full"
+            header={
+                <div className="flex space-x-2">
+                    <i className={`bi-clock-history font-bold`} />
+                    <span>Sync Centre</span>
+                </div>
+            }
+        >
+            <>
+                <p>
+                    you have access to ${cache.length} things over the network.
+                    some of them may have hundereds or thousands of changes from
+                    their beginning. "max depth" is maximum number of changes
+                    you want to fetch for each thing. minimum is 1 which means
+                    you just want to be synced with latest change of those
+                    things.
+                </p>
+
+                <label
+                    htmlFor="max_sync_depth_undefined"
+                    className="font-bold block mb-2"
+                >
+                    sync without limit
+                </label>
+
+                <InputSwitch
+                    inputId="max_sync_depth_undefined"
+                    checked={active_profile.max_sync_depth === undefined}
+                    onChange={(e) =>
+                        change_max_sync_depth(e.value === true ? undefined : 3)
+                    }
+                />
+
+                {active_profile.max_sync_depth !== undefined && (
+                    <>
+                        <label
+                            htmlFor="max_depth"
+                            className="font-bold block mb-2"
+                        >
+                            Max Sync Depth
+                        </label>
+                        <InputNumber
+                            min={1}
+                            inputId="max_depth"
+                            value={active_profile.max_sync_depth}
+                            onValueChange={(e) => {
+                                change_max_sync_depth(e.value)
+                            }}
+                        />
+                    </>
+                )}
+            </>
+        </Panel>
     )
 }

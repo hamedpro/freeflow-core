@@ -5,22 +5,22 @@ import { useNavigate } from "react-router-dom"
 import "react-contexify/ReactContexify.css"
 import { UnifiedHandlerClientContext } from "./UnifiedHandlerClientContext"
 import { Calendar } from "primereact/calendar"
-import { InputSwitch } from "primereact/inputswitch"
 import {
     CustomTabMenu,
     Feed,
     NewUnitShortcuts,
     MetroButton,
+    SyncCentreWidget,
 } from "./components/DashboardParts"
 import { ProfilesSlideMenu } from "./components/DashboardParts"
 import { Button } from "primereact/button"
 import { Panel } from "primereact/panel"
-import { InputNumber } from "primereact/inputnumber"
+import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext"
 
 export function Dashboard() {
-    var { cache } = useContext(UnifiedHandlerClientContext)
+    var { cache, strings } = useContext(UnifiedHandlerClientContext)
+
     var [date, setDate] = useState()
-    var { strings } = useContext(UnifiedHandlerClientContext)
     var nav = useNavigate()
     return (
         <>
@@ -46,60 +46,9 @@ export function Dashboard() {
                             text="My Active Profile"
                             link={`/${uhc.user_id}`}
                         />
-
-                        <Panel
-                            className="h-full"
-                            header={
-                                <div className="flex space-x-2">
-                                    <i
-                                        className={`bi-clock-history font-bold`}
-                                    />
-                                    <span>Sync Centre</span>
-                                </div>
-                            }
-                        >
-                            <p>
-                                you have access to ${cache.length} things over
-                                the network. some of them may have hundereds or
-                                thousands of changes from their beginning. "max
-                                depth" is maximum number of changes you want to
-                                fetch for each thing. minimum is 1 which means
-                                you just want to be synced with latest change of
-                                those things.
-                            </p>
-
-                            <label
-                                htmlFor="max_sync_depth_undefined"
-                                className="font-bold block mb-2"
-                            >
-                                sync without limit
-                            </label>
-
-                            <InputSwitch
-                                inputId="max_sync_depth_undefined"
-                                checked={uhc.max_sync_depth === undefined}
-                                onChange={(e) =>
-                                    (uhc.max_sync_depth =
-                                        e.value === true ? undefined : 10)
-                                }
-                            />
-
-                            <label
-                                htmlFor="max_depth"
-                                className="font-bold block mb-2"
-                            >
-                                Max Sync Depth
-                            </label>
-                            <InputNumber
-                                min={1}
-                                inputId="max_depth"
-                                value={uhc.max_sync_depth}
-                                onValueChange={(e) =>
-                                    (uhc.max_sync_depth = e.value)
-                                }
-                            />
-                        </Panel>
+                        <SyncCentreWidget />
                     </div>
+
                     <div className="col-span-full col-start-2 row-start-1 row-span-full">
                         <Feed />
                     </div>
