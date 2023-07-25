@@ -153,13 +153,17 @@ export interface websocket_client {
     last_synced_snapshot: number | undefined /*  a transaction_id  */
 }
 export type profile_data = {
-    transactions: transaction[]
+    discoverable_for_this_user: transaction["id"][]
 }
 export type profile_seed = {
     user_id: number
     jwt?: string
     is_active: boolean
+    max_depth?: number
 }
 export type profile = profile_data & profile_seed
-export type profiles = profile[]
+export type profiles_sync_package = {
+    profiles: profile[]
+    transactions: transaction[]
+}
 export type complete_diff = { path: string[]; after: any; before: any }[]

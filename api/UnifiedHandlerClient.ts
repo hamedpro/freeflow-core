@@ -8,6 +8,7 @@ import {
     non_file_meta_value,
     profile,
     profile_seed,
+    profiles_sync_package,
     thing,
     user,
 } from "./UnifiedHandler_types"
@@ -21,7 +22,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
     websocket_api_endpoint: string
     restful_api_endpoint: string
     profiles_seed: profile_seed[] = []
-    profiles: profile[] = []
+    profiles_sync_package?: profiles_sync_package = undefined
     strings: (Function | string)[]
     constructor(
         websocket_api_endpoint: string,
@@ -49,9 +50,21 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         this.websocket.on(
             "syncing_discoverable_transactions",
             (diff: rdiff.rdiffResult[]) => {
-                applyDiff(this.profiles, diff)
+                applyDiff(this.profiles_sync_package, diff)
+                if (this.profiles_sync_package !== undefined) {
+                    this.transactions =
+                        this.profiles_sync_package.transactions.filter((tr) => {
+                            return (
+                                this.active_profile &&
+                                this.active_profile.discoverable_for_this_user.includes(
+                                    tr.id
+                                )
+                            )
+                        })
+                } else {
+                    this.transactions = []
+                }
 
-                this.transactions = this.active_profile?.transactions || []
                 this.onChange()
             }
         )
@@ -62,7 +75,11 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         }
     }
     get active_profile() {
-        return this.profiles.find((profile) => profile.is_active)
+        if (this.profiles_sync_package) {
+            return this.profiles_sync_package.profiles.find(
+                (profile) => profile.is_active === true
+            )
+        }
     }
     get jwt() {
         return this.active_profile_seed?.jwt

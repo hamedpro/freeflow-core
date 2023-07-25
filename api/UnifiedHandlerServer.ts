@@ -16,7 +16,7 @@ import {
     cache_item,
     profile,
     profile_seed,
-    profiles,
+    profiles_sync_package,
     thing,
     transaction,
     user,
@@ -32,6 +32,7 @@ import {
     validate_lock_structure,
 } from "./utils.js"
 import { KavenegarApi, kavenegar } from "kavenegar"
+import { custom_find_unique } from "../common_helpers.js"
 function custom_express_jwt_middleware(jwt_secret: string) {
     return (request: any, response: any, next: any) => {
         if (
@@ -79,7 +80,6 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
     frontend_endpoint: string
     lock = new AsyncLock()
     smtp_transport: ReturnType<typeof nodemailer.createTransport>
-    kave_negar_api: ReturnType<typeof KavenegarApi>
     gen_lock_safe_request_handler =
         (func: (response: any, reject: any) => any) =>
         async (request: any, response: any) =>
@@ -148,7 +148,6 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 pass: email_password,
             },
         })
-        this.kave_negar_api = KavenegarApi({ apikey: sms_panel_token })
         this.transactions = JSON.parse(
             fs.readFileSync(this.absolute_paths.store_file, "utf-8")
         )
@@ -738,30 +737,52 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
     ): profile {
         return {
             ...profile_seed,
-            transactions: this.calc_user_discoverable_transactions(
-                profile_seed.user_id
-            ).filter((tr) => {
-                if (transaction_limit === undefined) {
-                    return true
+            discoverable_for_this_user:
+                this.calc_user_discoverable_transactions(profile_seed.user_id)
+                    .filter((tr) => {
+                        if (transaction_limit === undefined) {
+                            return true
+                        } else {
+                            return tr.id <= transaction_limit
+                        }
+                    })
+                    .map((tr) => tr.id),
+        }
+    }
+    make_profiles_sync_package(profiles: profile[]): profiles_sync_package {
+        return {
+            transactions: custom_find_unique(
+                profiles.map((prof) => prof.discoverable_for_this_user).flat(),
+                (item1: number, item2: number) => item1 === item2
+            ).map((transaction_id) => {
+                var tmp = this.transactions.find(
+                    (tr) => tr.id === transaction_id
+                )
+                if (tmp === undefined) {
+                    throw `internal error: transaction with id ${transaction_id} was supposed to exist but it doesnt. report this issue to dev team.`
                 } else {
-                    return tr.id <= transaction_limit
+                    return tmp
                 }
             }),
+            profiles,
         }
     }
     sync_websocket_client(websocket_client: websocket_client) {
-        var prev: profiles = (websocket_client.prev_profiles_seed || []).map(
+        var prev: profile[] = (websocket_client.prev_profiles_seed || []).map(
             (seed) =>
                 this.calc_profile(seed, websocket_client.last_synced_snapshot)
         )
 
-        var current: profiles = (websocket_client.profiles_seed || []).map(
+        var current: profile[] = (websocket_client.profiles_seed || []).map(
             (profile_seed) => this.calc_profile(profile_seed, undefined)
         )
 
         websocket_client.socket.emit(
             "syncing_discoverable_transactions",
-            getDiff(prev, current)
+            getDiff(
+                this.make_profiles_sync_package(prev),
+                this.make_profiles_sync_package(current)
+            )
         )
         websocket_client.last_synced_snapshot = Math.max(
             ...this.transactions.map((i) => i.id)
@@ -775,12 +796,12 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
         }
         this.websocket_clients.push(new_websocket_client)
 
-        socket.on("sync_profiles", (profiles: profiles) => {
+        socket.on("sync_profiles", (profiles_seed: profile_seed[]) => {
             try {
-                for (var profile of profiles) {
-                    if (typeof profile.jwt === "string") {
+                for (var profile_seed of profiles_seed) {
+                    if (typeof profile_seed.jwt === "string") {
                         var decoded_jwt = jwt_module.verify(
-                            profile.jwt,
+                            profile_seed.jwt,
                             this.jwt_secret
                         )
                         if (
@@ -788,7 +809,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                             "string" /* this bool is always true */
                         ) {
                             var { user_id } = decoded_jwt
-                            if (user_id !== profile.user_id) {
+                            if (user_id !== profile_seed.user_id) {
                                 throw "jwt was verified but user id of profile does not match the user id inside the jwt"
                             }
                         }
@@ -799,7 +820,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 )
                 if (t !== undefined) {
                     t.prev_profiles_seed = t.profiles_seed
-                    t.profiles_seed = profiles
+                    t.profiles_seed = profiles_seed
                 } else {
                     throw "freeflow internal error! tried to update profiles of a websocket which doest exist."
                 }
