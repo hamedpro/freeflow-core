@@ -1,4 +1,3 @@
-import jwtDecode from "jwt-decode"
 import { io } from "socket.io-client"
 import axios from "axios"
 import rdiff from "recursive-diff"
@@ -6,14 +5,13 @@ import { UnifiedHandlerCore } from "./UnifiedHandlerCore"
 import {
     cache_item,
     non_file_meta_value,
-    profile,
     profile_seed,
     profiles_sync_package,
     thing,
     user,
 } from "./UnifiedHandler_types"
 import { useNavigate } from "react-router-dom"
-import { OutputData, SavedData } from "@editorjs/editorjs/types/data-formats"
+import { OutputData } from "@editorjs/editorjs/types/data-formats"
 import { getRandomSubarray } from "./utils"
 var { applyDiff } = rdiff
 
@@ -22,7 +20,10 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
     websocket_api_endpoint: string
     restful_api_endpoint: string
     profiles_seed: profile_seed[] = []
-    profiles_sync_package?: profiles_sync_package = undefined
+    profiles_sync_package?: profiles_sync_package = {
+        transactions: [],
+        profiles: [],
+    }
     strings: (Function | string)[]
     constructor(
         websocket_api_endpoint: string,
@@ -69,6 +70,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
             }
         )
     }
+
     onChange() {
         for (var func of Object.values(this.onChanges)) {
             func()

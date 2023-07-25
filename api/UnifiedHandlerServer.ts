@@ -731,22 +731,48 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
         return transaction.thing_id
     }
+    apply_max_sync_depth(
+        transactions: transaction[],
+        max_sync_depth: number | undefined
+    ): transaction[] {
+        if (max_sync_depth === undefined) {
+            return transactions
+        }
+        var result: transaction[] = []
+        custom_find_unique(
+            transactions.map((tr) => tr.thing_id),
+            (i1: number, i2: number) => i1 === i2
+        ).forEach((unique_thing_id) => {
+            var clone = transactions.filter(
+                (tr) => tr.thing_id === unique_thing_id
+            )
+            clone.reverse()
+            result.push(...clone.slice(0, max_sync_depth))
+        })
+        result.sort((tr1, tr2) => tr1.id - tr2.id)
+        return result
+    }
     calc_profile(
         profile_seed: profile_seed,
         transaction_limit: number | undefined
     ): profile {
+        var discoverable_for_this_user: transaction[] =
+            this.calc_user_discoverable_transactions(
+                profile_seed.user_id
+            ).filter((tr) => {
+                if (transaction_limit === undefined) {
+                    return true
+                } else {
+                    return tr.id <= transaction_limit
+                }
+            })
+
         return {
             ...profile_seed,
-            discoverable_for_this_user:
-                this.calc_user_discoverable_transactions(profile_seed.user_id)
-                    .filter((tr) => {
-                        if (transaction_limit === undefined) {
-                            return true
-                        } else {
-                            return tr.id <= transaction_limit
-                        }
-                    })
-                    .map((tr) => tr.id),
+            discoverable_for_this_user: this.apply_max_sync_depth(
+                discoverable_for_this_user,
+                profile_seed.max_depth
+            ).map((tr) => tr.id),
         }
     }
     make_profiles_sync_package(profiles: profile[]): profiles_sync_package {

@@ -49,7 +49,7 @@ export var Register = () => {
                             ...i,
                             is_active: false,
                         })),
-                        { user_id, jwt, is_active: true },
+                        { user_id, jwt, is_active: true, max_sync_depth: 3 },
                     ],
                 }))
             }

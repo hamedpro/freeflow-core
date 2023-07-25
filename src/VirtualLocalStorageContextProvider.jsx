@@ -7,7 +7,12 @@ export const VirtualLocalStorageContextProvider = ({ children }) => {
             "app_data",
             JSON.stringify({
                 profiles_seed: [
-                    { user_id: 0, jwt: undefined, is_active: true },
+                    {
+                        user_id: 0,
+                        jwt: undefined,
+                        is_active: true,
+                        max_sync_depth: 3,
+                    },
                 ],
                 lang: "english",
             })
