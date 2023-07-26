@@ -38,7 +38,7 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
     }
     useEffect(() => {
         window.uhc.profiles_seed = profiles_seed
-        window.uhc.sync_profiles()
+        window.uhc.sync_profiles_seed()
     }, [profiles_seed])
     useEffect(() => {
         window.uhc.strings = translation_packs[lang]

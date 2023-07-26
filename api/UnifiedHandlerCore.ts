@@ -70,7 +70,7 @@ export class UnifiedHandlerCore {
         this.onChanges.time_travel_snapshot()
         this.onChanges.cache()
     }
-
+    
     transactions: transaction[] = []
 
     get cache(): cache_item<thing>[] {

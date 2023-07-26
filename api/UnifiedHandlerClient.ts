@@ -5,9 +5,10 @@ import { UnifiedHandlerCore } from "./UnifiedHandlerCore"
 import {
     cache_item,
     non_file_meta_value,
+    profile,
     profile_seed,
-    profiles_sync_package,
     thing,
+    transaction,
     user,
 } from "./UnifiedHandler_types"
 import { useNavigate } from "react-router-dom"
@@ -20,11 +21,11 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
     websocket_api_endpoint: string
     restful_api_endpoint: string
     profiles_seed: profile_seed[] = []
-    profiles_sync_package?: profiles_sync_package = {
-        transactions: [],
-        profiles: [],
-    }
+    profiles: profile[] = []
     strings: (Function | string)[]
+    // these are union of all profiles
+    all_transactions: transaction[] = []
+
     constructor(
         websocket_api_endpoint: string,
         restful_api_endpoint: string,
@@ -48,40 +49,32 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         //console.log("a new uhclient is created ");
 
         this.websocket = io(websocket_api_endpoint)
-        this.websocket.on(
-            "syncing_discoverable_transactions",
-            (diff: rdiff.rdiffResult[]) => {
-                applyDiff(this.profiles_sync_package, diff)
-                if (this.profiles_sync_package !== undefined) {
-                    this.transactions =
-                        this.profiles_sync_package.transactions.filter((tr) => {
-                            return (
-                                this.active_profile &&
-                                this.active_profile.discoverable_for_this_user.includes(
-                                    tr.id
-                                )
-                            )
-                        })
-                } else {
-                    this.transactions = []
-                }
-
-                this.onChange()
-            }
-        )
+        this.websocket.on("sync_profiles", (diff: rdiff.rdiffResult[]) => {
+            //console.log()
+            applyDiff(this.profiles, diff)
+            this.update_transactions()
+        })
+        this.websocket.on("sync_all_transactions", (new_transactions) => {
+            this.all_transactions.push(...new_transactions)
+            this.update_transactions()
+        })
     }
-
+    update_transactions() {
+        this.transactions = this.all_transactions.filter((tr) => {
+            return (
+                this.active_profile &&
+                this.active_profile.discoverable_for_this_user.includes(tr.id)
+            )
+        })
+        this.onChange()
+    }
     onChange() {
         for (var func of Object.values(this.onChanges)) {
             func()
         }
     }
     get active_profile() {
-        if (this.profiles_sync_package) {
-            return this.profiles_sync_package.profiles.find(
-                (profile) => profile.is_active === true
-            )
-        }
+        return this.profiles.find((profile) => profile.is_active === true)
     }
     get jwt() {
         return this.active_profile_seed?.jwt
@@ -101,8 +94,8 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         })
     }
 
-    sync_profiles() {
-        this.websocket.emit("sync_profiles", this.profiles_seed)
+    sync_profiles_seed() {
+        this.websocket.emit("sync_profiles_seed", this.profiles_seed)
     }
 
     request_new_transaction = async ({

@@ -16,7 +16,6 @@ import {
     cache_item,
     profile,
     profile_seed,
-    profiles_sync_package,
     thing,
     transaction,
     user,
@@ -755,23 +754,18 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             ).map((tr) => tr.id),
         }
     }
-    make_profiles_sync_package(profiles: profile[]): profiles_sync_package {
-        return {
-            transactions: custom_find_unique(
-                profiles.map((prof) => prof.discoverable_for_this_user).flat(),
-                (item1: number, item2: number) => item1 === item2
-            ).map((transaction_id) => {
-                var tmp = this.transactions.find(
-                    (tr) => tr.id === transaction_id
-                )
-                if (tmp === undefined) {
-                    throw `internal error: transaction with id ${transaction_id} was supposed to exist but it doesnt. report this issue to dev team.`
-                } else {
-                    return tmp
-                }
-            }),
-            profiles,
-        }
+    calc_all_discoverable_transactions(profiles: profile[]): transaction[] {
+        return custom_find_unique(
+            profiles.map((prof) => prof.discoverable_for_this_user).flat(),
+            (item1: number, item2: number) => item1 === item2
+        ).map((transaction_id) => {
+            var tmp = this.transactions.find((tr) => tr.id === transaction_id)
+            if (tmp === undefined) {
+                throw `internal error: transaction with id ${transaction_id} was supposed to exist but it doesnt. report this issue to dev team.`
+            } else {
+                return tmp
+            }
+        })
     }
     sync_websocket_client(websocket_client: websocket_client) {
         var prev: profile[] = (websocket_client.prev_profiles_seed || []).map(
@@ -783,15 +777,19 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             (profile_seed) => this.calc_profile(profile_seed, undefined)
         )
 
-        websocket_client.socket.emit(
-            "syncing_discoverable_transactions",
-            getDiff(
-                this.make_profiles_sync_package(prev),
-                this.make_profiles_sync_package(current)
-            )
-        )
+        websocket_client.socket.emit("sync_profiles", getDiff(prev, current))
         websocket_client.last_synced_snapshot = Math.max(
             ...this.transactions.map((i) => i.id)
+        )
+
+        websocket_client.socket.emit(
+            "sync_all_transactions",
+            this.calc_all_discoverable_transactions(current)
+            .filter(
+                (tr) =>
+                    websocket_client.cached_transaction_ids.includes(tr.id) ===
+                    false
+            )
         )
     }
     add_socket(socket: Socket) {
@@ -799,10 +797,11 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             socket,
             profiles_seed: [],
             last_synced_snapshot: undefined,
+            cached_transaction_ids: [],
         }
         this.websocket_clients.push(new_websocket_client)
 
-        socket.on("sync_profiles", (profiles_seed: profile_seed[]) => {
+        socket.on("sync_profiles_seed", (profiles_seed: profile_seed[]) => {
             try {
                 for (var profile_seed of profiles_seed) {
                     if (typeof profile_seed.jwt === "string") {
@@ -836,6 +835,9 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             } catch (error) {
                 console.error(error)
             }
+        })
+        socket.on("sync_cache", (transaction_ids: transaction["id"][]) => {
+            new_websocket_client.cached_transaction_ids = transaction_ids
         })
     }
 }
