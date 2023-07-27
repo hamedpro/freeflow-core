@@ -32,8 +32,8 @@ export type non_file_meta_value = {
     locks: locks
     modify_thing_privileges: number /* user_id */
     thing_id: number
-    pack_id: null | number
-    points_to: number
+    pack_id?: null | number
+    points_to?: number
 }
 export type meta<Value> = {
     type: "meta"

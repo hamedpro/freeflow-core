@@ -4,6 +4,7 @@ import rdiff from "recursive-diff"
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore"
 import {
     cache_item,
+    meta,
     non_file_meta_value,
     profile,
     profile_seed,
@@ -87,7 +88,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         return this.profiles_seed.find((profile) => profile.is_active)
     }
     get user_id() {
-        return this.active_profile_seed?.user_id
+        return this.active_profile_seed?.user_id || 0
     }
     get configured_axios(): ReturnType<typeof axios.create> {
         return axios.create({
@@ -277,6 +278,40 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
 
         //continue with this new created note
         nav(`/${new_note_id}`)
+    }
+    async bootstrap_a_pack({
+        title,
+        callback,
+    }: {
+        title: string
+        callback: (id_of_new_pack: number) => void
+    }) {
+        var id_of_new_pack = await this.request_new_transaction({
+            new_thing_creator: () => ({
+                type: "unit/pack",
+                value: {
+                    title,
+                    description: "this pack was bootstraped",
+                },
+            }),
+            thing_id: undefined,
+        })
+        await this.request_new_transaction({
+            new_thing_creator: (): meta<non_file_meta_value> => ({
+                type: "meta",
+                value: {
+                    thing_privileges: {
+                        write: [this.user_id],
+                        read: [this.user_id],
+                    },
+                    modify_thing_privileges: this.user_id,
+                    locks: [],
+                    thing_id: id_of_new_pack,
+                },
+            }),
+            thing_id: undefined,
+        })
+        callback(id_of_new_pack)
     }
     recommend_to_me(): number[] {
         /* returns discoverable thing_ids sorted

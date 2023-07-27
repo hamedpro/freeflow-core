@@ -53,39 +53,6 @@ export function Dashboard() {
                         <Feed />
                     </div>
                 </div>
-                <Panel
-                    header={"New Unit"}
-                    className="my-4"
-                >
-                    <div className="grid grid-rows-1 grid-cols-4 justify-around gap-x-2">
-                        <Button
-                            severity="info"
-                            icon={<i className="bi-box-fill pr-2"></i>}
-                        >
-                            New Pack
-                        </Button>
-                        <Button
-                            severity="info"
-                            icon={<i className="bi-cloud-upload-fill pr-2"></i>}
-                        >
-                            New Resource
-                        </Button>
-                        <Button
-                            severity="info"
-                            icon={<i className="bi-card-text pr-2"></i>}
-                        >
-                            New Writing
-                        </Button>
-                        <Button
-                            severity="info"
-                            icon={
-                                <i className="bi-patch-question-fill pr-2"></i>
-                            }
-                        >
-                            New Ask
-                        </Button>
-                    </div>
-                </Panel>
                 <NewUnitShortcuts />
                 <div className="grid grid-cols-3 gap-4 p-4">
                     <div className="col-start-1 col-span-1 row-span-full grid grid-cols-1 gap-y-4 items-around">

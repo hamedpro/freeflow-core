@@ -21,9 +21,6 @@ import { Login } from "./components/Login"
 import { VirtualLocalStorageContextProvider } from "./VirtualLocalStorageContextProvider"
 import { UserSettings } from "./components/UserSettings"
 import { CheckDefaultParentPack } from "./components/CheckDefaultParentPack"
-import { NewPack } from "./components/NewPack"
-import { NewResource } from "./components/NewResource"
-import { NewNote } from "./components/NewNote"
 import { NewAsk } from "./components/NewAsk"
 import { Stage } from "./components/Stage"
 import { Feed } from "./components/Feed"
@@ -65,33 +62,6 @@ function App() {
                         <Route
                             path="settings"
                             element={<UserSettings />}
-                        />
-
-                        <Route
-                            path="packs/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewPack />}
-                                />
-                            }
-                        />
-
-                        <Route
-                            path="resources/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewResource />}
-                                />
-                            }
-                        />
-
-                        <Route
-                            path="notes/new"
-                            element={
-                                <CheckDefaultParentPack
-                                    children={<NewNote />}
-                                />
-                            }
                         />
 
                         <Route

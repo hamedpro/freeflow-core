@@ -17,6 +17,7 @@ import { InputSwitch } from "primereact/inputswitch"
 
 import { InputNumber } from "primereact/inputnumber"
 import { custom_deepcopy } from "../../api_dist/api/utils"
+import { InputText } from "primereact/inputtext"
 
 function NewResource() {
     var nav = useNavigate()
@@ -98,14 +99,65 @@ function NewNote() {
         </Panel>
     )
 }
+function NewAsk() {
+    return <Panel />
+}
+function NewPack() {
+    var nav = useNavigate()
+    var [title, set_title] = useState()
+    function onclick_handler() {
+        window.uhc.bootstrap_a_pack({
+            title,
+            callback: (id_of_new_pack) => nav(`/${id_of_new_pack}`),
+        })
+    }
+    return (
+        <Panel
+            header={
+                <>
+                    <i className="bi bi-box pr-2" />
+                    <span>New Pack</span>{" "}
+                </>
+            }
+        >
+            <p>
+                Packs are just like a folder in your OS of choice. create one
+                just with a title and add whatever you wanna to it at any time.
+            </p>
+            <label htmlFor="new_pack_title">Title:</label>
+            <InputText
+                id="new_pack_title"
+                onChange={(e) => set_title(e.target.value)}
+            />
+            <span className="block text-xs text-gray-600 w-full md:w-30rem mt-2">
+                {title === "" && "title can not be empty"}
+            </span>
+
+            <Button
+                disabled={title === undefined || title === ""}
+                onClick={onclick_handler}
+            >
+                Create New Pack
+            </Button>
+        </Panel>
+    )
+}
 export const NewUnitShortcuts = () => {
     return (
-        <div className="grid grid-cols-2 grid-rows-1 gap-x-4">
+        <div className="grid grid-cols-2 grid-rows-2 gap-4">
             <div className="grid col-span-1">
                 <NewNote />
             </div>
             <div className="grid col-span-1">
                 <NewResource />
+            </div>
+
+            <div className="grid col-span-1">
+                <NewAsk />
+            </div>
+
+            <div className="grid col-span-1">
+                <NewPack />
             </div>
         </div>
     )
