@@ -4,9 +4,8 @@ import { UnifiedHandlerClient } from "../api_dist/api/UnifiedHandlerClient"
 import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext"
 import translation_packs from "./translation_packs"
 export const UnifiedHandlerClientContextProvider = ({ children }) => {
-    var { profiles_seed, lang, set_virtual_local_storage } = useContext(
-        VirtualLocalStorageContext
-    )
+    var { profiles_seed, lang, set_virtual_local_storage, all_transactions } =
+        useContext(VirtualLocalStorageContext)
 
     var [
         UnifiedHandlerClientContextState,
@@ -38,8 +37,23 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
     }
     useEffect(() => {
         window.uhc.profiles_seed = profiles_seed
-        window.uhc.sync_profiles()
+        window.uhc.all_transactions = all_transactions
+        window.uhc.sync_cache().then(
+            () => window.uhc.sync_profiles_seed(),
+            () => {
+                throw "sync cache failed"
+            }
+        )
     }, [profiles_seed])
+    useEffect(() => {
+        set_virtual_local_storage((prev) => ({
+            ...prev,
+            all_transactions: window.uhc.all_transactions,
+        }))
+    }, [UnifiedHandlerClientContextState.transactions])
+    useEffect(() => {
+        window.uhc.sync_cache()
+    }, [all_transactions])
     useEffect(() => {
         window.uhc.strings = translation_packs[lang]
         setUnifiedHandlerClientContextState((prev) => ({

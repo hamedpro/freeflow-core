@@ -1,4 +1,3 @@
-import jwtDecode from "jwt-decode"
 import { io } from "socket.io-client"
 import axios from "axios"
 import rdiff from "recursive-diff"
@@ -9,11 +8,13 @@ import {
     profile,
     profile_seed,
     thing,
+    transaction,
     user,
 } from "./UnifiedHandler_types"
 import { useNavigate } from "react-router-dom"
-import { OutputData, SavedData } from "@editorjs/editorjs/types/data-formats"
+import { OutputData } from "@editorjs/editorjs/types/data-formats"
 import { getRandomSubarray } from "./utils"
+import { custom_find_unique } from "../common_helpers"
 var { applyDiff } = rdiff
 
 export class UnifiedHandlerClient extends UnifiedHandlerCore {
@@ -23,6 +24,9 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
     profiles_seed: profile_seed[] = []
     profiles: profile[] = []
     strings: (Function | string)[]
+    // these are union of all profiles
+    all_transactions: transaction[] = []
+
     constructor(
         websocket_api_endpoint: string,
         restful_api_endpoint: string,
@@ -46,15 +50,27 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         //console.log("a new uhclient is created ");
 
         this.websocket = io(websocket_api_endpoint)
-        this.websocket.on(
-            "syncing_discoverable_transactions",
-            (diff: rdiff.rdiffResult[]) => {
-                applyDiff(this.profiles, diff)
-
-                this.transactions = this.active_profile?.transactions || []
-                this.onChange()
-            }
-        )
+        this.websocket.on("sync_profiles", (diff: rdiff.rdiffResult[]) => {
+            //console.log()
+            applyDiff(this.profiles, diff)
+            this.update_transactions()
+        })
+        this.websocket.on("sync_all_transactions", (new_transactions) => {
+            this.all_transactions = custom_find_unique(
+                this.all_transactions.concat(new_transactions),
+                (tr1: transaction, tr2: transaction) => tr1.id === tr2.id
+            )
+            this.update_transactions()
+        })
+    }
+    update_transactions() {
+        this.transactions = this.all_transactions.filter((tr) => {
+            return (
+                this.active_profile &&
+                this.active_profile.discoverable_for_this_user.includes(tr.id)
+            )
+        })
+        this.onChange()
     }
     onChange() {
         for (var func of Object.values(this.onChanges)) {
@@ -62,7 +78,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         }
     }
     get active_profile() {
-        return this.profiles.find((profile) => profile.is_active)
+        return this.profiles.find((profile) => profile.is_active === true)
     }
     get jwt() {
         return this.active_profile_seed?.jwt
@@ -81,9 +97,18 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
             },
         })
     }
-
-    sync_profiles() {
-        this.websocket.emit("sync_profiles", this.profiles_seed)
+    async sync_cache() {
+        return new Promise<void>((resolve) => {
+            this.websocket.emit(
+                "sync_cache",
+                this.all_transactions.map((tr) => tr.id),
+                resolve
+            )
+        })
+    }
+    sync_profiles_seed() {
+        console.log(this)
+        this.websocket.emit("sync_profiles_seed", this.profiles_seed)
     }
 
     request_new_transaction = async ({

@@ -1,5 +1,6 @@
 //read README file : UnifiedHandlerSystem.md
 
+import { custom_find_unique } from "../common_helpers.js"
 import { cache_item, thing, transaction } from "./UnifiedHandler_types.js"
 import {
     calc_cache,
@@ -27,6 +28,27 @@ export class UnifiedHandlerCore {
             .flat()
     find_thing_meta = (thing_id: number) =>
         find_thing_meta(this.cache, thing_id)
+    apply_max_sync_depth(
+        transactions: transaction[],
+        max_sync_depth: number | undefined
+    ): transaction[] {
+        if (max_sync_depth === undefined) {
+            return transactions
+        }
+        var result: transaction[] = []
+        custom_find_unique(
+            transactions.map((tr) => tr.thing_id),
+            (i1: number, i2: number) => i1 === i2
+        ).forEach((unique_thing_id) => {
+            var clone = transactions.filter(
+                (tr) => tr.thing_id === unique_thing_id
+            )
+            clone.reverse()
+            result.push(...clone.slice(0, max_sync_depth))
+        })
+        result.sort((tr1, tr2) => tr1.id - tr2.id)
+        return result
+    }
     new_transaction_privileges_check = new_transaction_privileges_check
     extract_user_id = extract_user_id
     check_lock = check_lock
@@ -48,7 +70,7 @@ export class UnifiedHandlerCore {
         this.onChanges.time_travel_snapshot()
         this.onChanges.cache()
     }
-
+    
     transactions: transaction[] = []
 
     get cache(): cache_item<thing>[] {
