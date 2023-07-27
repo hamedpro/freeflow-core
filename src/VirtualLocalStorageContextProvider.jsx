@@ -25,10 +25,20 @@ export const VirtualLocalStorageContextProvider = ({ children }) => {
         JSON.parse(window.localStorage.getItem("app_data"))
     )
     useEffect(() => {
-        window.localStorage.setItem(
-            "app_data",
-            JSON.stringify(virtual_local_storage)
-        )
+        try {
+            window.localStorage.setItem(
+                "app_data",
+                JSON.stringify(virtual_local_storage)
+            )
+        } catch (error) {
+            console.log(error)
+            alert(
+                "warning : when tried to write new value of this to localStorage an error happened : virtual local storage context state."
+            )
+            alert(
+                "it doesnt cause any problem but maybe any new try to sync state to disk fail. contact us to fix it. more info is in console"
+            )
+        }
     }, [virtual_local_storage])
 
     return (
