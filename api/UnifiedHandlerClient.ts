@@ -14,6 +14,7 @@ import {
 import { useNavigate } from "react-router-dom"
 import { OutputData } from "@editorjs/editorjs/types/data-formats"
 import { getRandomSubarray } from "./utils"
+import { custom_find_unique } from "../common_helpers"
 var { applyDiff } = rdiff
 
 export class UnifiedHandlerClient extends UnifiedHandlerCore {
@@ -55,7 +56,10 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
             this.update_transactions()
         })
         this.websocket.on("sync_all_transactions", (new_transactions) => {
-            this.all_transactions.push(...new_transactions)
+            this.all_transactions = custom_find_unique(
+                this.all_transactions.concat(new_transactions),
+                (tr1: transaction, tr2: transaction) => tr1.id === tr2.id
+            )
             this.update_transactions()
         })
     }
@@ -93,8 +97,17 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
             },
         })
     }
-
+    async sync_cache() {
+        return new Promise<void>((resolve) => {
+            this.websocket.emit(
+                "sync_cache",
+                this.all_transactions.map((tr) => tr.id),
+                resolve
+            )
+        })
+    }
     sync_profiles_seed() {
+        console.log(this)
         this.websocket.emit("sync_profiles_seed", this.profiles_seed)
     }
 

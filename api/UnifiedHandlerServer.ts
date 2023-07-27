@@ -784,8 +784,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
         websocket_client.socket.emit(
             "sync_all_transactions",
-            this.calc_all_discoverable_transactions(current)
-            .filter(
+            this.calc_all_discoverable_transactions(current).filter(
                 (tr) =>
                     websocket_client.cached_transaction_ids.includes(tr.id) ===
                     false
@@ -836,8 +835,12 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 console.error(error)
             }
         })
-        socket.on("sync_cache", (transaction_ids: transaction["id"][]) => {
-            new_websocket_client.cached_transaction_ids = transaction_ids
-        })
+        socket.on(
+            "sync_cache",
+            (transaction_ids: transaction["id"][], callback) => {
+                new_websocket_client.cached_transaction_ids = transaction_ids
+                callback()
+            }
+        )
     }
 }
