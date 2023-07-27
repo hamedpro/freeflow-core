@@ -24,17 +24,24 @@ function NewResource() {
         try {
             var file
             for (file of event.files) {
-                await uhc.upload_files_handler({
+                await uhc.submit_new_resource({
                     file,
                     nav,
                     title: file.name,
-                    thing_privileges: { read: [uhc.user_id] },
+                    thing_privileges: {
+                        read: [uhc.user_id],
+                        write: [uhc.user_id],
+                    },
                     pack_id: undefined,
                     description: "",
-                    create_more: true,
+                    create_more: event.files.length === 1 ? false : true,
                 })
             }
+        } catch (error) {
+            console.log(error)
+            alert("something went wrong during uploading those resource")
         } finally {
+            //deleting all options anyway
             event.options.clear()
         }
     }
@@ -159,7 +166,21 @@ export const ProfilesSlideMenu = () => {
         {
             label: "Logout",
             command: () => {
-                select_profile(0)
+                var current_user_id = profiles_seed.find(
+                    (prof_seed) => prof_seed.is_active === true
+                ).user_id
+                if (current_user_id === 0) {
+                    alert("you can not log out of anonymous.")
+                } else {
+                    select_profile(0)
+                    set_virtual_local_storage((prev) => ({
+                        ...prev,
+                        profiles_seed: prev.profiles_seed.filter(
+                            (profile_seed) =>
+                                profile_seed.user_id !== current_user_id
+                        ),
+                    }))
+                }
             },
         },
     ]

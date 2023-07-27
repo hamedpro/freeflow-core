@@ -107,7 +107,6 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         })
     }
     sync_profiles_seed() {
-        console.log(this)
         this.websocket.emit("sync_profiles_seed", this.profiles_seed)
     }
 
@@ -151,7 +150,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         })
         return response.data
     }
-    async upload_files_handler({
+    async submit_new_resource({
         file,
         description,
         title,
