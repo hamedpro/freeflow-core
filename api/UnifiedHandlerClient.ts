@@ -10,6 +10,7 @@ import {
     profile_seed,
     thing,
     transaction,
+    unit_ask,
     user,
 } from "./UnifiedHandler_types"
 import { useNavigate } from "react-router-dom"
@@ -312,6 +313,34 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
             thing_id: undefined,
         })
         callback(id_of_new_pack)
+    }
+    async bootstrap_an_ask(
+        value: unit_ask["value"],
+        callback: (id_of_new_ask: number) => void
+    ) {
+        var id_of_new_ask = await this.request_new_transaction({
+            new_thing_creator: () => ({
+                type: "unit/ask",
+                value,
+            }),
+            thing_id: undefined,
+        })
+        await this.request_new_transaction({
+            new_thing_creator: (): meta<non_file_meta_value> => ({
+                type: "meta",
+                value: {
+                    thing_privileges: {
+                        write: [this.user_id],
+                        read: [this.user_id],
+                    },
+                    modify_thing_privileges: this.user_id,
+                    locks: [],
+                    thing_id: id_of_new_ask,
+                },
+            }),
+            thing_id: undefined,
+        })
+        callback(id_of_new_ask)
     }
     recommend_to_me(): number[] {
         /* returns discoverable thing_ids sorted

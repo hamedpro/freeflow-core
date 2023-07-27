@@ -18,6 +18,8 @@ import { InputSwitch } from "primereact/inputswitch"
 import { InputNumber } from "primereact/inputnumber"
 import { custom_deepcopy } from "../../api_dist/api/utils"
 import { InputText } from "primereact/inputtext"
+import { Section } from "./section"
+import { StyledDiv } from "./styled_elements"
 
 function NewResource() {
     var nav = useNavigate()
@@ -100,7 +102,157 @@ function NewNote() {
     )
 }
 function NewAsk() {
-    return <Panel />
+    var nav = useNavigate()
+    var { cache, strings } = useContext(UnifiedHandlerClientContext)
+
+    //possible modes : "poll" , "multiple_choice" , "text_answer"
+    var [selected_mode, set_selected_mode] = useState("poll")
+
+    /* if selected_mode is poll or multiple_choice
+    it holds those its options */
+    var [current_mode_options, set_current_mode_options] = useState([])
+
+    var [
+        multiple_choice_correct_option_index,
+        set_multiple_choice_correct_option_index,
+    ] = useState()
+
+    async function submit_new_ask() {
+        if (
+            selected_mode === "multiple_choice" &&
+            multiple_choice_correct_option_index === undefined
+        ) {
+            alert(strings[237])
+            return
+        }
+
+        try {
+            var tmp = {
+                question: document.getElementById("question").value,
+            }
+
+            //appending options
+            if (selected_mode === "poll") {
+                tmp.options = current_mode_options
+            } else if (selected_mode === "multiple_choice") {
+                tmp.options = current_mode_options
+                tmp.correct_option_index = multiple_choice_correct_option_index
+            }
+
+            //assiging mode :
+            tmp.mode = selected_mode
+
+            await uhc.bootstrap_an_ask(tmp, (id_of_new_ask) => {
+                alert(strings[64])
+                nav(`/${id_of_new_ask}`)
+            })
+        } catch (error) {
+            console.log(error)
+            alert(strings[8])
+        }
+    }
+
+    function add_new_option() {
+        set_current_mode_options((prev) => [
+            ...prev,
+            window.prompt(strings[238]),
+        ])
+    }
+
+    return (
+        <div className="p-2">
+            <h1>{strings[240]}</h1>
+
+            <h1 className="mt-2">{strings[241]}</h1>
+            <input
+                id="question"
+                className="border border-blue-400 px-1 rounded"
+            />
+            <p>{strings[242]}</p>
+            {["multiple_choice", "poll", "text_answer"].map((mode) => (
+                <div
+                    onClick={() => set_selected_mode(mode)}
+                    key={mode}
+                >
+                    <i
+                        className={
+                            selected_mode === mode
+                                ? "bi-toggle-on"
+                                : "bi-toggle-off"
+                        }
+                    />{" "}
+                    {mode === "multiple_choice" && <span>{strings[243]}</span>}
+                    {mode === "poll" && <span>{strings[244]}</span>}
+                    {mode === "text_answer" && <span>{strings[245]}</span>}
+                </div>
+            ))}
+            {selected_mode !== "text_answer" && (
+                <Section title={strings[246]}>
+                    {(selected_mode === "poll" ||
+                        selected_mode === "multiple_choice") && (
+                        <>
+                            <button onClick={add_new_option}>
+                                {strings[247]}
+                            </button>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>{strings[248]}</th>
+                                        <th>{strings[249]}</th>
+                                        {selected_mode ===
+                                            "multiple_choice" && (
+                                            <th>{strings[250]}</th>
+                                        )}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {current_mode_options.map(
+                                        (option, index) => (
+                                            <tr
+                                                key={Math.round(
+                                                    Math.random() * 1000
+                                                )}
+                                            >
+                                                <td>{index}</td>
+                                                <td>{option}</td>
+                                                {selected_mode ===
+                                                    "multiple_choice" && (
+                                                    <td>
+                                                        {index ===
+                                                        multiple_choice_correct_option_index
+                                                            ? strings[251]
+                                                            : strings[252]}
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </>
+                    )}
+                    {selected_mode === "multiple_choice" && (
+                        <button
+                            onClick={() =>
+                                set_multiple_choice_correct_option_index(
+                                    Number(prompt(strings[253]))
+                                )
+                            }
+                        >
+                            {strings[254]}
+                        </button>
+                    )}
+                </Section>
+            )}
+
+            <StyledDiv
+                onClick={submit_new_ask}
+                className="w-fit mt-2"
+            >
+                {strings[255]}
+            </StyledDiv>
+        </div>
+    )
 }
 function NewPack() {
     var nav = useNavigate()

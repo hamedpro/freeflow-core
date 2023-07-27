@@ -21,7 +21,6 @@ import { Login } from "./components/Login"
 import { VirtualLocalStorageContextProvider } from "./VirtualLocalStorageContextProvider"
 import { UserSettings } from "./components/UserSettings"
 import { CheckDefaultParentPack } from "./components/CheckDefaultParentPack"
-import { NewAsk } from "./components/NewAsk"
 import { Stage } from "./components/Stage"
 import { Feed } from "./components/Feed"
 import { WhatsHappening } from "./components/WhatsHappening"
@@ -62,13 +61,6 @@ function App() {
                         <Route
                             path="settings"
                             element={<UserSettings />}
-                        />
-
-                        <Route
-                            path="asks/new"
-                            element={
-                                <CheckDefaultParentPack children={<NewAsk />} />
-                            }
                         />
 
                         <Route
