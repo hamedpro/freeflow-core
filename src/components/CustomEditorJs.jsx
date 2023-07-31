@@ -1,76 +1,72 @@
-import EditorJS from "@editorjs/editorjs";
-import Header from "@editorjs/header";
-import List from "@editorjs/list";
-import Table from "@editorjs/table";
-import Checklist from "@editorjs/checklist";
-import React from "react";
+import EditorJS from "@editorjs/editorjs"
+import Header from "@editorjs/header"
+import List from "@editorjs/list"
+import Table from "@editorjs/table"
+import Checklist from "@editorjs/checklist"
+import React, { useContext, useEffect, useRef } from "react"
 
-import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
+import { simple_arrays_are_identical } from "../../api_dist/api/utils"
+import AsyncLock from "async-lock"
 
-export class CustomEditorJs extends React.Component {
-	static contextType = UnifiedHandlerClientContext;
-	constructor(props) {
-		super(props);
-	}
-	init_editor_js = () => {
-		var editor_js_configs = {
-			holder: "editor-js-div",
-			tools: {
-				header: {
-					class: Header,
-					inlineToolbar: true,
-				},
-				list: {
-					class: List,
-					inlineToolbar: true,
-				},
-				table: {
-					class: Table,
-					inlineToolbar: true,
-				},
-				checklist: {
-					class: Checklist,
-					inlineToolbar: true,
-				},
-			},
-			logLevel: "ERROR",
+export function CustomEditorJs(props) {
+    var { cache } = useContext(UnifiedHandlerClientContext)
+    var editor_js_instance = useRef()
+    var async_lock = useRef(new AsyncLock())
+    var init_editor_js = () => {
+        var editor_js_configs = {
+            holder: "editor-js-div",
+            tools: {
+                header: {
+                    class: Header,
+                    inlineToolbar: true,
+                },
+                list: {
+                    class: List,
+                    inlineToolbar: true,
+                },
+                table: {
+                    class: Table,
+                    inlineToolbar: true,
+                },
+                checklist: {
+                    class: Checklist,
+                    inlineToolbar: true,
+                },
+            },
+            logLevel: "ERROR",
 
-			defaultBlock: "header",
-			autofocus: true,
-		};
+            defaultBlock: "header",
+        }
 
-		this.editor_js_instance = new EditorJS(editor_js_configs);
-		this.props.pass_ref(this.editor_js_instance);
-		this.refresh_editor();
-	};
-	find_note_data = () => {
-		return this.context.cache.find((i) => i.thing_id === this.props.note_id).thing.value.data;
-	};
-	refresh_editor = async () => {
-		var tmp = uhc
-			.find_thing_meta(this.props.note_id)
-			.thing.value.locks.find((i) => i.path[0] == "data");
-		await this.editor_js_instance.isReady;
+        editor_js_instance.current = new EditorJS(editor_js_configs)
+        props.pass_ref(editor_js_instance.current)
+    }
+    var note_data = cache.find((i) => i.thing_id === props.note_id).thing.value
+        .data || { blocks: [] }
+    var tmp = uhc
+        .find_thing_meta(props.note_id)
+        .thing.value.locks.find((i) => i.path[0] == "data")
+    var editor_is_readOnly =
+        tmp?.value === undefined || tmp?.value !== uhc.user_id
 
-		//await this.editor_js_instance.readOnly.toggle(false);
-		await this.editor_js_instance.readOnly.toggle(
-			tmp?.value === undefined || tmp?.value !== uhc.user_id
-		);
-		this.editor_js_instance.clear();
-		if ((tmp = this.find_note_data())) {
-			await this.editor_js_instance.render(tmp);
-		}
-	};
-	componentDidMount() {
-		this.init_editor_js();
-	}
-	componentDidUpdate() {
-		this.refresh_editor();
-	}
-	componentWillUnmount() {
-		this.editor_js_instance.destroy();
-	}
-	render() {
-		return <div id="editor-js-div" className="px-4" style={{ minHeight: "200px" }} />;
-	}
+    var refresh_editor = async () => {
+        await editor_js_instance.current.isReady
+        await editor_js_instance.current.readOnly.toggle(editor_is_readOnly)
+        await editor_js_instance.current.clear()
+        await editor_js_instance.current.render(note_data)
+    }
+    useEffect(() => {
+        init_editor_js()
+    }, [])
+    useEffect(() => {
+        async_lock.current.acquire("refresh_editor", refresh_editor)
+    }, [JSON.stringify(note_data), editor_is_readOnly])
+    return (
+        <div
+            id="editor-js-div"
+            className="px-4"
+            style={{ minHeight: "200px" }}
+        />
+    )
 }
