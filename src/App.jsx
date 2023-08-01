@@ -20,17 +20,18 @@ import { UnifiedHandlerClientContextProvider } from "./UnifiedHandlerClientConte
 import { Login } from "./components/Login"
 import { VirtualLocalStorageContextProvider } from "./VirtualLocalStorageContextProvider"
 import { UserSettings } from "./components/UserSettings"
-import { CheckDefaultParentPack } from "./components/CheckDefaultParentPack"
 import { Stage } from "./components/Stage"
 import { Feed } from "./components/Feed"
 import { WhatsHappening } from "./components/WhatsHappening"
 import { Units } from "./components/Units"
 import { ForgetPassword } from "./components/ForgetPassword"
+import { TimeTravelWarning } from "./components/TimeTravelWarning"
 
 function App() {
     return (
         <VirtualLocalStorageContextProvider>
             <UnifiedHandlerClientContextProvider>
+                <TimeTravelWarning />
                 <BrowserRouter>
                     <Routes>
                         <Route

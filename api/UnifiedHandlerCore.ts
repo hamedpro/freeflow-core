@@ -1,7 +1,12 @@
 //read README file : UnifiedHandlerSystem.md
 
 import { custom_find_unique } from "../common_helpers.js"
-import { cache_item, thing, transaction } from "./UnifiedHandler_types.js"
+import {
+    cache_item,
+    thing,
+    time_travel_snapshot,
+    transaction,
+} from "./UnifiedHandler_types.js"
 import {
     calc_cache,
     calc_unresolved_cache,
@@ -63,14 +68,14 @@ export class UnifiedHandlerCore {
         time_travel_snapshot: () => {},
     }
 
-    time_travel_snapshot: number | undefined
+    time_travel_snapshot: time_travel_snapshot
 
-    time_travel(snapshot: number | undefined) {
+    time_travel(snapshot: time_travel_snapshot) {
         this.time_travel_snapshot = snapshot
         this.onChanges.time_travel_snapshot()
         this.onChanges.cache()
     }
-    
+
     transactions: transaction[] = []
 
     get cache(): cache_item<thing>[] {

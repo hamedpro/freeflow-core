@@ -165,3 +165,7 @@ export type profile_seed = {
 export type profile = profile_data & profile_seed
 
 export type complete_diff = { path: string[]; after: any; before: any }[]
+export type time_travel_snapshot =
+    | { type: "timestamp"; value: ReturnType<Date["getTime"]> }
+    | { type: "transaction_id"; value: transaction["id"] }
+    | undefined

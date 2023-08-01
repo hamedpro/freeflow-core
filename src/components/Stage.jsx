@@ -1,10 +1,11 @@
-import React, { useContext } from "react"
+import React, { useContext, useEffect } from "react"
 import {
     Route,
     Routes,
     useMatch,
     useNavigate,
     useParams,
+    useSearchParams,
 } from "react-router-dom"
 import { Button } from "primereact/button"
 import { ThingTimeline } from "./ThingTimeline"
@@ -13,18 +14,13 @@ import { Thing } from "./Thing"
 import { TabMenu } from "primereact/tabmenu"
 import { MessagesBox } from "./MessagesBox"
 export const Stage = () => {
-    var urls = ["/:thing_id", "/:thing_id/timeline"]
-    var active_url
-    for (var url of urls) {
-        if (useMatch(url)) {
-            active_url = url
-        }
-    }
     var nav = useNavigate()
     var { cache, transactions, strings } = useContext(
         UnifiedHandlerClientContext
     )
     var { thing_id } = useParams()
+    var [search_params, set_search_params] = useSearchParams()
+    var tab = search_params.get("tab") || undefined
     if (!thing_id || isNaN(Number(thing_id))) {
         return strings[51]
     }
@@ -39,16 +35,18 @@ export const Stage = () => {
     var meta = uhc.find_thing_meta(cache_item.thing_id)
     var parent_pack_id = meta?.thing.value.pack_id
     var meta_id = meta?.thing_id
-
     return (
         <>
             <TabMenu
                 model={[strings[53], strings[54]].map((i) => ({
                     label: i,
                 }))}
-                activeIndex={urls.indexOf(active_url)}
+                activeIndex={tab === "timeline" ? 1 : 0}
                 onTabChange={(e) =>
-                    nav(urls[e.index].replace(":thing_id", thing_id))
+                    set_search_params((prev) => {
+                        prev.set("tab", e.index === 0 ? undefined : "timeline")
+                        return prev
+                    })
                 }
             />
             {(parent_pack_id || meta_id) && (
@@ -84,7 +82,7 @@ export const Stage = () => {
                     element={
                         <>
                             <Thing thing_id={cache_item.thing_id} />
-                            {<MessagesBox thing_id={cache_item.thing_id} />}
+                            <MessagesBox thing_id={cache_item.thing_id} />
                         </>
                     }
                 />

@@ -11,11 +11,11 @@ import {
     NewUnitShortcuts,
     MetroButton,
     SyncCentreWidget,
+    TimeTravel,
 } from "./components/DashboardParts"
 import { ProfilesSlideMenu } from "./components/DashboardParts"
 import { Button } from "primereact/button"
 import { Panel } from "primereact/panel"
-import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext"
 
 export function Dashboard() {
     var { cache, strings } = useContext(UnifiedHandlerClientContext)
@@ -125,6 +125,7 @@ export function Dashboard() {
                             link={"/subscription"}
                         />
                     </div>
+
                     <div className="col-span-2 col-start-2 row-span-full">
                         <Calendar
                             className="w-full"
@@ -135,6 +136,7 @@ export function Dashboard() {
                         />
                     </div>
                 </div>
+                <TimeTravel />
                 <CustomTabMenu />
             </div>
         </>

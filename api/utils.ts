@@ -10,6 +10,7 @@ import {
     meta,
     non_file_meta_value,
     thing,
+    time_travel_snapshot,
     transaction,
 } from "./UnifiedHandler_types.js"
 import jwtDecode from "jwt-decode"
@@ -308,7 +309,7 @@ export function new_transaction_privileges_check(
 export function resolve_thing(
     transactions: transaction[],
     thing_id: number,
-    snapshot: number | undefined
+    snapshot: time_travel_snapshot
 ): thing {
     var unresolved_cache: cache = JSON.parse(
         JSON.stringify(calc_unresolved_cache(transactions, snapshot))
@@ -343,7 +344,10 @@ export function resolve_thing(
                         Number(regex_result.groups.thing_id),
                         regex_result.groups.snapshot === ""
                             ? undefined
-                            : Number(regex_result.groups.snapshot)
+                            : {
+                                  type: "transaction_id",
+                                  value: Number(regex_result.groups.snapshot),
+                              }
                     )
                     if (
                         "path" in regex_result.groups &&
@@ -367,7 +371,7 @@ export function resolve_thing(
 }
 export function calc_cache(
     transactions: transaction[],
-    snapshot: undefined | number
+    snapshot: time_travel_snapshot
 ) {
     var unresolved_cache = calc_unresolved_cache(transactions, snapshot)
     var resolved_cache: cache = JSON.parse(JSON.stringify(unresolved_cache))
@@ -401,12 +405,20 @@ export function calc_cache(
 }
 export function calc_unresolved_cache(
     transactions: transaction[],
-    snapshot: number | undefined
+    snapshot: time_travel_snapshot
 ): cache {
     /* calculating unresolved cache  */
     return unique_items_of_array(
         transactions
-            .filter((i) => (snapshot === undefined ? true : i.id <= snapshot))
+            .filter((i) => {
+                if (snapshot === undefined) {
+                    return true
+                } else if (snapshot.type === "timestamp") {
+                    return i.time <= snapshot.value
+                } else if (snapshot.type === "transaction_id") {
+                    return i.id <= snapshot.value
+                }
+            })
             .map((i) => i.thing_id)
     ).map((thing_id: number) =>
         calc_unresolved_thing(transactions, thing_id, snapshot)
@@ -415,14 +427,22 @@ export function calc_unresolved_cache(
 export function calc_unresolved_thing(
     transactions: transaction[],
     thing_id: number,
-    snapshot: number | undefined
+    snapshot: time_travel_snapshot
 ) {
     var cache_item = { thing_id, thing: {} }
-    for (var transaction of transactions.filter(
-        (i) =>
-            i.thing_id === thing_id &&
-            (snapshot === undefined ? true : i.id <= snapshot)
-    )) {
+    for (var transaction of transactions.filter((i) => {
+        if (i.thing_id === thing_id) {
+            if (snapshot === undefined) {
+                return true
+            } else if (snapshot.type === "timestamp") {
+                return i.time <= snapshot.value
+            } else if (snapshot.type === "transaction_id") {
+                return i.id <= snapshot.value
+            }
+        } else {
+            return false
+        }
+    })) {
         rdiff.applyDiff(cache_item.thing, custom_deepcopy(transaction.diff))
     }
     return cache_item
@@ -524,20 +544,18 @@ export function calc_complete_transaction_diff(
             (tr) => tr.thing_id === thing_id && tr.id < transaction_id
         ) !== undefined
     ) {
-        thing_before_change = calc_unresolved_thing(
-            transactions,
-            thing_id,
-            transaction_id - 1
-        ).thing
+        thing_before_change = calc_unresolved_thing(transactions, thing_id, {
+            type: "transaction_id",
+            value: transaction_id - 1,
+        }).thing
     } else {
         thing_before_change = undefined
     }
 
-    var thing_after_change = calc_unresolved_thing(
-        transactions,
-        thing_id,
-        transaction_id
-    ).thing
+    var thing_after_change = calc_unresolved_thing(transactions, thing_id, {
+        value: transaction_id,
+        type: "transaction_id",
+    }).thing
 
     return custom_find_unique(
         [
@@ -652,18 +670,16 @@ export class TransactionInterpreter implements TransactionInterpreterTypes {
         this.tr = t
     }
     get cache_item_before_change() {
-        return calc_unresolved_thing(
-            this.transactions,
-            this.tr.thing_id,
-            this.tr.id - 1
-        )
+        return calc_unresolved_thing(this.transactions, this.tr.thing_id, {
+            value: this.tr.id - 1,
+            type: "transaction_id",
+        })
     }
     get cache_item_after_change() {
-        return calc_unresolved_thing(
-            this.transactions,
-            this.tr.thing_id,
-            this.tr.id
-        )
+        return calc_unresolved_thing(this.transactions, this.tr.thing_id, {
+            value: this.tr.id,
+            type: "transaction_id",
+        })
     }
     find_change(...path: string[]) {
         var t = calc_complete_transaction_diff(

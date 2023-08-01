@@ -14,13 +14,13 @@ import { TabMenu } from "primereact/tabmenu"
 import { InlineTransaction } from "./InlineTransaction"
 import { Button } from "primereact/button"
 import { InputSwitch } from "primereact/inputswitch"
-
+import { Calendar } from "primereact/calendar"
 import { InputNumber } from "primereact/inputnumber"
 import { custom_deepcopy } from "../../api_dist/api/utils"
-import { InputText } from "primereact/inputtext"
 import { Section } from "./section"
 import { StyledDiv } from "./styled_elements"
-
+import { RadioButton } from "primereact/radiobutton"
+import { InputText } from "primereact/inputtext"
 function NewResource() {
     var nav = useNavigate()
     async function uploadHandler(event) {
@@ -597,7 +597,7 @@ export function SyncCentreWidget() {
         >
             <>
                 <p>
-                    you have access to ${cache.length} things over the network.
+                    you have access to {cache.length} things over the network.
                     some of them may have hundereds or thousands of changes from
                     their beginning. "max depth" is maximum number of changes
                     you want to fetch for each thing. minimum is 1 which means
@@ -640,5 +640,135 @@ export function SyncCentreWidget() {
                 )}
             </>
         </Panel>
+    )
+}
+export function TimeTravel() {
+    var { time_travel_snapshot, transactions } = useContext(
+        UnifiedHandlerClientContext
+    )
+    return (
+        <div className="grid grid-cols-3 gap-x-4 p-4 mb-4">
+            <div className="rounded col-span-2 row-span-2 bg-red-500 flex items-start flex-col justify-center px-5 text-white font-bold ">
+                <div>
+                    <i className={`bi-clock-history text-5xl pr-2`} />
+                    <span className="text-5xl">Time Travel!</span>
+                </div>
+
+                <p className="my-2">
+                    using Time machine feature you can sync entire application
+                    data with any previous state of entire data.
+                </p>
+            </div>
+            <div className="col-span-1 row-span-1 bg-blue-600 rounded-t">
+                <div className="flex flex-col gap-3 p-4">
+                    <div className="flex items-center">
+                        <RadioButton
+                            inputId="timestamp"
+                            name="time_travel_snapshot"
+                            value="timestamp"
+                            onChange={(e) =>
+                                window.uhc.time_travel({
+                                    type: "timestamp",
+                                    value: new Date().getTime(),
+                                })
+                            }
+                            checked={
+                                time_travel_snapshot !== undefined &&
+                                time_travel_snapshot.type === "timestamp"
+                            }
+                        />
+                        <label
+                            htmlFor="timestamp"
+                            className="ml-2"
+                        >
+                            timestamp mode
+                        </label>
+                    </div>
+                    <div className="flex align-items-center">
+                        <RadioButton
+                            inputId="transaction_id"
+                            name="time_travel_snapshot"
+                            value="Mushroom"
+                            onChange={(e) =>
+                                window.uhc.time_travel({
+                                    type: "transaction_id",
+                                    value: transactions.at(-1)?.id || 1,
+                                })
+                            }
+                            checked={
+                                time_travel_snapshot !== undefined &&
+                                time_travel_snapshot.type === "transaction_id"
+                            }
+                        />
+                        <label
+                            htmlFor="transaction_id"
+                            className="ml-2"
+                        >
+                            Transaction id
+                        </label>
+                    </div>
+                    <div className="flex align-items-center">
+                        <RadioButton
+                            inputId="without_timestamp"
+                            name="time_travel_snapshot"
+                            value="Mushroom"
+                            onChange={(e) => window.uhc.time_travel(undefined)}
+                            checked={time_travel_snapshot === undefined}
+                        />
+                        <label
+                            htmlFor="without_timestamp"
+                            className="ml-2"
+                        >
+                            without limit
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div className="col-span-1 row-span-1 bg-blue-900 p-4 text-white rounded-b">
+                {time_travel_snapshot === undefined &&
+                    "all synced transactions of this profile are used."}
+                {time_travel_snapshot !== undefined &&
+                    time_travel_snapshot.type === "timestamp" && (
+                        <Calendar
+                            value={new Date(time_travel_snapshot.value)}
+                            onChange={(e) => {
+                                new Date(e.value).toString()
+                                console.log(new Date(e.value).getTime())
+
+                                window.uhc.time_travel({
+                                    type: "timestamp",
+                                    value: new Date(e.value).getTime(),
+                                })
+                            }}
+                            showTime
+                            hourFormat="12"
+                            showIcon
+                        />
+                    )}
+                {time_travel_snapshot !== undefined &&
+                    time_travel_snapshot.type === "transaction_id" && (
+                        <div className="flex flex-wrap gap-3">
+                            <label
+                                htmlFor="transaction_id_snapshot"
+                                className="font-bold block mb-2"
+                            >
+                                Transaction id
+                            </label>
+                            <InputNumber
+                                inputId="transaction_id_snapshot"
+                                value={time_travel_snapshot.value}
+                                onValueChange={(e) =>
+                                    window.uhc.time_travel({
+                                        type: "transaction_id",
+                                        value: e.value,
+                                    })
+                                }
+                                min={1}
+                            />
+                        </div>
+                    )}
+            </div>
+        </div>
     )
 }
