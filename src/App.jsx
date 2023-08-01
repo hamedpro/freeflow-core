@@ -12,7 +12,6 @@ import "react-dropdown/style.css"
 import { Routes, Route, BrowserRouter } from "react-router-dom"
 import { SubscribtionPage } from "./components/subscribtionPage"
 import { Terms } from "./components/Terms"
-import { Root } from "./components/Root.jsx"
 import { Register } from "./components/Register"
 import "react-contexify/ReactContexify.css"
 import { Dashboard } from "./Dashboard"
@@ -34,10 +33,6 @@ function App() {
                 <TimeTravelWarning />
                 <BrowserRouter>
                     <Routes>
-                        <Route
-                            path="/"
-                            element={<Root />}
-                        />
                         <Route
                             path="/dashboard"
                             element={<Dashboard />}
