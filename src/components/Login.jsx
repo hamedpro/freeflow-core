@@ -55,7 +55,7 @@ var Login = () => {
                     { user_id, jwt, is_active: true, max_sync_depth: 3 },
                 ],
             }))
-            nav("/dashboard")
+            nav("/")
         } catch (error) {
             console.log(error)
             alert(strings[31])

@@ -479,29 +479,7 @@ export function Feed() {
         />
     )
 }
-export function CustomTabMenu() {
-    //idk how to name it something not too long
-    //its a 2 col layout. left side is a tab menu
-    //its options : saved and whatsHappening
-    var [tab_menu_index, set_tab_menu_index] = useState(0)
-    return (
-        <div className="grid grid-cols-3 gap-4 p-4">
-            <div className="col-start-1 col-span-2 space-y-2">
-                <TabMenu
-                    className="rounded"
-                    model={["Saved", "Whats Happening"].map((i) => ({
-                        label: i,
-                    }))}
-                    activeIndex={tab_menu_index}
-                    onTabChange={(e) => set_tab_menu_index(e.index)}
-                />
 
-                {tab_menu_index === 0 ? <Saved /> : <WhatsHappeningWidget />}
-            </div>
-            <div className="col-start-3 col-span-1 bg-blue-500 rounded "></div>
-        </div>
-    )
-}
 export function Saved() {
     var saved_things = uhc.user?.thing.value.saved_things || []
     return (
@@ -647,8 +625,8 @@ export function TimeTravel() {
         UnifiedHandlerClientContext
     )
     return (
-        <div className="grid grid-cols-3 gap-x-4 p-4 mb-4">
-            <div className="rounded col-span-2 row-span-2 bg-red-500 flex items-start flex-col justify-center px-5 text-white font-bold ">
+        <div className="grid grid-cols-5 gap-x-4 py-4 mb-4">
+            <div className="rounded col-span-3 row-span-2 bg-red-500 flex items-start flex-col justify-center px-5 text-white font-bold ">
                 <div>
                     <i className={`bi-clock-history text-5xl pr-2`} />
                     <span className="text-5xl">Time Travel!</span>
@@ -659,7 +637,7 @@ export function TimeTravel() {
                     data with any previous state of entire data.
                 </p>
             </div>
-            <div className="col-span-1 row-span-1 bg-blue-600 rounded-t">
+            <div className="col-span-2 row-span-1 bg-blue-600 rounded-t">
                 <div className="flex flex-col gap-3 p-4">
                     <div className="flex items-center">
                         <RadioButton
@@ -725,7 +703,7 @@ export function TimeTravel() {
                 </div>
             </div>
 
-            <div className="col-span-1 row-span-1 bg-blue-900 p-4 text-white rounded-b">
+            <div className="col-span-2 row-span-1 bg-blue-900 p-4 text-white rounded-b">
                 {time_travel_snapshot === undefined &&
                     "all synced transactions of this profile are used."}
                 {time_travel_snapshot !== undefined &&

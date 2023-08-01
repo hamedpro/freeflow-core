@@ -53,7 +53,7 @@ export var Register = () => {
                     ],
                 }))
             }
-            nav("/dashboard")
+            nav("/")
         } catch (error) {
             if (error instanceof AxiosError && error.response.status === 403) {
                 alert(strings[31])

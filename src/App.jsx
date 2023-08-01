@@ -14,7 +14,7 @@ import { SubscribtionPage } from "./components/subscribtionPage"
 import { Terms } from "./components/Terms"
 import { Register } from "./components/Register"
 import "react-contexify/ReactContexify.css"
-import { Dashboard } from "./Dashboard"
+import { Dashboard } from "./components/Dashboard"
 import { UnifiedHandlerClientContextProvider } from "./UnifiedHandlerClientContextProvider"
 import { Login } from "./components/Login"
 import { VirtualLocalStorageContextProvider } from "./VirtualLocalStorageContextProvider"
@@ -32,55 +32,7 @@ function App() {
             <UnifiedHandlerClientContextProvider>
                 <TimeTravelWarning />
                 <BrowserRouter>
-                    <Routes>
-                        <Route
-                            path="/dashboard"
-                            element={<Dashboard />}
-                        />
-                        <Route
-                            path="/register"
-                            element={<Register />}
-                        />
-                        <Route
-                            path="/login"
-                            element={<Login />}
-                        />
-                        <Route
-                            path="/terms"
-                            element={<Terms />}
-                        />
-                        <Route
-                            path="/subscription"
-                            element={<SubscribtionPage />}
-                        />
-
-                        <Route
-                            path="settings"
-                            element={<UserSettings />}
-                        />
-
-                        <Route
-                            path="feed"
-                            element={<Feed />}
-                        />
-                        <Route
-                            path="whats-happening"
-                            element={<WhatsHappening />}
-                        />
-                        <Route
-                            path="units"
-                            element={<Units />}
-                        />
-                        <Route
-                            path="forget-password"
-                            element={<ForgetPassword />}
-                        />
-
-                        <Route
-                            path="/:thing_id/*"
-                            element={<Stage />}
-                        />
-                    </Routes>
+                    <Dashboard />
                 </BrowserRouter>
             </UnifiedHandlerClientContextProvider>
         </VirtualLocalStorageContextProvider>
