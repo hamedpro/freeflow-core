@@ -618,6 +618,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 value: {
                     ...prev_user.value,
                     password: `$$ref::${user_private_data_thing_id}:value/password`,
+                    calendar_type: `$$ref::${user_private_data_thing_id}:value/calendar_type`,
+                    week_starting_day: `$$ref::${user_private_data_thing_id}:value/week_starting_day`,
                     language: `$$ref::${user_private_data_thing_id}:value/language`,
                 },
             }),

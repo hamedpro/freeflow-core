@@ -249,11 +249,8 @@ var pack1 = {
     163: ["set this new profile image", "تنظیم این عکس به عنوان عکس پروفایل"],
     164: ["importing exported unit", "وارد کردن واحد خروجی گرفته شده "],
     165: ["start importing", "شروع به وارد کردن کن"],
-    166: ["selecting type of calendar", "انتخاب نوع تقویم "],
-    167: [
-        "not chosen (use default)",
-        "انتخاب نشده است (استفاده از حالت پیشفرض)",
-    ],
+    166: ["calendar type", "نوع تقویم "],
+    167: ["Default(English)", "زبان پیشفرض(انگلیسی)"],
     168: ["solar hijri calendar", "تقویم هجری شمسی"],
     169: ["hijri calendar", "تقویم هجری قمری"],
     170: ["Gregorian calendar", "تقویم میلادی"],
@@ -469,6 +466,7 @@ var pack1 = {
     277: ["time", "زمان"],
     278: ["tasks", "وظیفه ها"],
     279: ["events", "رویداد ها"],
+    280: ["Default", "پیشفرض"],
 }
 const t = { english: {}, persian: {} }
 Object.keys(pack1).forEach((key) => {

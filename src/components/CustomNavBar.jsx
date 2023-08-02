@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 export const CustomNavBar = ({ main_text, back_text, back_link }) => {
     var nav = useNavigate()
     return (
-        <div className="flex justify-between items-center mb-2 space-x-6">
+        <div className="flex justify-between items-center mb-4 space-x-6">
             <div
                 onClick={() => nav(back_link)}
                 className="hover:bg-gray-200 px-2 duration-300 py-1 cursor-pointer flex flex-nowrap"

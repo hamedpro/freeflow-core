@@ -98,7 +98,7 @@ export interface user_private_data extends thing_base {
     type: "user_private_data"
     value: {
         password?: string | null
-        calendar_type?: "persian" | "arabic" | "english" | null
+        calendar_type?: "persian" | "english" | null
         week_starting_day?:
             | "saturday"
             | "sunday"
@@ -114,7 +114,10 @@ export interface user_private_data extends thing_base {
 export interface user extends thing_base {
     type: "user"
     value: {
+        biography: string
         password: string /* a ref */
+        calendar_type: string /* a ref */
+        week_starting_day: string /* a ref */
         email_address: string
         language: string /* a ref */
         email_is_verified?: boolean
