@@ -15,6 +15,7 @@ import { InputTextarea } from "primereact/inputtextarea"
 import PersianDate from "persian-date"
 import { addLocale, updateLocaleOption } from "primereact/api"
 import { day_names } from "../../common_helpers"
+import { Password } from "primereact/password"
 function ExportProfile() {
     var { profiles_seed } = useContext(VirtualLocalStorageContext)
     var [include_files_checkbox, set_include_files_checkbox] = useState(true)
@@ -71,6 +72,7 @@ function ChangeCredential({ user, strings, simple_update }) {
     var [verf_code_status, set_verf_code_status] = useState() // progress , sent , failed
     var [verf_code, set_verf_code] = useState()
     var [email_address, set_email_address] = useState()
+    var [password, set_password] = useState()
     useEffect(() => {
         set_biography(user.thing.value.biography)
     }, [user.thing.value.biography])
@@ -78,6 +80,9 @@ function ChangeCredential({ user, strings, simple_update }) {
     useEffect(() => {
         set_full_name(user.thing.value.full_name)
     }, [user.thing.value.full_name])
+    useEffect(() => {
+        set_password(user.thing.value.password)
+    }, [user.thing.value.password])
 
     useEffect(() => {
         set_email_address(user.thing.value.email_address)
@@ -227,6 +232,32 @@ function ChangeCredential({ user, strings, simple_update }) {
                                 </div>
                             </>
                         )}
+                    <label
+                        htmlFor="change_password"
+                        className="text-lg"
+                    >
+                        {"password" + ":"}
+                    </label>
+                    <br />
+                    <div
+                        className="p-inputgroup"
+                        style={{ width: "100%", maxWidth: "280px" }}
+                    >
+                        <Password
+                            toggleMask
+                            id="change_password"
+                            value={password || ""}
+                            onChange={(e) => set_password(e.target.value)}
+                        />
+                        {user.thing.value.password !== password && (
+                            <Button
+                                icon={<i className="bi-pencil-square" />}
+                                onClick={() =>
+                                    simple_update("password", password)
+                                }
+                            />
+                        )}
+                    </div>
                 </div>
                 <div className="col-span-1">
                     <label
@@ -239,7 +270,7 @@ function ChangeCredential({ user, strings, simple_update }) {
                     <InputTextarea
                         id="change_biography"
                         className="w-full"
-                        rows={5}
+                        rows={8}
                         value={biography || ""}
                         onChange={(e) => set_biography(e.target.value)}
                     />
@@ -425,7 +456,14 @@ export const UserSettings = () => {
                 .find((i) => i.thing_id === user_id)
                 .thing.value.password.split(":")[2]
         )
-        if (["calendar_type", "week_starting_day", "language"].includes(key)) {
+        if (
+            [
+                "calendar_type",
+                "week_starting_day",
+                "language",
+                "password",
+            ].includes(key)
+        ) {
             await uhc.request_new_transaction({
                 new_thing_creator: (prev) => ({
                     ...prev,
