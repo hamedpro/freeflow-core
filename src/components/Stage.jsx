@@ -75,29 +75,19 @@ export const Stage = () => {
                     )}
                 </div>
             )}
-
-            <Routes>
-                <Route
-                    path=""
-                    element={
-                        <>
-                            <Thing thing_id={cache_item.thing_id} />
-                            <MessagesBox thing_id={cache_item.thing_id} />
-                        </>
-                    }
+            {tab === "timeline" ? (
+                <ThingTimeline
+                    {...{
+                        cache_item,
+                        transactions: thing_transactions,
+                    }}
                 />
-                <Route
-                    path="timeline"
-                    element={
-                        <ThingTimeline
-                            {...{
-                                cache_item,
-                                transactions: thing_transactions,
-                            }}
-                        />
-                    }
-                />
-            </Routes>
+            ) : (
+                <>
+                    <Thing thing_id={cache_item.thing_id} />
+                    <MessagesBox thing_id={cache_item.thing_id} />
+                </>
+            )}
         </>
     )
 }

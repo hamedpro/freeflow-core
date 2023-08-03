@@ -51,7 +51,6 @@ function NewResource() {
     return (
         <>
             <FileUpload
-                name="file"
                 customUpload
                 uploadHandler={uploadHandler}
                 multiple
@@ -65,26 +64,52 @@ function NewResource() {
     )
 }
 function NewNote() {
-    var [value, set_value] = useState("")
     var nav = useNavigate()
-    var progress_started = useRef(false)
-    var on_change = (e) => {
-        set_value(e.target.value)
-        if (progress_started.current === false && value.length >= 20) {
-            progress_started.current = true
+
+    var [is_waiting, set_is_waiting] = useState(true)
+    var [note_id, set_note_id] = useState()
+
+    var flag = useRef(false)
+
+    var on_change = async (e) => {
+        if (flag.current === false) {
+            flag.current = true
+            set_is_waiting(true)
             uhc.bootstrap_a_writing({
-                text: value,
+                text: e.target.value,
                 nav,
+            }).then((new_note_id) => {
+                set_note_id(new_note_id)
+                set_is_waiting(false)
             })
         }
+        if (typeof note_id === "number") {
+            set_is_waiting(true)
+            await uhc.request_new_transaction({
+                thing_id: note_id,
+                new_thing_creator: (prev) => ({
+                    ...prev,
+                    value: {
+                        ...prev.value,
+                        data: {
+                            blocks: [
+                                {
+                                    type: "paragraph",
+                                    data: {
+                                        text: e.target.value,
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                }),
+            })
+            set_is_waiting(false)
+        }
     }
-
+    var nav = useNavigate()
     return (
-        <Panel header={"start a writing!"}>
-            <p className="px-4 py-2 text-sm">
-                start typing. once you hit 20 carachters a note is created
-                automatically.
-            </p>
+        <Panel header={"New Writing"}>
             <InputTextarea
                 onChange={on_change}
                 autoResize
@@ -92,12 +117,14 @@ function NewNote() {
                 rows={8}
             />
             <br />
-            <br />
 
-            <ProgressBar
-                displayValueTemplate={() => `${20 - value.length} more`}
-                value={value.length * 5 > 100 ? 100 : value.length * 5}
-            />
+            <Button
+                className="w-full h-10 flex justify-center"
+                disabled={is_waiting}
+                onClick={() => nav(`/${note_id}`)}
+            >
+                {is_waiting === true ? "is waiting..." : "Open Note"}
+            </Button>
         </Panel>
     )
 }

@@ -1,4 +1,5 @@
 import React from "react"
+import "./output.css"
 //theme
 import "primereact/resources/themes/lara-light-indigo/theme.css"
 
@@ -6,7 +7,7 @@ import "primereact/resources/themes/lara-light-indigo/theme.css"
 import "primereact/resources/primereact.min.css"
 
 import "./App.css"
-import "./output.css"
+
 import "bootstrap-icons/font/bootstrap-icons.css"
 import "react-dropdown/style.css"
 import { Routes, Route, BrowserRouter } from "react-router-dom"

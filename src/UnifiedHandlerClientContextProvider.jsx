@@ -40,7 +40,8 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
         window.uhc.all_transactions = all_transactions
         window.uhc.sync_cache().then(
             () => window.uhc.sync_profiles_seed(),
-            () => {
+            (error) => {
+                console.log(error)
                 throw "sync cache failed"
             }
         )

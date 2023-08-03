@@ -1,6 +1,4 @@
 import React, { useContext, useState } from "react"
-import "../App.css"
-import "../output.css"
 import { Route, Routes, useNavigate } from "react-router-dom"
 import "react-contexify/ReactContexify.css"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
