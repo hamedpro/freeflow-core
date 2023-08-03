@@ -143,6 +143,7 @@ export type thing =
     | verification_code
     | message
     | calendar_category
+    | user_private_data
 export interface cache_item<ThingType> {
     thing_id: number
     thing: ThingType

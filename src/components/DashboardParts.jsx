@@ -123,7 +123,7 @@ function NewNote() {
                 disabled={is_waiting}
                 onClick={() => nav(`/${note_id}`)}
             >
-                {is_waiting === true ? "is waiting..." : "Open Note"}
+                {is_waiting === true ? "waiting..." : "Open Note"}
             </Button>
         </Panel>
     )
@@ -299,25 +299,33 @@ function NewPack() {
                 </>
             }
         >
-            <p>
+            <p className="mb-3">
                 Packs are just like a folder in your OS of choice. create one
                 just with a title and add whatever you wanna to it at any time.
             </p>
-            <label htmlFor="new_pack_title">Title:</label>
-            <InputText
-                id="new_pack_title"
-                onChange={(e) => set_title(e.target.value)}
-            />
+
+            <br />
+            <div className="p-inputgroup">
+                <InputText
+                    placeholder="title"
+                    id="new_pack_title"
+                    onChange={(e) => set_title(e.target.value)}
+                />
+                <Button
+                    disabled={title === undefined || title === ""}
+                    onClick={onclick_handler}
+                >
+                    <i
+                        className="bi-folder-plus pr-2"
+                        style={{ fontSize: "large" }}
+                    />{" "}
+                    <span style={{ fontSize: "small" }}>Create New Pack</span>
+                </Button>
+            </div>
+
             <span className="block text-xs text-gray-600 w-full md:w-30rem mt-2">
                 {title === "" && "title can not be empty"}
             </span>
-
-            <Button
-                disabled={title === undefined || title === ""}
-                onClick={onclick_handler}
-            >
-                Create New Pack
-            </Button>
         </Panel>
     )
 }

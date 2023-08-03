@@ -1,16 +1,10 @@
 import React, { useContext, useEffect, useState } from "react"
-import { Section } from "./section"
 import Select from "react-select"
-import { StyledDiv } from "./styled_elements"
-import axios from "axios"
 import { JsonViewer } from "@textea/json-viewer"
 import validator from "validator"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
-import { GoBackRow } from "./GoBackRow"
-import { Card } from "primereact/card"
 import { CustomNavBar } from "./CustomNavBar"
 import { FileUpload } from "primereact/fileupload"
-import { Typography } from "@mui/material"
 import { Panel } from "primereact/panel"
 import { VirtualLocalStorageContext } from "../VirtualLocalStorageContext"
 import { InputSwitch } from "primereact/inputswitch"
@@ -18,6 +12,9 @@ import { Button } from "primereact/button"
 import { Calendar } from "primereact/calendar"
 import { InputText } from "primereact/inputtext"
 import { InputTextarea } from "primereact/inputtextarea"
+import PersianDate from "persian-date"
+import { addLocale, updateLocaleOption } from "primereact/api"
+import { day_names } from "../../common_helpers"
 function ExportProfile() {
     var { profiles_seed } = useContext(VirtualLocalStorageContext)
     var [include_files_checkbox, set_include_files_checkbox] = useState(true)
@@ -71,8 +68,9 @@ function ChangeCredential({ user, strings, simple_update }) {
     var { cache } = useContext(UnifiedHandlerClientContext)
     var [biography, set_biography] = useState()
     var [full_name, set_full_name] = useState()
+    var [verf_code_status, set_verf_code_status] = useState() // progress , sent , failed
+    var [verf_code, set_verf_code] = useState()
     var [email_address, set_email_address] = useState()
-    var [verf_code_status, set_verf_code_status] = useState("sent") // or sent or failed
     useEffect(() => {
         set_biography(user.thing.value.biography)
     }, [user.thing.value.biography])
@@ -84,38 +82,71 @@ function ChangeCredential({ user, strings, simple_update }) {
     useEffect(() => {
         set_email_address(user.thing.value.email_address)
     }, [user.thing.value.email_address])
-    var available_and_valid_email =
-        validator.isEmail(email_address || "") &&
-        cache.find(
-            (ci) =>
-                ci.thing.type === "user" &&
-                ci.thing.value.email_address === email_address
-        ) === undefined
+    var email_is_valid = validator.isEmail(email_address || "")
+
+    var tmp = cache.find(
+        (ci) =>
+            ci.thing.type === "user" &&
+            ci.thing.value.email_address === email_address
+    )
+
+    var email_is_taken_by_someone_else =
+        tmp !== undefined && tmp.thing_id !== user.thing_id
+    useEffect(() => {
+        if (
+            email_is_valid &&
+            !email_is_taken_by_someone_else &&
+            user.thing.value.email_address !== email_address
+        ) {
+            set_verf_code_status("progress")
+            window.uhc
+                .configured_axios({
+                    url: "/send_verification_code",
+                    data: {
+                        email_address,
+                    },
+                    method: "post",
+                })
+                .then(
+                    (done) => {
+                        set_verf_code_status("sent")
+                    },
+                    () => {
+                        set_verf_code_status("failed")
+                    }
+                )
+        }
+    }, [
+        email_is_valid,
+        !email_is_taken_by_someone_else,
+        user.thing.value.email_address !== email_address,
+        email_address,
+    ])
+    async function change_email() {
+        try {
+            await uhc.configured_axios({
+                method: "post",
+                data: {
+                    email_address,
+                    verf_code: Number(verf_code),
+                },
+                url: "/change_email",
+            })
+        } catch (error) {
+            if (error.response.status === 403) {
+                alert(error.response.data)
+            } else {
+                console.log(error)
+                alert(
+                    "something went wrong in network. more details in console."
+                )
+            }
+        }
+    }
     return (
         <Panel header={strings[184]}>
-            <div className="grid grid-cols-2">
+            <div className="grid grid-cols-2 gap-x-4">
                 <div className="col-span-1">
-                    <label
-                        htmlFor="change_email"
-                        className="text-lg"
-                    >
-                        {strings[185] + ":"}
-                    </label>
-                    <br />
-
-                    <InputText
-                        id="change_email"
-                        style={{ wordBreak: "break-all" }}
-                        value={email_address || ""}
-                        onChange={(e) => {
-                            set_email_address(e.target.value)
-                        }}
-                    />
-                    {/* {available_and_valid_email && email_address !== user.thing.value.email_address && 
-                        ""} */}
-
-                    <br />
-                    <br />
                     <label
                         htmlFor="change_full_name"
                         className="text-lg"
@@ -123,7 +154,10 @@ function ChangeCredential({ user, strings, simple_update }) {
                         {strings[188] + ":"}
                     </label>
                     <br />
-                    <div className="p-inputgroup w-fit">
+                    <div
+                        className="p-inputgroup"
+                        style={{ width: "100%", maxWidth: "280px" }}
+                    >
                         <InputText
                             id="change_full_name"
                             value={full_name || ""}
@@ -138,6 +172,61 @@ function ChangeCredential({ user, strings, simple_update }) {
                             />
                         )}
                     </div>
+                    <br />
+                    <label
+                        htmlFor="change_email"
+                        className="text-lg"
+                    >
+                        {strings[185] + ":"}
+                    </label>
+                    <br />
+
+                    <InputText
+                        id="change_email"
+                        style={{
+                            wordBreak: "break-all",
+                            width: "100%",
+                            maxWidth: "280px",
+                            marginBottom: "5px",
+                        }}
+                        value={email_address || ""}
+                        onChange={(e) => {
+                            set_email_address(e.target.value)
+                        }}
+                    />
+                    <br />
+                    <span className="pt-2">
+                        {email_is_taken_by_someone_else &&
+                            "this email is taken by someone else."}
+                        {!email_is_valid && "invalid email"}
+                    </span>
+
+                    {email_is_valid &&
+                        !email_is_taken_by_someone_else &&
+                        user.thing.value.email_address !== email_address && (
+                            <>
+                                <span className="block text-xs text-gray-600 w-full md:w-30rem mt-2">
+                                    {verf_code_status === "failed" &&
+                                        "Error. could not send verification codes."}
+                                    {verf_code_status === "sent" &&
+                                        `verification code is sent.`}
+                                    {verf_code_status === "progress" &&
+                                        "sending verification code ..."}
+                                </span>
+                                <div className="p-inputgroup">
+                                    <InputText
+                                        placeholder="verification code"
+                                        value={verf_code || ""}
+                                        onChange={(e) =>
+                                            set_verf_code(e.target.value)
+                                        }
+                                    />
+                                    <Button onClick={change_email}>
+                                        <i className="bi-send-fill" />{" "}
+                                    </Button>
+                                </div>
+                            </>
+                        )}
                 </div>
                 <div className="col-span-1">
                     <label
@@ -172,6 +261,58 @@ function ChangeCredential({ user, strings, simple_update }) {
 }
 function CalendarRelated({ strings, user, simple_update }) {
     var { calendar_type, week_starting_day, language } = user.thing.value
+    var pd = new PersianDate()
+
+    addLocale("fa", {
+        dayNames: [
+            "یکشنبه",
+            "دوشنبه",
+            "سه شنبه",
+            "چهارشنبه",
+            "پنج شنبه",
+            "جمعه",
+            "شنبه",
+        ],
+        dayNamesShort: ["یک", "دو", "سه", "چهار", "پنج", "جمعه", "شنبه"],
+        dayNamesMin: ["ی", "د", "س", "چ", "پ", "ج", "ش"],
+        monthNames: [
+            "فروردین",
+            "اردیبهشت",
+            "خرداد",
+            "تیر",
+            "مرداد",
+            "شهریور",
+            "مهر",
+            "آبان",
+            "آذر",
+            "دی",
+            "بهمن",
+            "اسفند",
+        ],
+        monthNamesShort: [
+            "فرو",
+            "ارد",
+            "خرد",
+            "تیر",
+            "مرد",
+            "شهر",
+            "مهر",
+            "آبان",
+            "آذر",
+            "دی",
+            "بهمن",
+            "اسف",
+        ],
+        today: "امروز",
+        clear: "پاک کن",
+    })
+    ;["en", "fa"].map((locale) => {
+        updateLocaleOption(
+            "firstDayOfWeek",
+            day_names.indexOf(week_starting_day),
+            locale
+        )
+    })
 
     return (
         <div className="grid grid-cols-12 my-4 gap-x-4">
@@ -255,10 +396,12 @@ function CalendarRelated({ strings, user, simple_update }) {
                 <Panel header={"Previews"}>
                     <div className="h-full w-full flex justify-center items-center flex-col space-y-5">
                         <Calendar
+                            key={new Date().getTime()}
                             inline
                             className="w-full"
+                            locale={calendar_type === "english" ? "en" : "fa"}
                         />
-                        <span>{new Date().toLocaleString("fa-IR")}</span>
+                        <span>{pd.format("LLLL")}</span>
                     </div>
                 </Panel>
             </div>

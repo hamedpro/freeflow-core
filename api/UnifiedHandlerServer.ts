@@ -19,6 +19,7 @@ import {
     thing,
     transaction,
     user,
+    user_private_data,
     verification_code,
     websocket_client,
 } from "./UnifiedHandler_types.js"
@@ -369,6 +370,59 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 }
             )
         )
+        this.restful_express_app.post(
+            "/change_email",
+            this.gen_lock_safe_request_handler(
+                async (
+                    request: Express.Request & {
+                        body: {
+                            email_address: string
+                            verf_code: verification_code["value"]["value"]
+                        }
+                    },
+                    response: any
+                ) => {
+                    if (
+                        typeof response.locals.user_id !== "number" ||
+                        response.locals.user_id === 0 ||
+                        response.locals.user_id === -1
+                    ) {
+                        response
+                            .status(400)
+                            .json(
+                                "no jwt or jwt is for one of these special user_ids : 0 | -1 "
+                            )
+                    } else {
+                        if (
+                            this.verify_email_ownership(
+                                request.body.email_address,
+                                request.body.verf_code
+                            )
+                        ) {
+                            this.new_transaction({
+                                thing_id: response.locals.user_id,
+                                new_thing_creator: (prev) => ({
+                                    ...prev,
+                                    value: {
+                                        ...prev.value,
+                                        email_address:
+                                            request.body.email_address,
+                                    },
+                                }),
+                                user_id: response.locals.user_id,
+                            })
+                            response.json({})
+                        } else {
+                            response
+                                .status(403)
+                                .json(
+                                    "your email ownership could not be verified."
+                                )
+                        }
+                    }
+                }
+            )
+        )
         this.restful_express_app.get(
             "/files/:file_id",
             this.gen_lock_safe_request_handler(
@@ -544,6 +598,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             this.add_socket(socket)
         })
     }
+
     new_verf_code(email: string): number {
         var result = gen_verification_code()
         this.new_transaction({
@@ -755,6 +810,36 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 profile_seed.max_depth
             ).map((tr) => tr.id),
         }
+    }
+    verify_email_ownership(
+        email_address: string,
+        verf_code: verification_code["value"]["value"]
+    ) {
+        var latest_verf_code_ci = this.cache
+            .filter((i: cache_item<thing>) => {
+                return (
+                    i.thing.type === "verification_code" &&
+                    i.thing.value.email === email_address
+                )
+            })
+            .at(-1)
+
+        function is_verification_code_ci(
+            ci: cache_item<thing> | undefined
+        ): ci is {
+            thing_id: number
+            thing: verification_code
+        } {
+            if (ci) {
+                return ci.thing.type === "verification_code"
+            } else {
+                return false
+            }
+        }
+        var latest_verf_code =
+            is_verification_code_ci(latest_verf_code_ci) &&
+            latest_verf_code_ci.thing.value.value
+        return latest_verf_code === verf_code
     }
     calc_all_discoverable_transactions(profiles: profile[]): transaction[] {
         return custom_find_unique(

@@ -6,6 +6,7 @@ import {
     thing,
     time_travel_snapshot,
     transaction,
+    user,
 } from "./UnifiedHandler_types.js"
 import {
     calc_cache,
@@ -67,7 +68,20 @@ export class UnifiedHandlerCore {
         cache: () => {},
         time_travel_snapshot: () => {},
     }
-
+    find_user_private_data_id(user_id: number): number {
+        var user: cache_item<thing> | undefined = this.unresolved_cache.find(
+            (ci) => ci.thing_id === user_id
+        )
+        if (user === undefined) {
+            throw "was trying to find usr private data : user could not be found"
+        } else {
+            if (user.thing.type !== "user") {
+                throw "internal error. given user id doesnt belong a user"
+            } else {
+                return Number(user.thing.value.password.split(":")[2])
+            }
+        }
+    }
     time_travel_snapshot: time_travel_snapshot
 
     time_travel(snapshot: time_travel_snapshot) {
