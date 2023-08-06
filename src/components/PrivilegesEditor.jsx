@@ -1,25 +1,33 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useContext } from "react"
 import Select from "react-select"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
-export const PrivilegesEditor = ({ onChange }) => {
+import { Panel } from "primereact/panel"
+export const PrivilegesEditor = ({ cache_item, ...props }) => {
     var { cache, strings } = useContext(UnifiedHandlerClientContext)
     var users = cache.filter((i) => i.thing.type === "user")
-    var [privileges, set_privileges] = useState({
-        read: [],
-        write: [],
-    })
-    function change_privilegs_mode(job, new_value) {
-        set_privileges((prev) => ({
-            ...prev,
-            [job]: new_value === "not_all" ? [] : "*",
-        }))
+
+    var privileges =
+        cache_item.its_meta_cache_item?.thing.value.thing_privileges
+    async function apply_changes(changer_func) {
+        var new_privileges = changer_func(
+            JSON.parse(JSON.stringify(privileges))
+        )
+        await uhc.request_new_transaction({
+            new_thing_creator: (prev) => ({
+                ...prev,
+                value: { ...prev.value, thing_privileges: new_privileges },
+            }),
+            thing_id: cache_item.its_meta_cache_item.thing_id,
+        })
     }
-    useEffect(() => {
-        onChange(privileges)
-    }, [privileges])
+    if (privileges === undefined) {
+        return "thing privileges could not be found."
+    }
     return (
-        <>
-            <h1>{strings[197]}</h1>
+        <Panel
+            header={strings[197]}
+            {...props}
+        >
             {["read", "write"].map((key) => (
                 <div key={key}>
                     <div>
@@ -32,7 +40,12 @@ export const PrivilegesEditor = ({ onChange }) => {
                                     ? "bi-toggle-on"
                                     : "bi-toggle-off"
                             }
-                            onClick={() => change_privilegs_mode(key, "all")}
+                            onClick={() =>
+                                apply_changes((prev) => {
+                                    prev[key] = "*"
+                                    return prev
+                                })
+                            }
                         >
                             {strings[200]}
                         </i>
@@ -43,7 +56,10 @@ export const PrivilegesEditor = ({ onChange }) => {
                                     : "bi-toggle-off"
                             }
                             onClick={() =>
-                                change_privilegs_mode(key, "not_all")
+                                apply_changes((prev) => {
+                                    prev[key] = [uhc.user_id]
+                                    return prev
+                                })
                             }
                         >
                             {strings[201]}
@@ -66,16 +82,18 @@ export const PrivilegesEditor = ({ onChange }) => {
                                         label: i.thing.value.email_address,
                                     }))}
                                 onChange={(newValue) =>
-                                    set_privileges((prev) => ({
-                                        ...prev,
-                                        [key]: newValue.map((i) => i.value),
-                                    }))
+                                    apply_changes((prev) => {
+                                        prev[key] = newValue.map(
+                                            (something) => something.value
+                                        )
+                                        return prev
+                                    })
                                 }
                             />
                         )}
                     </div>
                 </div>
             ))}
-        </>
+        </Panel>
     )
 }

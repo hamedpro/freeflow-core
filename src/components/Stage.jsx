@@ -26,8 +26,7 @@ export const Stage = () => {
         (i) => i.thing_id === Number(thing_id)
     )
     var meta = uhc.find_thing_meta(cache_item.thing_id)
-    var parent_pack_id = meta?.thing.value.pack_id
-    var meta_id = meta?.thing_id
+
     return (
         <>
             <TabMenu
@@ -42,45 +41,22 @@ export const Stage = () => {
                     })
                 }
             />
-            {(parent_pack_id || meta_id) && (
-                <div className="p-2 flex space-x-2 py-3">
-                    {meta_id && (
-                        <Button
-                            className="h-8 px-2"
-                            icon={
-                                <i className="bi-arrow-up-left-circle-fill mr-2" />
-                            }
-                            onClick={() => nav(`/${meta_id}`)}
-                        >
-                            {strings[57]}
-                        </Button>
-                    )}
-                    {parent_pack_id && (
-                        <Button
-                            className="h-8"
-                            icon={
-                                <i className="bi-arrow-up-left-circle-fill mr-2" />
-                            }
-                            onClick={() => nav(`/${parent_pack_id}`)}
-                        >
-                            {strings[58]}
-                        </Button>
-                    )}
-                </div>
-            )}
-            {tab === "timeline" ? (
-                <ThingTimeline
-                    {...{
-                        cache_item,
-                        transactions: thing_transactions,
-                    }}
-                />
-            ) : (
-                <>
-                    <Thing thing_id={cache_item.thing_id} />
-                    <MessagesBox thing_id={cache_item.thing_id} />
-                </>
-            )}
+
+            <div className="p-4">
+                {tab === "timeline" ? (
+                    <ThingTimeline
+                        {...{
+                            cache_item,
+                            transactions: thing_transactions,
+                        }}
+                    />
+                ) : (
+                    <>
+                        <Thing thing_id={cache_item.thing_id} />
+                        <MessagesBox thing_id={cache_item.thing_id} />
+                    </>
+                )}
+            </div>
         </>
     )
 }

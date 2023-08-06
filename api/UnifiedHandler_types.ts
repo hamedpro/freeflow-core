@@ -82,6 +82,7 @@ export interface unit_ask extends thing_base {
     type: "unit/ask"
     value: {
         question: string
+        question_body: string
         mode: "poll" | "multiple_choice" | "text_answer"
         options?: string[]
         correct_option_index?: number

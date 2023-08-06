@@ -233,7 +233,6 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         text: string
         nav: ReturnType<typeof useNavigate>
     }): Promise<number> {
-        console.log("started bootstraping a writing")
         var data: OutputData = {
             blocks: [
                 {
@@ -273,7 +272,6 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
             }),
             thing_id: undefined,
         })
-        console.log("bootstraping a writing is done.")
 
         //continue with this new created note
         return new_note_id

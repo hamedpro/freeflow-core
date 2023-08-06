@@ -5,34 +5,17 @@ import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { Item, Menu, useContextMenu } from "react-contexify"
 import { CustomFileViewer } from "./CustomFileViewer"
 import { Section } from "./section"
-
+import { ThingIntroduction } from "./ThingIntroduction"
+import { Panel } from "primereact/panel"
+import { FileUpload } from "primereact/fileupload"
+import { PrivilegesEditor } from "./PrivilegesEditor"
 export const Resource = ({ cache_item, inline }) => {
-    var nav = useNavigate()
-
-    var user_id = uhc.user_id
-    var { cache, strings } = useContext(UnifiedHandlerClientContext)
+    var { strings } = useContext(UnifiedHandlerClientContext)
     var { show } = useContextMenu({
         id: "options_context_menu",
     })
 
-    async function change_resource_handler(type) {
-        var user_input = window.prompt(strings[62](type))
-        if (!user_input) {
-            alert(strings[110])
-            return
-        }
-
-        await uhc.request_new_transaction({
-            new_thing_creator: (prev) => ({
-                ...prev,
-                value: { ...prev.value, [type]: user_input },
-            }),
-            thing_id: cache_item.thing_id,
-        })
-        alert(strings[64])
-    }
-    async function change_source_file() {
-        var [file] = document.getElementById("change_source_file_input").files
+    async function change_source_file(file) {
         if (file === undefined) {
             alert(strings[111])
             return
@@ -69,44 +52,32 @@ export const Resource = ({ cache_item, inline }) => {
 
     return (
         <>
-            <Menu id="options_context_menu">
-                <Item
-                    id="change_title"
-                    onClick={() => change_resource_handler("title")}
-                >
-                    {strings[66]}
-                </Item>
-                <Item
-                    id="change_description"
-                    onClick={() => change_resource_handler("description")}
-                >
-                    {strings[67]}
-                </Item>
-            </Menu>
-            <div className="flex justify-between mb-1 items-center p-1">
-                <h1 className="text-lg">{strings[84]}</h1>
-                <button
-                    className="items-center flex"
-                    onClick={(event) => show({ event })}
-                >
-                    <i className="bi-list text-lg" />{" "}
-                </button>
-            </div>
+            <ThingIntroduction {...{ cache_item }} />
             <div className="">
-                <CustomFileViewer file_id={cache_item.thing.value.file_id} />
-                <h1>
-                    {strings[112]} : {cache_item.thing.value.title}
-                </h1>
-                <h1>
-                    {strings[113]} : {cache_item.thing.value.description}
-                </h1>
-                <Section title={strings[114]}>
-                    <input
-                        id="change_source_file_input"
-                        type="file"
+                <Panel header={"Linked File"}>
+                    <CustomFileViewer
+                        file_id={cache_item.thing.value.file_id}
                     />
-                    <button onClick={change_source_file}>{strings[115]}</button>
-                </Section>
+                </Panel>
+
+                <Panel
+                    header={strings[114]}
+                    className="mt-4"
+                >
+                    <FileUpload
+                        uploadHandler={(props) =>
+                            change_source_file(props.files[0]).finally(() =>
+                                props.options.clear()
+                            )
+                        }
+                        customUpload
+                        multiple={false}
+                    />
+                </Panel>
+                <PrivilegesEditor
+                    cache_item={cache_item}
+                    className="mt-4"
+                />
             </div>
         </>
     )

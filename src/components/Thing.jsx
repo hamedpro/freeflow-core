@@ -21,7 +21,7 @@ export const Thing = ({ thing_id, inline = false }) => {
                     inline={inline}
                 />
             )
-            break
+
         case "unit/note":
             return (
                 <Note
@@ -29,7 +29,7 @@ export const Thing = ({ thing_id, inline = false }) => {
                     inline={inline}
                 />
             )
-            break
+
         case "unit/resource":
             return (
                 <Resource
@@ -37,7 +37,7 @@ export const Thing = ({ thing_id, inline = false }) => {
                     inline={inline}
                 />
             )
-            break
+
         case "unit/ask":
             return (
                 <Ask
@@ -46,7 +46,7 @@ export const Thing = ({ thing_id, inline = false }) => {
                     cache={cache}
                 />
             )
-            break
+
         case "user":
             return (
                 <UserProfile
@@ -54,9 +54,8 @@ export const Thing = ({ thing_id, inline = false }) => {
                     inline={inline}
                 />
             )
-            break
+
         default:
             return strings[59]
-            break
     }
 }
