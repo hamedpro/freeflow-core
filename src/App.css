@@ -50,5 +50,7 @@ body {
   /* prime react  */
   font-family: var(--font-family);
   background-color: var(--surface-ground);
-}                                        
-      
+}    
+.padding-if-not-empty:not(:empty){
+  padding: 30px ;
+}

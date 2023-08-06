@@ -1,32 +1,20 @@
-import React, { useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { custom_axios_download } from "../../api/client";
-import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext";
-import { StyledDiv } from "./styled_elements";
-import { Item, Menu, useContextMenu } from "react-contexify";
-import { CustomFileViewer } from "./CustomFileViewer";
-import { Section } from "./section";
+import React, { useContext } from "react"
+import { useNavigate } from "react-router-dom"
+import { custom_axios_download } from "../../api/client"
+import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
+import { Item, Menu, useContextMenu } from "react-contexify"
+import { CustomFileViewer } from "./CustomFileViewer"
+import { Section } from "./section"
 
-export const Resource = ({ cache_item }) => {
-	var nav = useNavigate();
+export const Resource = ({ cache_item, inline }) => {
+    var nav = useNavigate()
 
-	var user_id = uhc.user_id;
-	var { cache, strings } = useContext(UnifiedHandlerClientContext)
+    var user_id = uhc.user_id
+    var { cache, strings } = useContext(UnifiedHandlerClientContext)
     var { show } = useContextMenu({
         id: "options_context_menu",
     })
 
-    async function export_unit_handler() {
-        alert(strings[65])
-        return
-        await custom_axios_download({
-            file_name: `resources-${resource_id}-at-${new Date().getTime()}.tar`,
-            url: new URL(
-                `/v2/export_unit?unit_id=${resource_id}&unit_context=resources`,
-                window.api_endpoint
-            ),
-        })
-    }
     async function change_resource_handler(type) {
         var user_input = window.prompt(strings[62](type))
         if (!user_input) {
@@ -78,6 +66,7 @@ export const Resource = ({ cache_item }) => {
 
         alert(strings[64])
     }
+
     return (
         <>
             <Menu id="options_context_menu">
@@ -93,21 +82,17 @@ export const Resource = ({ cache_item }) => {
                 >
                     {strings[67]}
                 </Item>
-
-                <Item id="export_unit" onClick={export_unit_handler}>
-                    {strings[69]}
-                </Item>
             </Menu>
-            <div className="p-4">
-                <div className="flex justify-between mb-1 items-center p-1">
-                    <h1 className="text-lg">{strings[84]}</h1>
-                    <button
-                        className="items-center flex"
-                        onClick={(event) => show({ event })}
-                    >
-                        <i className="bi-list text-lg" />{" "}
-                    </button>
-                </div>
+            <div className="flex justify-between mb-1 items-center p-1">
+                <h1 className="text-lg">{strings[84]}</h1>
+                <button
+                    className="items-center flex"
+                    onClick={(event) => show({ event })}
+                >
+                    <i className="bi-list text-lg" />{" "}
+                </button>
+            </div>
+            <div className="">
                 <CustomFileViewer file_id={cache_item.thing.value.file_id} />
                 <h1>
                     {strings[112]} : {cache_item.thing.value.title}
@@ -116,10 +101,13 @@ export const Resource = ({ cache_item }) => {
                     {strings[113]} : {cache_item.thing.value.description}
                 </h1>
                 <Section title={strings[114]}>
-                    <input id="change_source_file_input" type="file" />
+                    <input
+                        id="change_source_file_input"
+                        type="file"
+                    />
                     <button onClick={change_source_file}>{strings[115]}</button>
                 </Section>
             </div>
         </>
     )
-};
+}

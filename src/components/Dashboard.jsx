@@ -1,19 +1,7 @@
-import React, { useContext, useState } from "react"
-import { Route, Routes, useNavigate } from "react-router-dom"
+import React from "react"
+import { Route, Routes } from "react-router-dom"
 import "react-contexify/ReactContexify.css"
-import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
-import { Calendar } from "primereact/calendar"
-import {
-    Feed,
-    NewUnitShortcuts,
-    MetroButton,
-    SyncCentreWidget,
-    TimeTravel,
-    Saved,
-} from "./DashboardParts"
-import { ProfilesSlideMenu } from "./DashboardParts"
-import { Button } from "primereact/button"
-import { Panel } from "primereact/panel"
+import { Feed, Saved } from "./DashboardParts"
 import { DashboardSideBar } from "./DashboardSideBar"
 import { Units } from "./Units"
 import { ForgetPassword } from "./ForgetPassword"
@@ -36,62 +24,114 @@ export function Dashboard() {
             <div className="h-full w-fit">
                 <DashboardSideBar />
             </div>
-            <div className="w-full p-6 h-full overflow-y-auto">
+            <div className="w-full h-full overflow-y-auto">
                 <Routes>
                     <Route
                         path="/feed"
-                        element={<Feed />}
+                        element={
+                            <div className="p-6">
+                                <Feed />
+                            </div>
+                        }
                     />
 
                     <Route
                         path="/"
-                        element={<Feed />}
+                        element={
+                            <div className="p-6">
+                                <Feed />
+                            </div>
+                        }
                     />
                     <Route
                         path="/saved"
-                        element={<Saved />}
+                        element={
+                            <div className="p-6">
+                                <Saved />
+                            </div>
+                        }
                     />
                     <Route
                         path="/whats-happening"
-                        element={<WhatsHappening />}
+                        element={
+                            <div className="p-6">
+                                <WhatsHappening />
+                            </div>
+                        }
                     />
                     <Route
                         path="/profiles"
-                        element={<Profiles />}
+                        element={
+                            <div className="p-6">
+                                <Profiles />
+                            </div>
+                        }
                     />
                     <Route
                         path="/new-unit"
-                        element={<DashboardNewUnit />}
+                        element={
+                            <div className="p-6">
+                                <DashboardNewUnit />
+                            </div>
+                        }
                     />
                     <Route
                         path="/register"
-                        element={<Register />}
+                        element={
+                            <div className="p-6">
+                                <Register />
+                            </div>
+                        }
                     />
                     <Route
                         path="/login"
-                        element={<Login />}
+                        element={
+                            <div className="p-6">
+                                <Login />
+                            </div>
+                        }
                     />
                     <Route
                         path="/terms"
-                        element={<Terms />}
+                        element={
+                            <div className="p-6">
+                                <Terms />
+                            </div>
+                        }
                     />
                     <Route
                         path="/subscription"
-                        element={<SubscribtionPage />}
+                        element={
+                            <div className="p-6">
+                                <SubscribtionPage />
+                            </div>
+                        }
                     />
 
                     <Route
                         path="/preferences"
-                        element={<UserSettings />}
+                        element={
+                            <div className="p-6">
+                                <UserSettings />
+                            </div>
+                        }
                     />
 
                     <Route
                         path="units"
-                        element={<Units />}
+                        element={
+                            <div className="p-6">
+                                <Units />
+                            </div>
+                        }
                     />
                     <Route
                         path="forget-password"
-                        element={<ForgetPassword />}
+                        element={
+                            <div className="p-6">
+                                <ForgetPassword />
+                            </div>
+                        }
                     />
 
                     <Route
@@ -102,5 +142,4 @@ export function Dashboard() {
             </div>
         </div>
     )
-    return <></>
 }

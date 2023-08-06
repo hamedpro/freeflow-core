@@ -1,12 +1,5 @@
-import React, { useContext, useEffect } from "react"
-import {
-    Route,
-    Routes,
-    useMatch,
-    useNavigate,
-    useParams,
-    useSearchParams,
-} from "react-router-dom"
+import React, { useContext } from "react"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { Button } from "primereact/button"
 import { ThingTimeline } from "./ThingTimeline"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
@@ -44,7 +37,7 @@ export const Stage = () => {
                 activeIndex={tab === "timeline" ? 1 : 0}
                 onTabChange={(e) =>
                     set_search_params((prev) => {
-                        prev.set("tab", e.index === 0 ? undefined : "timeline")
+                        prev.set("tab", e.index === 0 ? "thing" : "timeline")
                         return prev
                     })
                 }
