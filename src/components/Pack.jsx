@@ -1,198 +1,101 @@
-import React, { useContext, useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { custom_axios_download, custom_delete } from "../../api/client"
-import { calc_units_tree } from "../../common_helpers.js"
+import React, { useContext, useState } from "react"
 
-import { Section } from "./section"
-import { PackView } from "./PackView"
-import { Item, Menu, useContextMenu } from "react-contexify"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
+import { ThingIntroduction } from "./ThingIntroduction"
+import { Card } from "primereact/card"
+import { SelectButton } from "primereact/selectbutton"
+import { Thing } from "./Thing"
+import { custom_find_unique } from "../../api_dist/common_helpers"
 export const Pack = ({ thing_id, cache }) => {
     var { strings } = useContext(UnifiedHandlerClientContext)
     var cache_item = cache.find((i) => i.thing_id === thing_id)
-    var meta = uhc.find_thing_meta(cache_item.thing_id)
+    var meta = cache_item.its_meta_cache_item
     if (meta === undefined) return strings[60]
-    var user_id = uhc.user_id
-    var nav = useNavigate()
 
-    var [pack_view_filters, set_pack_view_filters] = useState({
-        view_as_groups: false,
-        sort: "timestamp_asce",
-        // possible values : "timestamp_asce" | "timestamp_desc"
+    var [sort_mode, set_sort_mode] = useState("timestamp_asce") // "timestamp_desc"
+    var [view_mode, set_view_mode] = useState("grouped") // "separated"
+    var children = cache.filter(
+        (ci) =>
+            ci.its_meta_cache_item?.thing.value.pack_id === cache_item.thing_id
+    )
+    children.sort((ci1, ci2) => {
+        if (sort_mode === "timestamp_asce") {
+            return (
+                uhc.find_first_transaction(ci1).time -
+                uhc.find_first_transaction(ci2).time
+            )
+        } else {
+            return (
+                uhc.find_first_transaction(ci2).time -
+                uhc.find_first_transaction(ci1).time
+            )
+        }
     })
-
-    useEffect(() => {
-        var default_pack_view_id = cache_item.thing.value.default_pack_view_id
-        if (default_pack_view_id) {
-            set_selected_view({
-                value: default_pack_view_id,
-                label: cache.find((i) => i.thing_id === default_pack_view_id)
-                    .thing.value.title,
-            })
-        }
-    }, [])
-    var { show } = useContextMenu({
-        id: "options_context_menu",
-    })
-
-    async function change_pack_handler(type) {
-        var tmp = meta.thing.value.thing_privileges.write
-        if (tmp !== "*" && !tmp.includes(user_id)) {
-            alert(strings[61])
-            return
-        }
-        var user_input = window.prompt(strings[62](type))
-        if (user_input === null) return
-        if (user_input === "") {
-            alert(strings[63])
-            return
-        }
-        await uhc.request_new_transaction({
-            new_thing_creator: (prev) => ({
-                ...prev,
-                value: { ...prev.value, [type]: user_input },
-            }),
-            thing_id: cache_item.thing_id,
-        })
-
-        alert(strings[64])
-    }
-
-    async function delete_this_pack() {
-        alert(strings[65])
-        return
-    }
-    async function export_unit_handler() {
-        alert(strings[65])
-        return
-        await custom_axios_download({
-            file_name: `packs-${pack_id}-at-${new Date().getTime()}.tar`,
-            url: new URL(
-                `/v2/export_unit?unit_id=${pack_id}&unit_context=packs`,
-                window.api_endpoint
-            ),
-        })
-    }
     return (
         <>
-            <Menu id="options_context_menu">
-                <Item
-                    id="change_title"
-                    onClick={() => change_pack_handler("title")}
-                >
-                    {strings[66]}
-                </Item>
+            <ThingIntroduction cache_item={cache_item} />
 
-                <Item
-                    id="change_description"
-                    onClick={() => change_pack_handler("description")}
+            <Card>
+                <div
+                    className={`w-full rounded-t flex justify-between bg-white items-center h-6`}
                 >
-                    {strings[67]}
-                </Item>
-
-                <Item id="delete_note" onClick={delete_this_pack}>
-                    {strings[68]}
-                </Item>
-                <Item id="export_unit" onClick={export_unit_handler}>
-                    {strings[69]}
-                </Item>
-            </Menu>
-            <div className="p-4">
-                <div className="flex justify-between mb-1 items-center">
-                    <h1>
-                        {strings[70]} #{cache_item.thing_id}
-                    </h1>
-                    <button
-                        className="items-center flex"
-                        onClick={(event) => show({ event })}
-                    >
-                        <i className="bi-list text-lg" />{" "}
-                    </button>
+                    <h1 className="text-xl">Pack children</h1>
+                    <div className="flex justify-end space-x-2">
+                        <SelectButton
+                            value={view_mode}
+                            options={[
+                                {
+                                    icon: "bi-folder2",
+                                    value: "grouped",
+                                },
+                                {
+                                    icon: "bi-folder2-open",
+                                    value: "separated",
+                                },
+                            ]}
+                            itemTemplate={(option) => (
+                                <i className={option.icon} />
+                            )}
+                            onChange={(e) => set_view_mode(e.value)}
+                        />
+                        <SelectButton
+                            value={sort_mode}
+                            options={[
+                                {
+                                    icon: "bi-sort-up",
+                                    value: "timestamp_asce",
+                                },
+                                {
+                                    icon: "bi-sort-down",
+                                    value: "timestamp_desc",
+                                },
+                            ]}
+                            itemTemplate={(option) => (
+                                <i className={option.icon} />
+                            )}
+                            onChange={(e) => set_sort_mode(e.value)}
+                        />
+                    </div>
                 </div>
-                <Section title={strings[71]}>
-                    <p>
-                        {strings[72]} {cache_item.thing.value.title}{" "}
-                    </p>
-                    <p>
-                        {strings[73]} {cache_item.thing.value.description}{" "}
-                    </p>
-                </Section>
-                <Section title={strings[74]}>
-                    <h1>{strings[75]} </h1>
-                    <p
-                        onClick={() =>
-                            set_pack_view_filters((prev) => ({
-                                ...prev,
-                                sort: "timestamp_asce",
-                            }))
-                        }
-                    >
-                        {pack_view_filters.sort === "timestamp_asce" ? (
-                            <i className="bi-toggle-on" />
-                        ) : (
-                            <i className="bi-toggle-off" />
-                        )}{" "}
-                        {strings[76]}
-                    </p>
-                    <p
-                        onClick={() =>
-                            set_pack_view_filters((prev) => ({
-                                ...prev,
-                                sort: "timestamp_desc",
-                            }))
-                        }
-                    >
-                        {pack_view_filters.sort === "timestamp_desc" ? (
-                            <i className="bi-toggle-on" />
-                        ) : (
-                            <i className="bi-toggle-off" />
-                        )}{" "}
-                        {strings[77]}
-                    </p>
-                    <br />
-
-                    <h1>{strings[78]}</h1>
-                    <p
-                        onClick={() =>
-                            set_pack_view_filters((prev) => ({
-                                ...prev,
-                                view_as_groups: true,
-                            }))
-                        }
-                    >
-                        {pack_view_filters.view_as_groups ? (
-                            <i className="bi-toggle-on" />
-                        ) : (
-                            <i className="bi-toggle-off" />
-                        )}
-                        {strings[79]}{" "}
-                    </p>
-                    <p
-                        onClick={() =>
-                            set_pack_view_filters((prev) => ({
-                                ...prev,
-                                view_as_groups: false,
-                            }))
-                        }
-                    >
-                        {pack_view_filters.view_as_groups !== true ? (
-                            <i className="bi-toggle-on" />
-                        ) : (
-                            <i className="bi-toggle-off" />
-                        )}
-                        {strings[80]}{" "}
-                    </p>
-                </Section>
-                <PackView
-                    pack_children={Object.keys(
-                        calc_units_tree(cache, cache_item.thing_id)
-                    ).map((i) => Number(i))}
-                    view_as_groups={pack_view_filters.view_as_groups}
-                    sort={pack_view_filters.sort}
-                    cache={cache}
-                />
-                {/* <MessagesBox of={cache_item.thing_id} /> */}
-            </div>
+            </Card>
+            {view_mode === "grouped" &&
+                children.map((child) => <Thing thing_id={child.thing_id} />)}
+            {view_mode === "separated" &&
+                custom_find_unique(
+                    children.map((child) => child.thing.type),
+                    (type1, type2) => type1 === type2
+                ).map((type) => (
+                    <>
+                        <div className="w-full h-10 flex items-center justify-center">
+                            {type}
+                        </div>
+                        {children
+                            .filter((child) => child.thing.type === type)
+                            .map((child) => (
+                                <Thing thing_id={child.thing_id} />
+                            ))}
+                    </>
+                ))}
         </>
     )
 }

@@ -35,7 +35,7 @@ export function CustomEditorJs(props) {
                 },
             },
             logLevel: "ERROR",
-
+            onChange: props.onChange,
             defaultBlock: "header",
         }
 
