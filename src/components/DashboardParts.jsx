@@ -21,6 +21,8 @@ import { Section } from "./section"
 import { StyledDiv } from "./styled_elements"
 import { RadioButton } from "primereact/radiobutton"
 import { InputText } from "primereact/inputtext"
+import { Card } from "primereact/card"
+import { CustomNavBar } from "./CustomNavBar"
 function NewResource() {
     var nav = useNavigate()
     async function uploadHandler(event) {
@@ -473,6 +475,7 @@ export function InlineThingWidget({ title, thing_ids }) {
                 <Thing
                     key={thing_id}
                     thing_id={thing_id}
+                    inline
                 />
             ))}
         />
@@ -483,25 +486,33 @@ export function CustomPaginatorPanel({ title, items, items_per_page = 20 }) {
 
     var first = current_page * 20
     return (
-        <Panel
-            className="overflow-hidden"
-            header={title}
-            footer={
+        <>
+            <Card
+                title={title}
+                className="mb-4 flex items-center"
+                pt={{
+                    title: {
+                        style: {
+                            margin: 0,
+                        },
+                    },
+                }}
+            />
+
+            {items.length === 0 && "there is nothing to show."}
+            {items.slice(
+                current_page * items_per_page,
+                current_page * items_per_page + items_per_page
+            )}
+            {items.length > items_per_page && (
                 <Paginator
                     first={first}
                     rows={items_per_page}
                     totalRecords={items.length}
                     onPageChange={(e) => set_current_page(e.page)}
                 />
-            }
-            pt={{ content: { style: { height: "70vh", overflow: "scroll" } } }}
-        >
-            {items.length === 0 && "there is nothing to show."}
-            {items.slice(
-                current_page * items_per_page,
-                current_page * items_per_page + items_per_page
             )}
-        </Panel>
+        </>
     )
 }
 
