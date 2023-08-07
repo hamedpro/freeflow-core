@@ -6,6 +6,7 @@ import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { Thing } from "./Thing"
 import { TabMenu } from "primereact/tabmenu"
 import { MessagesBox } from "./MessagesBox"
+import { ParentPackChangePanel } from "./ParentPackChangePanel"
 export const Stage = () => {
     var nav = useNavigate()
     var { cache, transactions, strings } = useContext(
@@ -52,7 +53,8 @@ export const Stage = () => {
                     />
                 ) : (
                     <>
-                        <Thing thing_id={cache_item.thing_id} />
+                        <Thing thing_id={cache_item.thing_id} />{" "}
+                        <ParentPackChangePanel cache_item={cache_item} />
                         <MessagesBox thing_id={cache_item.thing_id} />
                     </>
                 )}

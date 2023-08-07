@@ -11,6 +11,7 @@ import { ThingIntroduction } from "./ThingIntroduction"
 import { Panel } from "primereact/panel"
 import { Button } from "primereact/button"
 import { PrivilegesEditor } from "./PrivilegesEditor"
+import { ParentPackChangePanel } from "./ParentPackChangePanel"
 export const Note = ({ cache_item }) => {
     var { strings } = useContext(UnifiedHandlerClientContext)
     var nav = useNavigate()

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react"
+import React, { Fragment, useContext, useState } from "react"
 
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { ThingIntroduction } from "./ThingIntroduction"
@@ -21,13 +21,13 @@ export const Pack = ({ thing_id, cache }) => {
     children.sort((ci1, ci2) => {
         if (sort_mode === "timestamp_asce") {
             return (
-                uhc.find_first_transaction(ci1).time -
-                uhc.find_first_transaction(ci2).time
+                uhc.find_first_transaction(ci1.thing_id).time -
+                uhc.find_first_transaction(ci2.thing_id).time
             )
         } else {
             return (
-                uhc.find_first_transaction(ci2).time -
-                uhc.find_first_transaction(ci1).time
+                uhc.find_first_transaction(ci2.thing_id).time -
+                uhc.find_first_transaction(ci1.thing_id).time
             )
         }
     })
@@ -79,22 +79,30 @@ export const Pack = ({ thing_id, cache }) => {
                 </div>
             </Card>
             {view_mode === "grouped" &&
-                children.map((child) => <Thing thing_id={child.thing_id} />)}
+                children.map((child) => (
+                    <Thing
+                        key={child.thing_id}
+                        thing_id={child.thing_id}
+                    />
+                ))}
             {view_mode === "separated" &&
                 custom_find_unique(
                     children.map((child) => child.thing.type),
                     (type1, type2) => type1 === type2
                 ).map((type) => (
-                    <>
+                    <Fragment key={type}>
                         <div className="w-full h-10 flex items-center justify-center">
                             {type}
                         </div>
                         {children
                             .filter((child) => child.thing.type === type)
                             .map((child) => (
-                                <Thing thing_id={child.thing_id} />
+                                <Thing
+                                    key={child.thing_id}
+                                    thing_id={child.thing_id}
+                                />
                             ))}
-                    </>
+                    </Fragment>
                 ))}
         </>
     )
