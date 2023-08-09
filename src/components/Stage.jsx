@@ -1,6 +1,5 @@
 import React, { useContext } from "react"
-import { useNavigate, useParams, useSearchParams } from "react-router-dom"
-import { Button } from "primereact/button"
+import { useParams, useSearchParams } from "react-router-dom"
 import { ThingTimeline } from "./ThingTimeline"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { Thing } from "./Thing"
@@ -8,7 +7,6 @@ import { TabMenu } from "primereact/tabmenu"
 import { MessagesBox } from "./MessagesBox"
 import { ParentPackChangePanel } from "./ParentPackChangePanel"
 export const Stage = () => {
-    var nav = useNavigate()
     var { cache, transactions, strings } = useContext(
         UnifiedHandlerClientContext
     )

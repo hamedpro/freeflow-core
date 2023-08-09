@@ -47,14 +47,6 @@ export interface unit_pack extends thing_base {
         default_pack_view_id?: null | number
     }
 }
-export interface ask_result extends thing_base {
-    type: "ask_result"
-    value: {
-        user_id: number
-        ask_id: number
-        result: number | string
-    }
-}
 export interface unit_resource extends thing_base {
     type: "unit/resource"
     value: {
@@ -78,6 +70,9 @@ export interface verification_code extends thing_base {
         email: string
     }
 }
+export type ask_answer =
+    | { user_id: transaction["user_id"]; answer_index: number }
+    | { user_id: transaction["user_id"]; answer_text: string }
 export interface unit_ask extends thing_base {
     type: "unit/ask"
     value: {
@@ -86,6 +81,7 @@ export interface unit_ask extends thing_base {
         mode: "poll" | "multiple_choice" | "text_answer"
         options?: string[]
         correct_option_index?: number
+        answers: ask_answer[]
     }
 }
 export interface unit_note extends thing_base {
