@@ -29,20 +29,34 @@ export const ThingIntroduction = ({ cache_item }) => {
     var meta = uhc.find_thing_meta(cache_item.thing_id)
     var parent_pack_id = meta?.thing.value.pack_id
     var meta_id = meta?.thing_id
+    var type = cache_item.thing.type
+    if (type.startsWith("unit/") !== true) {
+        return "this component yet only supports units"
+    }
     return (
         <Card className="mb-4 p-2">
             <Menu id="options_context_menu">
                 <Item
-                    id="change_title"
-                    onClick={() => change_resource_handler("title")}
+                    onClick={() =>
+                        change_resource_handler(
+                            type === "unit/ask" ? "question" : "title"
+                        )
+                    }
                 >
-                    {strings[66]}
+                    {type === "unit/ask" ? "change question" : "change title"}
                 </Item>
                 <Item
-                    id="change_description"
-                    onClick={() => change_resource_handler("description")}
+                    onClick={() =>
+                        change_resource_handler(
+                            type === "unit/ask"
+                                ? "question_body"
+                                : "description"
+                        )
+                    }
                 >
-                    {strings[67]}
+                    {type === "unit/ask"
+                        ? "change question body "
+                        : "change description"}
                 </Item>
             </Menu>
             <div className="flex justify-between  items-center p-1 space-x-2">

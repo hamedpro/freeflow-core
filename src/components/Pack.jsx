@@ -1,6 +1,4 @@
 import React, { Fragment, useContext, useState } from "react"
-import { Avatar } from "primereact/avatar"
-import { AvatarGroup } from "primereact/avatargroup"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { ThingIntroduction } from "./ThingIntroduction"
 import { Card } from "primereact/card"
@@ -8,7 +6,11 @@ import { SelectButton } from "primereact/selectbutton"
 import { Thing } from "./Thing"
 import { custom_find_unique } from "../../api_dist/common_helpers"
 import { CustomAvatarGroup } from "./CustomAvatarGroup"
+import { InlineThingTemplate } from "./InlineThingTemplate"
+import { ReputationInlinePreview } from "./ReputationInlinePreview"
+import { useNavigate } from "react-router-dom"
 export const Pack = ({ thing_id, cache, inline }) => {
+    var nav = useNavigate()
     var { strings } = useContext(UnifiedHandlerClientContext)
     var cache_item = cache.find((i) => i.thing_id === thing_id)
     var meta = cache_item.its_meta_cache_item
@@ -35,47 +37,25 @@ export const Pack = ({ thing_id, cache, inline }) => {
             )
         }
     })
-    var reputation_rank =
-        uhc.calc_reputations().indexOf(cache_item.thing_id) + 1
-    var rounded_reputation_percent = Math.ceil(
-        (reputation_rank / cache.length) * 100
-    )
+
     if (inline === true) {
         return (
-            <Card>
-                <div className="w-full">
-                    <div className="grid grid-cols-2">
-                        <div>
-                            <h1>{cache_item.thing.value.title}</h1>
-                            <span>{cache_item.thing.value.description}</span>
-                        </div>
-                        <div className="grid ">
-                            <div>
-                                <i className="bi-calendar4-event" /> this pack
-                                was created in{" "}
-                                {first_transaction_of_this_thing.time} by
-                                {first_transaction_of_this_thing.user_id}
-                            </div>
-                            <div className="text-lg">
-                                <i className="bi-award" />
-                                <span>
-                                    {`Reputation : ${reputation_rank} / ${cache.length} `}
-                                    {`(top ${
-                                        Math.ceil(
-                                            rounded_reputation_percent / 10
-                                        ) * 10
-                                    } % )`}
-                                </span>
-                            </div>
-                            <div>
-                                <CustomAvatarGroup
-                                    thing_id={cache_item.thing_id}
-                                />
-                            </div>
-                        </div>
-                    </div>
+            <InlineThingTemplate onClick={() => nav(`/${cache_item.thing_id}`)}>
+                <div>
+                    <h1>{cache_item.thing.value.title}</h1>
+                    <span>{cache_item.thing.value.description}</span>
                 </div>
-            </Card>
+                <div className="grid">
+                    <div>
+                        <i className="bi-calendar4-event" /> this pack was
+                        created in {first_transaction_of_this_thing.time} by
+                        {first_transaction_of_this_thing.user_id}
+                    </div>
+                    <ReputationInlinePreview cache_item={cache_item} />
+
+                    <CustomAvatarGroup thing_id={cache_item.thing_id} />
+                </div>
+            </InlineThingTemplate>
         )
     }
     return (

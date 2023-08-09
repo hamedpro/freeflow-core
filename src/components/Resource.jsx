@@ -1,19 +1,17 @@
 import React, { useContext } from "react"
-import { useNavigate } from "react-router-dom"
-import { custom_axios_download } from "../../api/client"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
-import { Item, Menu, useContextMenu } from "react-contexify"
 import { CustomFileViewer } from "./CustomFileViewer"
-import { Section } from "./section"
 import { ThingIntroduction } from "./ThingIntroduction"
 import { Panel } from "primereact/panel"
 import { FileUpload } from "primereact/fileupload"
 import { PrivilegesEditor } from "./PrivilegesEditor"
+import { InlineThingTemplate } from "./InlineThingTemplate"
+import { ReputationInlinePreview } from "./ReputationInlinePreview"
+import { CustomAvatarGroup } from "./CustomAvatarGroup"
+import { useNavigate } from "react-router-dom"
 export const Resource = ({ cache_item, inline }) => {
+    var nav = useNavigate()
     var { strings } = useContext(UnifiedHandlerClientContext)
-    var { show } = useContextMenu({
-        id: "options_context_menu",
-    })
 
     async function change_source_file(file) {
         if (file === undefined) {
@@ -49,7 +47,25 @@ export const Resource = ({ cache_item, inline }) => {
 
         alert(strings[64])
     }
-
+    var first_transaction = uhc.find_first_transaction(cache_item.thing_id)
+    if (inline === true) {
+        return (
+            <InlineThingTemplate onClick={() => nav(`/${cache_item.thing_id}`)}>
+                <div>
+                    <h1>{cache_item.thing.value.title}</h1>
+                    <p>{cache_item.thing.value.description}</p>
+                </div>
+                <div>
+                    <h1>
+                        this note was created in {first_transaction.time} by{" "}
+                        {first_transaction.user_id}
+                    </h1>
+                    <ReputationInlinePreview cache_item={cache_item} />
+                    <CustomAvatarGroup thing_id={cache_item.thing_id} />
+                </div>
+            </InlineThingTemplate>
+        )
+    }
     return (
         <>
             <ThingIntroduction {...{ cache_item }} />

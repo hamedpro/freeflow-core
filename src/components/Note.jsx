@@ -1,24 +1,19 @@
 import React, { useContext, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { custom_axios_download } from "../../api/client"
 
-import { Section } from "./section"
-import { StyledDiv } from "./styled_elements"
-import { Item, Menu, useContextMenu } from "react-contexify"
 import { CustomEditorJs } from "./CustomEditorJs"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { ThingIntroduction } from "./ThingIntroduction"
 import { Panel } from "primereact/panel"
 import { Button } from "primereact/button"
 import { PrivilegesEditor } from "./PrivilegesEditor"
-import { ParentPackChangePanel } from "./ParentPackChangePanel"
-export const Note = ({ cache_item }) => {
+import { InlineThingTemplate } from "./InlineThingTemplate"
+import { ReputationInlinePreview } from "./ReputationInlinePreview"
+import { CustomAvatarGroup } from "./CustomAvatarGroup"
+export const Note = ({ cache_item, inline }) => {
     var { strings } = useContext(UnifiedHandlerClientContext)
     var nav = useNavigate()
     var editor_js_instance = useRef()
-    var { show } = useContextMenu({
-        id: "options_context_menu",
-    })
 
     const saveHandler = async () => {
         var data = await editor_js_instance.current.save()
@@ -67,6 +62,25 @@ export const Note = ({ cache_item }) => {
             }),
             thing_id: uhc.find_thing_meta(cache_item.thing_id).thing_id,
         })
+    }
+    var first_transaction = uhc.find_first_transaction(cache_item.thing_id)
+    if (inline === true) {
+        return (
+            <InlineThingTemplate onClick={() => nav(`/${cache_item.thing_id}`)}>
+                <div>
+                    <h1>{cache_item.thing.value.title}</h1>
+                    <p>{cache_item.thing.value.description}</p>
+                </div>
+                <div>
+                    <p>
+                        this note was created in {first_transaction.time} by{" "}
+                        {first_transaction.user_id}
+                    </p>
+                    <ReputationInlinePreview cache_item={cache_item} />
+                    <CustomAvatarGroup thing_id={cache_item.thing_id} />
+                </div>
+            </InlineThingTemplate>
+        )
     }
     return (
         <>

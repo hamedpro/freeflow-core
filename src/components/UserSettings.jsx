@@ -525,12 +525,7 @@ export const UserSettings = () => {
                 back_link={"/"}
                 main_text={"Preferences: let us know what you prefer."}
             />
-            <div
-                className="grid grid-cols-3 w-full  bg-gray-100  rounded overflow-hidden mb-4"
-                style={{
-                    boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-                }}
-            >
+            <div className="shadow grid grid-cols-3 w-full  bg-gray-100  rounded overflow-hidden mb-4">
                 <div
                     style={{
                         width: "100%",
