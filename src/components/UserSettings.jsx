@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react"
 import Select from "react-select"
 import { JsonViewer } from "@textea/json-viewer"
 import validator from "validator"
+import fileDownload from "js-file-download"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { CustomNavBar } from "./CustomNavBar"
 import { FileUpload } from "primereact/fileupload"
@@ -19,6 +20,18 @@ import { Password } from "primereact/password"
 function ExportProfile() {
     var { profiles_seed } = useContext(VirtualLocalStorageContext)
     var [include_files_checkbox, set_include_files_checkbox] = useState(true)
+    async function download_backup() {
+        var response = await uhc.configured_axios({
+            method: "post",
+            url: "/export_backup",
+            data: {
+                include_files: include_files_checkbox,
+                profile_seed: profiles_seed.find((ps) => ps.is_active === true),
+            },
+            responseType: "blob",
+        })
+        fileDownload(response.data, "backup.tar")
+    }
     return (
         <Panel header="Export Profile">
             <div className="grid grid-cols-12 gap-x-2">
@@ -57,6 +70,7 @@ function ExportProfile() {
                     <Button
                         icon={<i className="bi-cloud-download pr-2" />}
                         className="w-full my-3 flex justify-center"
+                        onClick={download_backup}
                     >
                         Download Archive
                     </Button>

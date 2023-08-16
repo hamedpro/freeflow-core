@@ -1,5 +1,7 @@
-var items: any[] = [1, "2", "3", "4"]
-var numbers = items.filter(
-    <(x: any) => x is number>((x) => typeof x == "number")
-)
-numbers
+import { export_backup } from "./backup.js"
+export_backup({
+    all_transactions: [],
+    initial_values: [],
+    included_files: [15],
+    user_id: 3,
+})

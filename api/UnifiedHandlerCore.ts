@@ -20,6 +20,23 @@ import {
 } from "./utils.js"
 
 export class UnifiedHandlerCore {
+    calc_user_discoverable_files(user_id: number): number[] {
+        var results: number[] = []
+
+        this.cache.forEach((ci) => {
+            if (
+                ci.thing.type === "meta" &&
+                "file_id" in ci.thing.value &&
+                "file_privileges" in ci.thing.value &&
+                (ci.thing.value.file_privileges.read === "*" ||
+                    ci.thing.value.file_privileges.read.includes(user_id))
+            ) {
+                results.push(ci.thing_id)
+            }
+        })
+
+        return results
+    }
     thing_transactions = (thing_id: number) =>
         thing_transactions(this.transactions, thing_id)
     find_first_transaction = (thing_id: number) =>

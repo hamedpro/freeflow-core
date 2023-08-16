@@ -33,6 +33,7 @@ import {
 } from "./utils.js"
 import { KavenegarApi, kavenegar } from "kavenegar"
 import { custom_find_unique } from "../common_helpers.js"
+import { export_backup } from "./backup.js"
 function custom_express_jwt_middleware(jwt_secret: string) {
     return (request: any, response: any, next: any) => {
         if (
@@ -348,6 +349,34 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                             return
                         }
                     }
+                }
+            )
+        )
+
+        this.restful_express_app.post(
+            "/export_backup",
+            this.gen_lock_safe_request_handler(
+                async (request: any, response: any) => {
+                    var user_id = Number(response.locals.user_id)
+                    var { include_files, profile_seed } = request.body
+
+                    var archive_name = await export_backup({
+                        all_transactions:
+                            this.calc_all_discoverable_transactions([
+                                this.calc_profile(profile_seed, undefined),
+                            ]),
+                        initial_values: [],
+                        included_files:
+                            this.calc_user_discoverable_files(user_id),
+                        user_id: profile_seed.user_id,
+                    })
+                    archive_name = path.resolve(archive_name)
+                    response.download(archive_name, (err: any) => {
+                        fs.rmSync(archive_name, { force: true })
+                        if (err) {
+                            throw err
+                        }
+                    })
                 }
             )
         )
