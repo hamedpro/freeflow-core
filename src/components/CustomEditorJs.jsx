@@ -6,7 +6,6 @@ import Checklist from "@editorjs/checklist"
 import React, { useContext, useEffect, useRef } from "react"
 
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
-import { simple_arrays_are_identical } from "../../api_dist/api/utils"
 import AsyncLock from "async-lock"
 
 export function CustomEditorJs(props) {

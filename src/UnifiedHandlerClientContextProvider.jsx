@@ -7,6 +7,11 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
     var { profiles_seed, lang, set_virtual_local_storage, all_transactions } =
         useContext(VirtualLocalStorageContext)
 
+    //it works just like strings.
+    //you can pass 2 functions and use language matching one and pass something to it
+    //or you can pass 2 strings and use matching one
+    window.custom_translate = (english, persian) =>
+        lang === "persian" ? persian : english
     var [
         UnifiedHandlerClientContextState,
         setUnifiedHandlerClientContextState,

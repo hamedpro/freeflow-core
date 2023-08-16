@@ -81,7 +81,7 @@ export const Resource = ({ cache_item, inline }) => {
                         )}
                     </div>
                     <div className="col-span-2 border-l border-gray-200">
-                        <p className="px-4">
+                        <div className="px-4">
                             <div className="text-xl mb-1">
                                 <span>Description :</span>
                             </div>
@@ -92,7 +92,7 @@ export const Resource = ({ cache_item, inline }) => {
                             quam aut nulla illum, laboriosam eius cum vero,
                             cumque aliquid amet consectetur optio cupiditate
                             facilis ut.
-                        </p>
+                        </div>
                     </div>
                     <div className="col-span-1">
                         <ReputationInlinePreview cache_item={cache_item} />

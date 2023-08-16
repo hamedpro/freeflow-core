@@ -1,6 +1,4 @@
 import { useNavigate } from "react-router-dom"
-import { AskAttending } from "./AskAttending"
-import { AskResult } from "./AskResult"
 import { CustomAvatarGroup } from "./CustomAvatarGroup"
 import { InlineThingTemplate } from "./InlineThingTemplate"
 import { ReputationInlinePreview } from "./ReputationInlinePreview"
