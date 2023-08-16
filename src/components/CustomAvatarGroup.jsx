@@ -13,7 +13,10 @@ export const CustomAvatarGroup = ({ thing_id }) => {
     )
     return (
         <div>
-            <label>collaboarators</label>
+            <label className="text-xl">
+                {/*  <i className="bi-people mr-1" /> */}
+                Collaboarators
+            </label>
             <AvatarGroup className="mt-2">
                 {collaboarators
                     .slice(0, 5)
@@ -33,7 +36,7 @@ export const CustomAvatarGroup = ({ thing_id }) => {
                         return (
                             <Avatar
                                 key={ci.thing_id}
-                                size="large"
+                                size="normal"
                                 shape="circle"
                             >
                                 {image ? (

@@ -1,14 +1,11 @@
-import React, { Fragment, useContext, useState } from "react"
+import React, { useContext } from "react"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
-import { Section } from "./section"
-import { custom_axios_download } from "../../api/client"
 import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer"
-import { Panel } from "primereact/panel"
 import ReactAudioPlayer from "react-audio-player"
 
 import ReactPlayer from "react-player"
 
-export const CustomFileViewer = ({ file_id }) => {
+export const CustomFileViewer = ({ file_id, inline }) => {
     var { cache } = useContext(UnifiedHandlerClientContext)
     var file_meta = cache.find(
         (cache_item) =>
@@ -25,7 +22,9 @@ export const CustomFileViewer = ({ file_id }) => {
         }`,
         uhc.restful_api_endpoint
     ).href
+
     if (t.startsWith("video/")) {
+        if (inline) return <i className="text-5xl bi-camera-video" />
         return (
             <ReactPlayer
                 url={l}
@@ -33,6 +32,8 @@ export const CustomFileViewer = ({ file_id }) => {
             />
         )
     } else if (t.startsWith("audio/")) {
+        if (inline) return <i className="text-5xl bi-music-note-beamed" />
+
         return (
             <ReactAudioPlayer
                 className="w-full"
@@ -41,6 +42,8 @@ export const CustomFileViewer = ({ file_id }) => {
             />
         )
     } else if (t.startsWith("image/")) {
+        if (inline) return <i className="text-5xl bi-card-image" />
+
         return (
             <img
                 src={l}
@@ -48,6 +51,8 @@ export const CustomFileViewer = ({ file_id }) => {
             />
         )
     } else {
+        if (inline) return <i className="text-5xl bi-file-earmark-text" />
+
         return (
             <DocViewer
                 documents={[{ uri: l }]}

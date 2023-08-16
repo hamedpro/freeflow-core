@@ -9,9 +9,12 @@ import { InlineThingTemplate } from "./InlineThingTemplate"
 import { ReputationInlinePreview } from "./ReputationInlinePreview"
 import { CustomAvatarGroup } from "./CustomAvatarGroup"
 import { useNavigate } from "react-router-dom"
+import { SummarizeHistory } from "./SummarizeHistory"
 export const Resource = ({ cache_item, inline }) => {
     var nav = useNavigate()
-    var { strings } = useContext(UnifiedHandlerClientContext)
+    var { strings, cache, transactions } = useContext(
+        UnifiedHandlerClientContext
+    )
 
     async function change_source_file(file) {
         if (file === undefined) {
@@ -47,21 +50,57 @@ export const Resource = ({ cache_item, inline }) => {
 
         alert(strings[64])
     }
-    var first_transaction = uhc.find_first_transaction(cache_item.thing_id)
+    var file_id = cache_item.thing.value.file_id
+    var file_meta = cache.find(
+        (cache_item) =>
+            cache_item.thing.value.file_id === file_id &&
+            cache_item.thing.type === "meta"
+    )
     if (inline === true) {
         return (
             <InlineThingTemplate onClick={() => nav(`/${cache_item.thing_id}`)}>
-                <div>
-                    <h1>{cache_item.thing.value.title}</h1>
-                    <p>{cache_item.thing.value.description}</p>
-                </div>
-                <div>
-                    <h1>
-                        this note was created in {first_transaction.time} by{" "}
-                        {first_transaction.user_id}
-                    </h1>
-                    <ReputationInlinePreview cache_item={cache_item} />
-                    <CustomAvatarGroup thing_id={cache_item.thing_id} />
+                <div className="grid grid-cols-4">
+                    <div className="h-full w-full col-span-1 grid place-items-center p-4">
+                        {file_meta === undefined ? (
+                            <>
+                                <i className="bi-exclamation-triangle-fill text-5xl" />
+                                <p className="text-center">
+                                    no meta could be found for this resource.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <CustomFileViewer
+                                    file_id={file_id}
+                                    inline
+                                />
+                                <p className="text-center text-xl">
+                                    {cache_item.thing.value.title}
+                                </p>
+                            </>
+                        )}
+                    </div>
+                    <div className="col-span-2 border-l border-gray-200">
+                        <p className="px-4">
+                            <div className="text-xl mb-1">
+                                <span>Description :</span>
+                            </div>
+                            {cache_item.thing.value.description ||
+                                "no description"}
+                            Lorem ipsum dolor sit amet consectetur adipisicing
+                            elit. Sunt temporibus unde dignissimos quos quia
+                            quam aut nulla illum, laboriosam eius cum vero,
+                            cumque aliquid amet consectetur optio cupiditate
+                            facilis ut.
+                        </p>
+                    </div>
+                    <div className="col-span-1">
+                        <ReputationInlinePreview cache_item={cache_item} />
+                        <hr className="my-2 text-gray-200" />
+                        <CustomAvatarGroup thing_id={cache_item.thing_id} />
+                        <hr className="my-2 text-gray-200" />
+                        <SummarizeHistory cache_item={cache_item} />
+                    </div>
                 </div>
             </InlineThingTemplate>
         )
@@ -71,9 +110,7 @@ export const Resource = ({ cache_item, inline }) => {
             <ThingIntroduction {...{ cache_item }} />
             <div className="">
                 <Panel header={"Linked File"}>
-                    <CustomFileViewer
-                        file_id={cache_item.thing.value.file_id}
-                    />
+                    <CustomFileViewer file_id={file_id} />
                 </Panel>
 
                 <Panel

@@ -164,26 +164,6 @@ export function custom_range({ from = 0, to }) {
     }
     return result
 }
-export function get_start_and_end(timestamp, mode = "day") {
-    //timestamp := result of Date.getTime()
-    //what mode does : if mode = day it will smaller details than day like hours and minutes and ...
-    //but if its set to year it will return the exact start point of that year
-    var d = new Date(timestamp)
-    d.setHours(0)
-    d.setMinutes(0)
-    d.setSeconds(0)
-    if (mode === "month") {
-        d.setDate(1)
-        if (mode === "year") {
-            d.setMonth(0)
-        }
-    }
-    d = d.getTime()
-    return {
-        start: d,
-        end: d + 3600 * 1000 * 24,
-    }
-}
 export var month_names = [
     "January",
     "February",
