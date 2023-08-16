@@ -441,7 +441,7 @@ function CalendarRelated({ strings, user, simple_update }) {
 }
 export const UserSettings = () => {
     var { cache, strings } = useContext(UnifiedHandlerClientContext)
-
+    var { calendar_type } = useContext(VirtualLocalStorageContext)
     var user_id = uhc.user_id
     var user = cache.find((i) => i.thing_id === user_id)
     if (user === undefined) {
@@ -449,7 +449,8 @@ export const UserSettings = () => {
     }
 
     var values = user.thing.value
-
+    var user_join_timestamp = window.uhc.find_first_transaction(user_id).time
+    var pd = new PersianDate(user_join_timestamp)
     async function simple_update(key, new_value) {
         var user_private_data_thing_id = Number(
             uhc.unresolved_cache
@@ -596,9 +597,9 @@ export const UserSettings = () => {
                     <p className="text-gray-700">
                         <i className="bi-calendar4 pr-1" /> joined since{" "}
                         <span className="text-black">
-                            {new Date(
-                                window.uhc.find_first_transaction(user_id).time
-                            ).toDateString()}
+                            {calendar_type === "english"
+                                ? new Date(user_join_timestamp).toDateString()
+                                : pd.format("LL")}
                         </span>
                     </p>
                 </div>

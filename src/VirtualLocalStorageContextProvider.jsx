@@ -15,6 +15,7 @@ export const VirtualLocalStorageContextProvider = ({ children }) => {
                     },
                 ],
                 lang: "english",
+                calendar_type: "english",
                 all_transactions: [],
             })
         )

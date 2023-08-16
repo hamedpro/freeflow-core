@@ -4,8 +4,13 @@ import { UnifiedHandlerClient } from "../api_dist/api/UnifiedHandlerClient"
 import { VirtualLocalStorageContext } from "./VirtualLocalStorageContext"
 import translation_packs from "./translation_packs"
 export const UnifiedHandlerClientContextProvider = ({ children }) => {
-    var { profiles_seed, lang, set_virtual_local_storage, all_transactions } =
-        useContext(VirtualLocalStorageContext)
+    var {
+        profiles_seed,
+        lang,
+        set_virtual_local_storage,
+        all_transactions,
+        calendar_type,
+    } = useContext(VirtualLocalStorageContext)
 
     //it works just like strings.
     //you can pass 2 functions and use language matching one and pass something to it
@@ -84,6 +89,22 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
             set_virtual_local_storage((prev) => ({
                 ...prev,
                 lang: user_selected_lang,
+            }))
+        }
+
+        var selected_calendar_type =
+            UnifiedHandlerClientContextState.cache.find(
+                (cache_item) => cache_item.thing_id === window.uhc.user_id
+            )?.thing.value.calendar_type
+        if (
+            selected_calendar_type !== undefined &&
+            selected_calendar_type !== null &&
+            selected_calendar_type !== calendar_type &&
+            selected_calendar_type !== "ref_not_available"
+        ) {
+            set_virtual_local_storage((prev) => ({
+                ...prev,
+                calendar_type: selected_calendar_type,
             }))
         }
     }, [UnifiedHandlerClientContextState.cache, profiles_seed])

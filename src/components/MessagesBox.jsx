@@ -1,12 +1,14 @@
 import { useContext } from "react"
+import PersianDate from "persian-date"
 
 import { Section } from "./section"
 import { StyledDiv } from "./styled_elements"
 import { Item, Menu, useContextMenu } from "react-contexify"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
+import { VirtualLocalStorageContext } from "../VirtualLocalStorageContext"
 export function MessagesBox({ thing_id }) {
     var { cache, strings } = useContext(UnifiedHandlerClientContext)
-
+    var { calendar_type } = useContext(VirtualLocalStorageContext)
     var messages_to_show = cache.filter((i) => {
         return (
             i.thing.type === "message" &&
@@ -62,6 +64,7 @@ export function MessagesBox({ thing_id }) {
             },
         })
     }
+
     return (
         <>
             <Menu id="message_context_menu">
@@ -124,11 +127,17 @@ export function MessagesBox({ thing_id }) {
                                           ).thing.value.email_address
                                     : strings[47]}{" "}
                                 |{" "}
-                                {new Date(
-                                    uhc.find_first_transaction(
-                                        cache_item.thing_id
-                                    ).time
-                                ).toString()}
+                                {calendar_type === "english"
+                                    ? new Date(
+                                          uhc.find_first_transaction(
+                                              cache_item.thing_id
+                                          ).time
+                                      ).toLocaleString()
+                                    : new PersianDate(
+                                          uhc.find_first_transaction(
+                                              cache_item.thing_id
+                                          ).time
+                                      ).format("LLLL")}
                             </p>
                         </div>
                     </div>
