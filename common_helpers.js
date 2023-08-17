@@ -307,6 +307,13 @@ export var unique_items_of_array = (array) =>
 
 export var custom_find_unique = (array, custom_compare_function) => {
     //custom_compare_function is a function which accepts 2 items and returns true if they are the same (otherwise returns false)
+    if (custom_compare_function === undefined) {
+        //using === as custom_compare_function
+        return array.filter((item, index) => {
+            return array.indexOf(item) === index
+        })
+    }
+
     var cloned_array = [...array]
     function find_duplicate_pairs() {
         var all_pairs = []
@@ -331,6 +338,7 @@ export var custom_find_unique = (array, custom_compare_function) => {
     while (find_duplicate_pairs().length !== 0) {
         cloned_array.splice(find_duplicate_pairs()[0][1], 1)
     }
+
     return cloned_array
 }
 export function simple_int_range({ start, end }) {

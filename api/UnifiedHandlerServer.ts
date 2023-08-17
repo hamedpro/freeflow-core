@@ -19,7 +19,6 @@ import {
     thing,
     transaction,
     user,
-    user_private_data,
     verification_code,
     websocket_client,
 } from "./UnifiedHandler_types.js"
@@ -31,7 +30,6 @@ import {
     reserved_value_is_used,
     validate_lock_structure,
 } from "./utils.js"
-import { KavenegarApi, kavenegar } from "kavenegar"
 import { custom_find_unique } from "../common_helpers.js"
 import { export_backup } from "./backup.js"
 function custom_express_jwt_middleware(jwt_secret: string) {
@@ -871,10 +869,9 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
         return latest_verf_code === verf_code
     }
     calc_all_discoverable_transactions(profiles: profile[]): transaction[] {
-        return custom_find_unique(
-            profiles.map((prof) => prof.discoverable_for_this_user).flat(),
-            (item1: number, item2: number) => item1 === item2
-        ).map((transaction_id) => {
+        var tmp = custom_find_unique(
+            profiles.map((prof) => prof.discoverable_for_this_user).flat()
+        ).map((transaction_id: number) => {
             var tmp = this.transactions.find((tr) => tr.id === transaction_id)
             if (tmp === undefined) {
                 throw `internal error: transaction with id ${transaction_id} was supposed to exist but it doesnt. report this issue to dev team.`
@@ -882,6 +879,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 return tmp
             }
         })
+
+        return tmp
     }
     sync_websocket_client(websocket_client: websocket_client) {
         var prev: profile[] = (websocket_client.prev_profiles_seed || []).map(

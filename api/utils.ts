@@ -563,7 +563,7 @@ export function calc_complete_transaction_diff(
             ...calc_all_paths(thing_after_change),
         ],
         (i1: string[], i2: string[]) => simple_arrays_are_identical(i1, i2)
-    ).map((path) => {
+    ).map((path: any) => {
         var t = path as string[]
         return {
             path: t,

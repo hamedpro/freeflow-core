@@ -59,16 +59,15 @@ export class UnifiedHandlerCore {
             return transactions
         }
         var result: transaction[] = []
-        custom_find_unique(
-            transactions.map((tr) => tr.thing_id),
-            (i1: number, i2: number) => i1 === i2
-        ).forEach((unique_thing_id) => {
-            var clone = transactions.filter(
-                (tr) => tr.thing_id === unique_thing_id
-            )
-            clone.reverse()
-            result.push(...clone.slice(0, max_sync_depth))
-        })
+        custom_find_unique(transactions.map((tr) => tr.thing_id)).forEach(
+            (unique_thing_id: number) => {
+                var clone = transactions.filter(
+                    (tr) => tr.thing_id === unique_thing_id
+                )
+                clone.reverse()
+                result.push(...clone.slice(0, max_sync_depth))
+            }
+        )
         result.sort((tr1, tr2) => tr1.id - tr2.id)
         return result
     }
