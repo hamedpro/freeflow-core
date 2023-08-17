@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react"
 import Select from "react-select"
+import JsFileDownloader from "js-file-downloader"
 import { JsonViewer } from "@textea/json-viewer"
 import validator from "validator"
 import fileDownload from "js-file-download"
@@ -21,17 +22,18 @@ function ExportProfile() {
     var { profiles_seed } = useContext(VirtualLocalStorageContext)
     var [include_files_checkbox, set_include_files_checkbox] = useState(true)
     async function download_backup() {
-        var response = await uhc.configured_axios({
-            method: "post",
-            url: "/export_backup",
-            data: {
+        new JsFileDownloader({
+            url: new URL("/export_backup", window.RESTFUL_API_ENDPOINT).href,
+            body: JSON.stringify({
                 include_files: include_files_checkbox,
                 profile_seed: profiles_seed.find((ps) => ps.is_active === true),
-            },
-            responseType: "blob",
+            }),
+            method: "POST",
+            contentType: "application/json",
+            filename: "freeflow_backup.tar",
         })
-        fileDownload(response.data, "backup.tar")
     }
+
     return (
         <Panel header="Export Profile">
             <div className="grid grid-cols-12 gap-x-2">
