@@ -30,7 +30,7 @@ export function Dashboard() {
                         path="/"
                         element={
                             <div className="p-6">
-                                <Feed />
+                                <Finder />
                             </div>
                         }
                     />
@@ -80,6 +80,14 @@ export function Dashboard() {
                         element={
                             <div className="p-6">
                                 <Terms />
+                            </div>
+                        }
+                    />
+                    <Route
+                        path="/feed"
+                        element={
+                            <div className="p-6">
+                                <Feed />
                             </div>
                         }
                     />

@@ -796,3 +796,82 @@ export function range_helper_decompress(value: string): number[] {
     }
     return result
 }
+export function finder(
+    transactions: transaction[],
+    cache: cache,
+    finder_query: string
+) {
+    var parsed_finder_query: string[] = JSON.parse(finder_query)
+
+    //narrow down results :
+    return cache
+        .filter((ci: cache_item<any>) => {
+            //apply "tag:<>"
+            var tags = parsed_finder_query
+                .filter((i) => i.startsWith("tag:"))
+                .map((i) => i.split(":")[1])
+            for (var tag of tags) {
+                if ((ci.thing.value.tags || []).includes(tag) === false) {
+                    return false
+                }
+            }
+
+            //apply "<>"
+            var simple_words = parsed_finder_query.filter(
+                (i) => i.includes(":") === false
+            )
+            for (var simple_word in simple_words) {
+                if (ci.thing.value.toString().includes(simple_word) === false) {
+                    return false
+                }
+            }
+
+            //this cache_item passes all filters
+            return true
+        })
+        .sort((ci1, ci2) => {
+            var ci1_creation_time = thing_transactions(
+                transactions,
+                ci1.thing_id
+            )[0]?.time
+            var ci2_creation_time = thing_transactions(
+                transactions,
+                ci2.thing_id
+            )[0]?.time
+
+            var ci1_update_time = thing_transactions(
+                transactions,
+                ci1.thing_id
+            ).at(-1)?.time
+            var ci2_update_time = thing_transactions(
+                transactions,
+                ci2.thing_id
+            ).at(-1)?.time
+
+            if (
+                ci1_creation_time === undefined ||
+                ci2_creation_time === undefined ||
+                ci1_update_time === undefined ||
+                ci2_update_time === undefined
+            )
+                throw `internal error : expected to have at least a single transaction for ${ci1.thing_id} or ${ci2.thing_id}`
+            var sort_mode = parsed_finder_query
+                .filter((i) => i.startsWith("sort:"))
+                .at(-1)
+                ?.split(":")[1]
+            if (sort_mode === undefined) return 0
+
+            switch (sort_mode) {
+                case "recently-updated":
+                    return ci1_update_time - ci2_update_time
+                case "least-recently-updated":
+                    return ci2_update_time - ci1_update_time
+                case "recently-created":
+                    return ci1_creation_time - ci2_creation_time
+                case "least-recently-created":
+                    return ci2_creation_time - ci1_creation_time
+                default:
+                    throw "invalid sort mode"
+            }
+        })
+}
