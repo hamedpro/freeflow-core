@@ -17,6 +17,7 @@ import PersianDate from "persian-date"
 import { addLocale, updateLocaleOption } from "primereact/api"
 import { day_names } from "../../common_helpers"
 import { Password } from "primereact/password"
+import { Profiles } from "./Profiles"
 function ExportProfile() {
     var { profiles_seed } = useContext(VirtualLocalStorageContext)
     var [include_files_checkbox, set_include_files_checkbox] = useState(true)
@@ -164,145 +165,132 @@ function ChangeCredential({ user, strings, simple_update }) {
         }
     }
     return (
-        <Panel header={strings[184]}>
-            <div className="grid grid-cols-2 gap-x-4">
-                <div className="col-span-1">
-                    <label
-                        htmlFor="change_full_name"
-                        className="text-lg"
-                    >
-                        {strings[188] + ":"}
-                    </label>
-                    <br />
-                    <div
-                        className="p-inputgroup"
-                        style={{ width: "100%", maxWidth: "280px" }}
-                    >
-                        <InputText
-                            id="change_full_name"
-                            value={full_name || ""}
-                            onChange={(e) => set_full_name(e.target.value)}
-                        />
-                        {user.thing.value.full_name !== full_name && (
-                            <Button
-                                icon={<i className="bi-pencil-square" />}
-                                onClick={() =>
-                                    simple_update("full_name", full_name)
-                                }
-                            />
-                        )}
-                    </div>
-                    <br />
-                    <label
-                        htmlFor="change_email"
-                        className="text-lg"
-                    >
-                        {strings[185] + ":"}
-                    </label>
-                    <br />
+        <div className="grid grid-cols-1 gap-x-4">
+            <label
+                htmlFor="change_full_name"
+                className="text-lg"
+            >
+                {strings[188] + ":"}
+            </label>
 
-                    <InputText
-                        id="change_email"
-                        style={{
-                            wordBreak: "break-all",
-                            width: "100%",
-                            maxWidth: "280px",
-                            marginBottom: "5px",
-                        }}
-                        value={email_address || ""}
-                        onChange={(e) => {
-                            set_email_address(e.target.value)
-                        }}
+            <div
+                className="p-inputgroup mb-4"
+                style={{ width: "100%" }}
+            >
+                <InputText
+                    id="change_full_name"
+                    value={full_name || ""}
+                    onChange={(e) => set_full_name(e.target.value)}
+                />
+                {user.thing.value.full_name !== full_name && (
+                    <Button
+                        icon={<i className="bi-pencil-square" />}
+                        onClick={() => simple_update("full_name", full_name)}
                     />
-                    <br />
-                    <span className="pt-2">
-                        {email_is_taken_by_someone_else &&
-                            "this email is taken by someone else."}
-                        {!email_is_valid && "invalid email"}
-                    </span>
-
-                    {email_is_valid &&
-                        !email_is_taken_by_someone_else &&
-                        user.thing.value.email_address !== email_address && (
-                            <>
-                                <span className="block text-xs text-gray-600 w-full md:w-30rem mt-2">
-                                    {verf_code_status === "failed" &&
-                                        "Error. could not send verification codes."}
-                                    {verf_code_status === "sent" &&
-                                        `verification code is sent.`}
-                                    {verf_code_status === "progress" &&
-                                        "sending verification code ..."}
-                                </span>
-                                <div className="p-inputgroup">
-                                    <InputText
-                                        placeholder="verification code"
-                                        value={verf_code || ""}
-                                        onChange={(e) =>
-                                            set_verf_code(e.target.value)
-                                        }
-                                    />
-                                    <Button onClick={change_email}>
-                                        <i className="bi-send-fill" />{" "}
-                                    </Button>
-                                </div>
-                            </>
-                        )}
-                    <label
-                        htmlFor="change_password"
-                        className="text-lg"
-                    >
-                        {"password" + ":"}
-                    </label>
-                    <br />
-                    <div
-                        className="p-inputgroup"
-                        style={{ width: "100%", maxWidth: "280px" }}
-                    >
-                        <Password
-                            toggleMask
-                            id="change_password"
-                            value={password || ""}
-                            onChange={(e) => set_password(e.target.value)}
-                        />
-                        {user.thing.value.password !== password && (
-                            <Button
-                                icon={<i className="bi-pencil-square" />}
-                                onClick={() =>
-                                    simple_update("password", password)
-                                }
-                            />
-                        )}
-                    </div>
-                </div>
-                <div className="col-span-1">
-                    <label
-                        htmlFor="change_biography"
-                        className="text-lg"
-                    >
-                        {"biography" + ":"}
-                    </label>
-                    <br />
-                    <InputTextarea
-                        id="change_biography"
-                        className="w-full"
-                        rows={8}
-                        value={biography || ""}
-                        onChange={(e) => set_biography(e.target.value)}
-                    />
-                    {user.thing.value.biography !== biography && (
-                        <Button
-                            className="w-full text-sm h-10 flex justify-center"
-                            onClick={() =>
-                                simple_update("biography", biography)
-                            }
-                        >
-                            <i className="bi-pencil-square pr-2" />
-                            Update Biography
-                        </Button>
-                    )}
-                </div>
+                )}
             </div>
-        </Panel>
+            <label
+                htmlFor="change_email"
+                className="text-lg"
+            >
+                {strings[185] + ":"}
+            </label>
+
+            <InputText
+                id="change_email"
+                style={{
+                    wordBreak: "break-all",
+                    width: "100%",
+                    marginBottom: "5px",
+                }}
+                className="mb-4"
+                value={email_address || ""}
+                onChange={(e) => {
+                    set_email_address(e.target.value)
+                }}
+            />
+            <span className="pt-2">
+                {email_is_taken_by_someone_else &&
+                    "this email is taken by someone else."}
+                {!email_is_valid && "invalid email"}
+            </span>
+
+            {email_is_valid &&
+                !email_is_taken_by_someone_else &&
+                user.thing.value.email_address !== email_address && (
+                    <>
+                        <span className="block text-xs text-gray-600 w-full md:w-30rem mt-2">
+                            {verf_code_status === "failed" &&
+                                "Error. could not send verification codes."}
+                            {verf_code_status === "sent" &&
+                                `verification code is sent.`}
+                            {verf_code_status === "progress" &&
+                                "sending verification code ..."}
+                        </span>
+                        <div
+                            className="p-inputgroup"
+                            style={{ marginBottom: "8px" }}
+                        >
+                            <InputText
+                                placeholder="Enter verification code"
+                                value={verf_code || ""}
+                                onChange={(e) => set_verf_code(e.target.value)}
+                            />
+                            <Button onClick={change_email}>
+                                <i className="bi-send-fill" />{" "}
+                            </Button>
+                        </div>
+                    </>
+                )}
+            <label
+                htmlFor="change_password"
+                className="text-lg"
+            >
+                {"password" + ":"}
+            </label>
+
+            <div
+                className="p-inputgroup mb-4"
+                style={{ width: "100%" }}
+            >
+                <Password
+                    toggleMask
+                    className="w-full"
+                    id="change_password"
+                    value={password || ""}
+                    onChange={(e) => set_password(e.target.value)}
+                />
+                {user.thing.value.password !== password && (
+                    <Button
+                        icon={<i className="bi-pencil-square" />}
+                        onClick={() => simple_update("password", password)}
+                    />
+                )}
+            </div>
+            <label
+                htmlFor="change_biography"
+                className="text-lg"
+            >
+                {"biography" + ":"}
+            </label>
+            <InputTextarea
+                id="change_biography"
+                className="w-full"
+                style={{ marginBottom: "8px" }}
+                rows={8}
+                value={biography || ""}
+                onChange={(e) => set_biography(e.target.value)}
+            />
+            {user.thing.value.biography !== biography && (
+                <Button
+                    className="w-full text-sm h-10 flex justify-center"
+                    onClick={() => simple_update("biography", biography)}
+                >
+                    <i className="bi-pencil-square pr-2" />
+                    Update Biography
+                </Button>
+            )}
+        </div>
     )
 }
 function CalendarRelated({ strings, user, simple_update }) {
@@ -541,91 +529,67 @@ export const UserSettings = () => {
                 back_link={"/"}
                 main_text={"Preferences: let us know what you prefer."}
             />
-            <div className="shadow grid grid-cols-3 w-full  bg-gray-100  rounded overflow-hidden mb-4">
-                <div
-                    style={{
-                        width: "100%",
-                        position: "relative",
-                        aspectRatio: "1",
-                    }}
-                    className="col-span-1 col-start-1 grid place-items-center border-r border-gray-200"
-                >
-                    {user.thing.value.profile_image_file_id ? (
-                        <img
-                            src={
-                                new URL(
-                                    `/files/${
-                                        user.thing.value.profile_image_file_id
-                                    }?${uhc.jwt && "jwt=" + uhc.jwt}`,
-                                    window.RESTFUL_API_ENDPOINT
-                                ).href
-                            }
-                            className="w-full aspect-auto"
+            <Profiles />
+            <Panel
+                className="mb-4"
+                header={strings[184]}
+            >
+                <div className="grid grid-cols-2 gap-x-4">
+                    <div
+                        style={{
+                            width: "100%",
+                            position: "relative",
+                            aspectRatio: "1",
+                        }}
+                        className="col-span-1 col-start-1 grid place-items-center"
+                    >
+                        {user.thing.value.profile_image_file_id && false ? (
+                            <img
+                                src={
+                                    new URL(
+                                        `/files/${
+                                            user.thing.value
+                                                .profile_image_file_id
+                                        }?${uhc.jwt && "jwt=" + uhc.jwt}`,
+                                        window.RESTFUL_API_ENDPOINT
+                                    ).href
+                                }
+                                className="w-full aspect-auto"
+                            />
+                        ) : (
+                            <div className="w-full bg-gray-50 flex items-center justify-center flex-col aspect-square rounded border border-gray-200">
+                                <i className="bi bi-person-vcard-fill text-gray-700 text-6xl" />
+                                <span>Profile picture is not set</span>
+                            </div>
+                        )}
+                        <FileUpload
+                            customUpload
+                            uploadHandler={set_profile_picture}
+                            className="bottom-0 text-xs mt-4"
+                            pt={{
+                                root: { style: { width: "100%" } },
+                            }}
+                            mode="basic"
+                            accept="image/*"
+                            chooseOptions={{
+                                icon: (
+                                    <i className="bi-cloud-upload-fill pr-2" />
+                                ),
+                                className: "w-full rounded-none",
+                            }}
+                            chooseLabel="Change Picture"
                         />
-                    ) : (
-                        <div className="w-full h-full bg-blue-600 grid place-items-center">
-                            <i className="bi bi-person-vcard-fill text-white text-6xl" />
-                        </div>
-                    )}
-                    <FileUpload
-                        customUpload
-                        uploadHandler={set_profile_picture}
-                        className="absolute bottom-0 text-xs"
-                        pt={{
-                            root: { style: { width: "100%" } },
-                        }}
-                        mode="basic"
-                        accept="image/*"
-                        chooseOptions={{
-                            icon: <i className="bi-cloud-upload-fill pr-2" />,
-                            className: "w-full rounded-none",
-                            style: {
-                                left: "50%",
-                                transform: "translateX(-50%)",
-                            },
-                        }}
-                        chooseLabel="New Picture"
+                    </div>
+                    <ChangeCredential
+                        user={user}
+                        strings={strings}
+                        simple_update={simple_update}
                     />
                 </div>
-                <div className="h-full col-start-2 col-span-2 p-4">
-                    <h3 className="text-blue-500 text-4xl">
-                        {user.thing.value.full_name || "no name"}
-                    </h3>
-                    <p className="text-gray-700">
-                        <i className="bi bi-envelope-at-fill" />{" "}
-                        {user.thing.value.email_address}
-                    </p>
-                    <br />
-                    <p className="text-gray-700">
-                        <i className="bi-person-vcard-fill pr-1" />
-                        <span className="">Biography: </span>
-                        <span className="text-black">
-                            {user.thing.value.biography ||
-                                "this user has not a biography"}
-                        </span>
-                    </p>
-                    <p className="text-gray-700">
-                        <i className="bi-award pr-1" />
-                        Repuation Level:{" "}
-                        <span className="text-black">coming soon...</span>
-                    </p>
-                    <p className="text-gray-700">
-                        <i className="bi-calendar4 pr-1" /> joined since{" "}
-                        <span className="text-black">
-                            {calendar_type === "english"
-                                ? new Date(user_join_timestamp).toDateString()
-                                : pd.format("LL")}
-                        </span>
-                    </p>
-                </div>
-            </div>
+            </Panel>
+
             <ExportProfile />
             <CalendarRelated
-                user={user}
-                strings={strings}
-                simple_update={simple_update}
-            />
-            <ChangeCredential
                 user={user}
                 strings={strings}
                 simple_update={simple_update}

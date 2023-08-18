@@ -1,23 +1,14 @@
 import React from "react"
 import {
-    Feed,
     MetroButton,
     ProfilesSlideMenu,
     SyncCentreWidget,
     TimeTravel,
 } from "./DashboardParts"
-import { CustomNavBar } from "./CustomNavBar"
 
 export const Profiles = () => {
     return (
         <div>
-            <CustomNavBar
-                main_text={
-                    "Profiles: manage your profiles and their max sync depths. you can also travel in time and more!"
-                }
-                back_link={"/"}
-                back_text={"Dashboard"}
-            />
             <div className="h-full w-full border-black-900 flex-col grid py-4">
                 <div
                     className="grid grid-cols-2 gap-4 grid-rows-2"

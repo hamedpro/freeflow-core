@@ -13,7 +13,7 @@ import { Register } from "./Register"
 import { UserSettings } from "./UserSettings"
 import { WhatsHappening } from "./WhatsHappening"
 import { DashboardNewUnit } from "./DashboardNewUnit"
-import { Profiles } from "./Profiles"
+import { Finder } from "./Finder"
 
 export function Dashboard() {
     return (
@@ -27,15 +27,6 @@ export function Dashboard() {
             <div className="w-full h-full overflow-y-auto">
                 <Routes>
                     <Route
-                        path="/feed"
-                        element={
-                            <div className="p-6">
-                                <Feed />
-                            </div>
-                        }
-                    />
-
-                    <Route
                         path="/"
                         element={
                             <div className="p-6">
@@ -44,10 +35,10 @@ export function Dashboard() {
                         }
                     />
                     <Route
-                        path="/saved"
+                        path="/finder"
                         element={
                             <div className="p-6">
-                                <Saved />
+                                <Finder />
                             </div>
                         }
                     />
@@ -59,14 +50,7 @@ export function Dashboard() {
                             </div>
                         }
                     />
-                    <Route
-                        path="/profiles"
-                        element={
-                            <div className="p-6">
-                                <Profiles />
-                            </div>
-                        }
-                    />
+
                     <Route
                         path="/new-unit"
                         element={

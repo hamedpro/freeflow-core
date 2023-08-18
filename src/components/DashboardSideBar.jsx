@@ -34,28 +34,12 @@ export const DashboardSideBar = () => {
                 </div>
                 <div className="flex flex-col items-around space-y-2 h-full">
                     <MenuItem
-                        icon={<i className="bi-clock text-2xl" />}
-                        className={
-                            (loc.pathname.startsWith("/feed") ||
-                                loc.pathname === "/") &&
-                            "bg-blue-300"
-                        }
-                        onClick={() => nav("/feed")}
+                        icon={<i className="bi-house-fill text-2xl" />}
+                        className={loc.pathname === "/" && "bg-blue-300"}
+                        onClick={() => nav("/")}
                     >
-                        Feed
+                        Home
                     </MenuItem>
-
-                    <MenuItem
-                        icon={<i className="bi-people-fill text-2xl" />}
-                        className={
-                            loc.pathname.startsWith("/profiles") &&
-                            "bg-blue-300"
-                        }
-                        onClick={() => nav("/profiles")}
-                    >
-                        Profiles
-                    </MenuItem>
-
                     <MenuItem
                         icon={<i className="bi-gear-wide-connected text-2xl" />}
                         className={
@@ -66,18 +50,17 @@ export const DashboardSideBar = () => {
                     >
                         Preferences
                     </MenuItem>
-
                     <MenuItem
-                        icon={<i className="bi-bookmarks-fill text-2xl" />}
+                        icon={<i className="bi-compass-fill text-2xl" />}
                         className={
-                            loc.pathname.startsWith("/saved") && "bg-blue-300"
+                            loc.pathname.startsWith("/finder") && "bg-blue-300"
                         }
-                        onClick={() => nav("/saved")}
+                        onClick={() => nav("/finder")}
                     >
-                        Saved
+                        Finder
                     </MenuItem>
                     <MenuItem
-                        icon={<i className="bi-clock-history text-2xl" />}
+                        icon={<i className="bi-bell-fill text-2xl" />}
                         className={
                             loc.pathname.startsWith("/whats-happening") &&
                             "bg-blue-300"
