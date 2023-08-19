@@ -32,19 +32,13 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
     constructor(
         websocket_api_endpoint: string,
         restful_api_endpoint: string,
-        onChanges_functions:
-            | {
-                  transactions: () => void
-                  cache: () => void
-                  time_travel_snapshot: () => void
-              }
-            | undefined,
+        onChange: () => void | undefined,
         strings: (Function | string)[]
     ) {
         super()
         this.strings = strings
-        if (onChanges_functions !== undefined) {
-            this.onChanges = onChanges_functions
+        if (onChange !== undefined) {
+            this.onChange = onChange
         }
 
         this.websocket_api_endpoint = websocket_api_endpoint
@@ -74,11 +68,7 @@ export class UnifiedHandlerClient extends UnifiedHandlerCore {
         })
         this.onChange()
     }
-    onChange() {
-        for (var func of Object.values(this.onChanges)) {
-            func()
-        }
-    }
+
     get active_profile() {
         return this.profiles.find((profile) => profile.is_active === true)
     }

@@ -75,15 +75,7 @@ export class UnifiedHandlerCore {
     extract_user_id = extract_user_id
     check_lock = check_lock
 
-    onChanges: {
-        transactions: () => void
-        cache: () => void
-        time_travel_snapshot: () => void
-    } = {
-        transactions: () => {},
-        cache: () => {},
-        time_travel_snapshot: () => {},
-    }
+    onChange: () => void = () => {}
     find_user_private_data_id(user_id: number): number {
         var user: cache_item<thing> | undefined = this.unresolved_cache.find(
             (ci) => ci.thing_id === user_id
@@ -102,8 +94,7 @@ export class UnifiedHandlerCore {
 
     time_travel(snapshot: time_travel_snapshot) {
         this.time_travel_snapshot = snapshot
-        this.onChanges.time_travel_snapshot()
-        this.onChanges.cache()
+        this.onChange()
     }
 
     transactions: transaction[] = []

@@ -151,7 +151,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             fs.readFileSync(this.absolute_paths.store_file, "utf-8")
         )
 
-        this.onChanges.cache = this.onChanges.transactions = () => {
+        this.onChange = () => {
             for (var i of this.websocket_clients) {
                 this.sync_websocket_client(i)
             }
@@ -729,6 +729,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			is done by system itself.
 		*/
     }): number {
+        console.time("all_new_tr")
         var thing: ThingType | {} =
             typeof thing_id === "undefined"
                 ? {}
@@ -809,10 +810,10 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             this.absolute_paths.store_file,
             JSON.stringify(this.transactions)
         )
-
-        this.onChanges.cache()
-        this.onChanges.transactions()
-
+        console.time("onchange")
+        this.onChange()
+        console.timeEnd("onchange")
+        console.timeEnd("all_new_tr")
         return transaction.thing_id
     }
 

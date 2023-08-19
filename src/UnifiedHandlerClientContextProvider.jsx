@@ -33,17 +33,14 @@ export const UnifiedHandlerClientContextProvider = ({ children }) => {
             undefined,
             translation_packs[lang]
         )
-        window.uhc.onChanges.cache =
-            window.uhc.onChanges.transactions =
-            window.uhc.onChanges.time_travel_snapshot =
-                () => {
-                    setUnifiedHandlerClientContextState((prev) => ({
-                        ...prev,
-                        transactions: window.uhc.transactions,
-                        cache: window.uhc.cache,
-                        time_travel_snapshot: window.uhc.time_travel_snapshot,
-                    }))
-                }
+        window.uhc.onChange = () => {
+            setUnifiedHandlerClientContextState((prev) => ({
+                ...prev,
+                transactions: window.uhc.transactions,
+                cache: window.uhc.cache,
+                time_travel_snapshot: window.uhc.time_travel_snapshot,
+            }))
+        }
     }
     useEffect(() => {
         window.uhc.profiles_seed = profiles_seed
