@@ -488,7 +488,7 @@ export function CustomPaginatorPanel({
 
     var first = current_page * 20
     return (
-        <>
+        <div className="flex flex-col space-y-2">
             <div className="bg-white p-4 shadow w-full flex items-center justify-between rounded h-20">
                 <h1 className="text-2xl">{title}</h1>
                 <span>{items.length} items</span>
@@ -507,7 +507,7 @@ export function CustomPaginatorPanel({
                     onPageChange={(e) => set_current_page(e.page)}
                 />
             )}
-        </>
+        </div>
     )
 }
 

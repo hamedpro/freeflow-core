@@ -1,9 +1,10 @@
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, Colors } from "chart.js"
 import { useContext, useState } from "react"
-import { Pie } from "react-chartjs-2"
 import { TabMenu } from "primereact/tabmenu"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
 import { Button } from "primereact/button"
+
+import { Pie } from "react-chartjs-2"
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, Colors } from "chart.js"
 ChartJS.register(ArcElement, Tooltip, Legend, Colors)
 export const OptionBasedAsk = ({ cache_item, answer_an_ask }) => {
     var { cache } = useContext(UnifiedHandlerClientContext)

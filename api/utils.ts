@@ -926,3 +926,16 @@ export function finder(
 export function sorted(array: Array<any>) {
     return [...array].sort()
 }
+
+//copied this one below from stackOverFlow
+//https://stackoverflow.com/questions/4413590/javascript-get-array-of-dates-between-2-dates
+export function getDaysArray(start: Date, end: Date) {
+    for (
+        var arr = [], dt = new Date(start);
+        dt <= new Date(end);
+        dt.setDate(dt.getDate() + 1)
+    ) {
+        arr.push(new Date(dt))
+    }
+    return arr
+}

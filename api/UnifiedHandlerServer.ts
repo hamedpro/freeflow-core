@@ -370,7 +370,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                     })
                     archive_name = path.resolve(archive_name)
                     response.download(archive_name, (err: any) => {
-                        //fs.rmSync(archive_name, { force: true })
+                        fs.rmSync(archive_name, { force: true })
                         if (err) {
                             throw err
                         }

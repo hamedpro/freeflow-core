@@ -52,7 +52,9 @@ export const Stage = () => {
                 ) : (
                     <>
                         <Thing thing_id={cache_item.thing_id} />{" "}
-                        <ParentPackChangePanel cache_item={cache_item} />
+                        {cache_item.thing.type.startsWith("unit/") && (
+                            <ParentPackChangePanel cache_item={cache_item} />
+                        )}
                         <MessagesBox thing_id={cache_item.thing_id} />
                     </>
                 )}

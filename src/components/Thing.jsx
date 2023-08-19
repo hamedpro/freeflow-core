@@ -5,8 +5,12 @@ import { Resource } from "./Resource"
 import { Ask } from "./Ask"
 import UserProfile from "./UserProfile"
 import { UnifiedHandlerClientContext } from "../UnifiedHandlerClientContext"
-
+import { JsonViewer } from "@textea/json-viewer"
+import { Button } from "primereact/button"
+import { useNavigate } from "react-router-dom"
+import { RawThing } from "./RawThing"
 export const Thing = ({ thing_id, inline = false }) => {
+    var nav = useNavigate()
     var { strings, cache } = useContext(UnifiedHandlerClientContext)
     var cache_item = cache.find((ci) => ci.thing_id === thing_id)
     if (cache_item === undefined) {
@@ -56,6 +60,11 @@ export const Thing = ({ thing_id, inline = false }) => {
             )
 
         default:
-            return strings[59]
+            return (
+                <RawThing
+                    cache_item={cache_item}
+                    inline={inline}
+                />
+            )
     }
 }

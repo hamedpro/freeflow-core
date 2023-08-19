@@ -543,7 +543,7 @@ export const UserSettings = () => {
                         }}
                         className="col-span-1 col-start-1 grid place-items-center"
                     >
-                        {user.thing.value.profile_image_file_id && false ? (
+                        {user.thing.value.profile_image_file_id ? (
                             <img
                                 src={
                                     new URL(
