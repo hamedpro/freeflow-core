@@ -121,6 +121,7 @@ export interface user extends thing_base {
         profile_image_file_id?: number | null
         full_name?: string | null
         watching?: null | number[] // an array ofthing ids this user "watches"
+        saved_things?: number[] /* a ref */
     }
 }
 export interface calendar_category extends thing_base {

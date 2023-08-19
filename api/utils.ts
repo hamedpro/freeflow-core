@@ -12,6 +12,7 @@ import {
     thing,
     time_travel_snapshot,
     transaction,
+    user,
 } from "./UnifiedHandler_types.js"
 import jwtDecode from "jwt-decode"
 import axios from "axios"
@@ -131,6 +132,7 @@ export function check_lock({
 
     return false
 }
+
 export function calc_user_discoverable_things(
     transactions: transaction[],
     cache: cache,
@@ -799,9 +801,13 @@ export function range_helper_decompress(value: string): number[] {
 export function finder(
     transactions: transaction[],
     cache: cache,
-    finder_query: string
+    finder_query: string,
+    user_id: number
 ) {
     var parsed_finder_query: string[] = JSON.parse(finder_query)
+    var user: cache_item<thing> | undefined = cache.find(
+        (ci) => ci.thing_id === user_id
+    )
 
     //narrow down results :
     return cache
@@ -823,6 +829,44 @@ export function finder(
             for (var simple_word in simple_words) {
                 if (ci.thing.value.toString().includes(simple_word) === false) {
                     return false
+                }
+            }
+
+            //apply "saved"
+            if (parsed_finder_query.includes("saved")) {
+                var saved_things: number[]
+                if (
+                    user !== undefined &&
+                    user.thing.type === "user" &&
+                    user.thing.value.saved_things !== undefined
+                ) {
+                    saved_things = user.thing.value.saved_things
+                } else {
+                    saved_things = []
+                }
+                if (saved_things.includes(ci.thing_id) === false) return false
+            }
+
+            //apply "write-access"
+            if (parsed_finder_query.includes("write-access")) {
+                if (ci.thing.type !== "meta") {
+                    var meta = ci.its_meta_cache_item
+                    if (meta === undefined) {
+                        if (
+                            thing_transactions(transactions, ci.thing_id)[0]
+                                .user_id !== user_id
+                        ) {
+                            return false
+                        }
+                    } else {
+                        var write_priv = meta.thing.value.thing_privileges.write
+                        if (
+                            write_priv !== "*" &&
+                            write_priv.includes(user_id) === false
+                        ) {
+                            return false
+                        }
+                    }
                 }
             }
 

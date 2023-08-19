@@ -478,13 +478,19 @@ export function InlineThingWidget({ title, thing_ids }) {
         />
     )
 }
-export function CustomPaginatorPanel({ title, items, items_per_page = 20 }) {
+export function CustomPaginatorPanel({
+    title,
+    items,
+    items_per_page = 20,
+    ...props
+}) {
     var [current_page, set_current_page] = useState(0)
 
     var first = current_page * 20
     return (
         <>
             <Card
+                {...props}
                 title={title}
                 className="mb-4 flex items-center"
                 pt={{
