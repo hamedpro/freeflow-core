@@ -703,6 +703,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                     calendar_type: `$$ref::${user_private_data_thing_id}:value/calendar_type`,
                     week_starting_day: `$$ref::${user_private_data_thing_id}:value/week_starting_day`,
                     language: `$$ref::${user_private_data_thing_id}:value/language`,
+                    saved_things: `$$ref::${user_private_data_thing_id}:value/saved_things`,
                 },
             }),
             thing_id: new_user_id,

@@ -826,8 +826,12 @@ export function finder(
             var simple_words = parsed_finder_query.filter(
                 (i) => i.includes(":") === false
             )
+            //console.log("simple words", simple_words)
             for (var simple_word in simple_words) {
-                if (ci.thing.value.toString().includes(simple_word) === false) {
+                if (
+                    JSON.stringify(ci.thing.value).includes(simple_word) ===
+                    false
+                ) {
                     return false
                 }
             }
@@ -918,4 +922,7 @@ export function finder(
                     throw "invalid sort mode"
             }
         })
+}
+export function sorted(array: Array<any>) {
+    return [...array].sort()
 }

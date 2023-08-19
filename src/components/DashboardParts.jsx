@@ -489,18 +489,10 @@ export function CustomPaginatorPanel({
     var first = current_page * 20
     return (
         <>
-            <Card
-                {...props}
-                title={title}
-                className="mb-4 flex items-center"
-                pt={{
-                    title: {
-                        style: {
-                            margin: 0,
-                        },
-                    },
-                }}
-            />
+            <div className="bg-white p-4 shadow w-full flex items-center justify-between rounded h-20">
+                <h1 className="text-2xl">{title}</h1>
+                <span>{items.length} items</span>
+            </div>
 
             {items.length === 0 && "there is nothing to show."}
             {items.slice(
