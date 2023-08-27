@@ -1,6 +1,0 @@
-TransactionInterpreter class must cover all existing new transaction diff structures 
-
-may new code changes dont use translation system. 
-at this time these are remained to be checked: 
-translate Transaction component and all 
-changed code starting from this commit : c40c8e9
