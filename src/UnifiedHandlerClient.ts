@@ -16,7 +16,7 @@ import {
 import { useNavigate } from "react-router-dom"
 import { OutputData } from "@editorjs/editorjs/types/data-formats"
 import { getRandomSubarray } from "./utils"
-import { custom_find_unique } from "../common_helpers"
+import { custom_find_unique } from "hamedpro-helpers"
 var { applyDiff } = rdiff
 
 export class UnifiedHandlerClient extends UnifiedHandlerCore {

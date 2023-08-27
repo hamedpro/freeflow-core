@@ -30,7 +30,7 @@ import {
     reserved_value_is_used,
     validate_lock_structure,
 } from "./utils.js"
-import { custom_find_unique } from "../common_helpers.js"
+import { custom_find_unique } from "hamedpro-helpers"
 import { export_backup } from "./backup.js"
 function custom_express_jwt_middleware(jwt_secret: string) {
     return (request: any, response: any, next: any) => {
@@ -873,7 +873,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
     calc_all_discoverable_transactions(profiles: profile[]): transaction[] {
         var tmp = custom_find_unique(
             profiles.map((prof) => prof.discoverable_for_this_user).flat()
-        ).map((transaction_id: number) => {
+       , undefined ).map((transaction_id: number) => {
             var tmp = this.transactions.find((tr) => tr.id === transaction_id)
             if (tmp === undefined) {
                 throw `internal error: transaction with id ${transaction_id} was supposed to exist but it doesnt. report this issue to dev team.`
