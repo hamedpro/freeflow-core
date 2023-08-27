@@ -871,6 +871,9 @@ export function finder(
                             return false
                         }
                     }
+                } else {
+                    if (ci.thing.value.modify_thing_privileges !== user_id)
+                        return false
                 }
             }
 
