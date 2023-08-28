@@ -1,1 +1,11 @@
 #!/bin/bash
+pwd ; 
+if [ $1 == "help" ] ; then 
+	./bin/help ; 
+elif [ $1 == "" ] ; then 
+	echo "started" ; 
+elif [ $1 == "init_data_dir" ]; then 
+	./init_data_dir ; 
+elif [ $1 == "reset_but_env" ]; then 
+	./reset_but_env; 
+fi 
