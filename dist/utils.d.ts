@@ -1,6 +1,7 @@
 import rdiff from "recursive-diff";
-import { cache, cache_item, complete_diff, locks, profile, profile_seed, thing, time_travel_snapshot, transaction, user, websocket_client } from "./UnifiedHandler_types.js";
+import { cache, cache_item, complete_diff, locks, profile, profile_seed, thing, time_travel_snapshot, transaction, user } from "./UnifiedHandler_types.js";
 import axios from "axios";
+import { io } from "socket.io-client";
 export declare function custom_deepcopy(value: any): any;
 export declare function calc_all_paths(value: object | undefined): string[][];
 export declare function resolve_path(object: any, paths: string[]): any;
@@ -62,13 +63,13 @@ export declare function getDaysArray(start: Date, end: Date): Date[];
 export declare function find_active_profile(profiles: profile[]): profile | undefined;
 export declare function find_active_profile_seed(profiles_seed: profile_seed[]): profile_seed | undefined;
 export declare function current_user_id(profiles_seed: profile_seed[]): number;
-export declare function configured_axios({ restful_api_endpoint, jwt, }: {
+export declare function create_configured_axios({ restful_api_endpoint, jwt, }: {
     restful_api_endpoint: string;
     jwt?: string;
 }): ReturnType<typeof axios.create>;
-export declare function sync_profiles_seed(websocket: websocket_client["socket"], profiles_seed: profile_seed[]): void;
-export declare function sync_cache(websocket: websocket_client["socket"], all_transactions: transaction[]): Promise<void>;
-export declare function update_transactions(profiles: profile[], all_transactions: transaction[], transactions_reference: object): void;
+export declare function sync_profiles_seed(websocket: ReturnType<typeof io>, profiles_seed: profile_seed[]): void;
+export declare function sync_cache(websocket: ReturnType<typeof io>, all_transactions: transaction[]): Promise<void>;
+export declare function user_discoverable_transactions(profiles: profile[], all_transactions: transaction[]): transaction[];
 export declare function current_user(cache: cache, profiles_seed: profile_seed[]): cache_item<user> | undefined;
 export declare function request_new_transaction({ new_thing_creator, thing_id, diff, unresolved_cache, restful_api_endpoint, jwt, }: {
     thing_id: undefined | number;

@@ -1,7 +1,6 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import AsyncLock from "async-lock";
-import { Socket } from "socket.io";
 import { profile, profile_seed, thing, transaction, verification_code, websocket_client } from "./UnifiedHandler_types.js";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
 export declare class UnifiedHandlerServer extends UnifiedHandlerCore {
@@ -32,5 +31,5 @@ export declare class UnifiedHandlerServer extends UnifiedHandlerCore {
     verify_email_ownership(email_address: string, verf_code: verification_code["value"]["value"]): boolean;
     calc_all_discoverable_transactions(profiles: profile[]): transaction[];
     sync_websocket_client(websocket_client: websocket_client): void;
-    add_socket(socket: Socket): void;
+    add_socket(socket: websocket_client["socket"]): void;
 }

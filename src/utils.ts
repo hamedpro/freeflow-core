@@ -20,6 +20,7 @@ import {
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 import { UnifiedHandlerClient } from "./UnifiedHandlerClient.js";
+import { io } from "socket.io-client";
 export function custom_deepcopy(value: any) {
 	return JSON.parse(JSON.stringify(value));
 }
@@ -856,7 +857,7 @@ export function find_active_profile_seed(profiles_seed: profile_seed[]) {
 export function current_user_id(profiles_seed: profile_seed[]) {
 	return find_active_profile_seed(profiles_seed)?.user_id || 0;
 }
-export function configured_axios({
+export function create_configured_axios({
 	restful_api_endpoint,
 	jwt,
 }: {
@@ -872,13 +873,13 @@ export function configured_axios({
 }
 
 export function sync_profiles_seed(
-	websocket: websocket_client["socket"],
+	websocket: ReturnType<typeof io>,
 	profiles_seed: profile_seed[]
 ) {
 	websocket.emit("sync_profiles_seed", profiles_seed);
 }
 export async function sync_cache(
-	websocket: websocket_client["socket"],
+	websocket: ReturnType<typeof io>,
 	all_transactions: transaction[]
 ) {
 	return new Promise<void>((resolve) => {
@@ -889,13 +890,12 @@ export async function sync_cache(
 		);
 	});
 }
-export function update_transactions(
+export function user_discoverable_transactions(
 	profiles: profile[],
-	all_transactions: transaction[],
-	transactions_reference: object
+	all_transactions: transaction[]
 ) {
 	var active_profile = find_active_profile(profiles);
-	transactions_reference = all_transactions.filter((tr) => {
+	return all_transactions.filter((tr) => {
 		return active_profile && active_profile.discoverable_for_this_user.includes(tr.id);
 	});
 }
@@ -953,7 +953,7 @@ export async function request_new_transaction({
 		data.diff = rdiff.getDiff(thing, new_thing_creator(JSON.parse(JSON.stringify(thing))));
 	}
 
-	var response = await configured_axios({ restful_api_endpoint, jwt })({
+	var response = await create_configured_axios({ restful_api_endpoint, jwt })({
 		data,
 		method: "post",
 		url: "/new_transaction",

@@ -27,8 +27,7 @@ import { custom_find_unique } from "hamedpro-helpers";
 import { export_backup } from "./backup.js";
 function custom_express_jwt_middleware(jwt_secret) {
     return (request, response, next) => {
-        if (("headers" in request && "jwt" in request.headers) ||
-            "jwt" in request.query) {
+        if (("headers" in request && "jwt" in request.headers) || "jwt" in request.query) {
             if (request.headers.jwt && request.query.jwt) {
                 response
                     .status(400)
@@ -84,7 +83,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             console.log(`env.json does not exist here : ${this.absolute_paths.env_file}. create it with proper properties then try again`);
             exit();
         }
-        var { websocket_api_port, restful_api_port, jwt_secret, frontend_endpoint, email_address, email_password, sms_panel_token, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
+        var { websocket_api_port, restful_api_port, jwt_secret, frontend_endpoint, email_address, email_password, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
         this.frontend_endpoint = frontend_endpoint;
         this.jwt_secret = jwt_secret;
         this.websocket_api_port = websocket_api_port;
@@ -109,16 +108,13 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
         this.restful_express_app.post("/register", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
             var his_latest_verf_code = this.cache
                 .filter((ci) => ci.thing.type === "verification_code" &&
-                ci.thing.value.email ===
-                    request.body.email_address
+                ci.thing.value.email === request.body.email_address
             /* ci.thing.value.value.toString() ===
                 request.body.verf_code */
             )
                 .at(-1);
-            if ((his_latest_verf_code === null || his_latest_verf_code === void 0 ? void 0 : his_latest_verf_code.thing.type) ===
-                "verification_code" &&
-                his_latest_verf_code.thing.value.value.toString() ===
-                    request.body.verf_code) {
+            if ((his_latest_verf_code === null || his_latest_verf_code === void 0 ? void 0 : his_latest_verf_code.thing.type) === "verification_code" &&
+                his_latest_verf_code.thing.value.value.toString() === request.body.verf_code) {
                 var new_user_id = this.new_user(request.body.email_address);
                 this.new_transaction({
                     new_thing_creator: (prev) => (Object.assign(Object.assign({}, prev), { value: Object.assign(Object.assign({}, prev.value), { email_is_verified: true }) })),
@@ -151,9 +147,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 }
             }
             if (!is_user(user)) {
-                response
-                    .status(400)
-                    .json("there is not any user matching that identifier");
+                response.status(400).json("there is not any user matching that identifier");
                 return;
             }
             else {
@@ -163,8 +157,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                     .filter((i) => {
                     return (i.thing.type === "verification_code" &&
                         is_user(user) &&
-                        i.thing.value.email ===
-                            user.thing.value.email_address);
+                        i.thing.value.email === user.thing.value.email_address);
                 })
                     .at(-1);
                 function is_verification_code_ci(ci) {
@@ -186,10 +179,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                     response.json({
                         jwt: jwt_module.sign(Object.assign({ user_id }, ("exp_duration" in request.body
                             ? {
-                                exp: Math.round(new Date().getTime() /
-                                    1000 +
-                                    request.body
-                                        .exp_duration),
+                                exp: Math.round(new Date().getTime() / 1000 +
+                                    request.body.exp_duration),
                             }
                             : undefined)), this.jwt_secret),
                     });
@@ -199,10 +190,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                     response.json({
                         jwt: jwt_module.sign(Object.assign({ user_id }, ("exp_duration" in request.body
                             ? {
-                                exp: Math.round(new Date().getTime() /
-                                    1000 +
-                                    request.body
-                                        .exp_duration),
+                                exp: Math.round(new Date().getTime() / 1000 +
+                                    request.body.exp_duration),
                             }
                             : undefined)), this.jwt_secret),
                     });
@@ -270,28 +259,22 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
         this.restful_express_app.get("/files/:file_id", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
             var assosiated_meta = this.cache.find((i) => i.thing.type === "meta" &&
                 "file_id" in i.thing.value &&
-                i.thing.value.file_id ===
-                    Number(request.params.file_id));
+                i.thing.value.file_id === Number(request.params.file_id));
             if (assosiated_meta !== undefined &&
                 "file_id" in assosiated_meta.thing.value &&
                 "file_privileges" in assosiated_meta.thing.value) {
-                if (assosiated_meta.thing.value.file_privileges.read ===
-                    "*" ||
+                if (assosiated_meta.thing.value.file_privileges.read === "*" ||
                     assosiated_meta.thing.value.file_privileges.read.includes(response.locals.user_id)) {
                     response.download(path.resolve(path.join(this.absolute_paths.uploads_dir, `${fs
                         .readdirSync(this.absolute_paths.uploads_dir)
                         .find((i) => i.startsWith(request.params.file_id))}`)));
                 }
                 else {
-                    response
-                        .status(403)
-                        .json("you have not access to that file ");
+                    response.status(403).json("you have not access to that file ");
                 }
             }
             else {
-                response
-                    .status(400)
-                    .json("couldnt find assosiated meta for this file_id");
+                response.status(400).json("couldnt find assosiated meta for this file_id");
             }
         })));
         this.restful_express_app.post("/files", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
@@ -299,12 +282,10 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             //returns json : {file_id : string }
             //saved file name + extension is {file_id}-{original file name with extension }
             if (response.locals.user_id === undefined) {
-                response
-                    .status(403)
-                    .json("jwt is not provided in request's headers");
+                response.status(403).json("jwt is not provided in request's headers");
                 return;
             }
-            var { new_file_id, file_mime_type, originalFilename, file_privileges, } = yield new Promise((resolve, reject) => {
+            var { new_file_id, file_mime_type, originalFilename, file_privileges } = yield new Promise((resolve, reject) => {
                 var f = formidable({
                     uploadDir: path.resolve(this.absolute_paths.uploads_dir),
                 });
@@ -345,8 +326,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             response.json({ new_file_id, meta_id_of_file });
         })));
         this.restful_express_app.post("/new_transaction", (request, response) => {
-            if (!("user_id" in response.locals) ||
-                response.locals.user_id === undefined) {
+            if (!("user_id" in response.locals) || response.locals.user_id === undefined) {
                 response
                     .status(403)
                     .json("submitting a new transaction need a jwt provided in request's headers");
@@ -491,9 +471,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
         var transaction = {
             time: new Date().getTime(),
             diff: transaction_diff,
-            thing_id: typeof thing_id === "undefined"
-                ? this.cache.length + 1
-                : thing_id,
+            thing_id: typeof thing_id === "undefined" ? this.cache.length + 1 : thing_id,
             id: this.transactions.length + 1,
             user_id,
         };
@@ -522,8 +500,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
     verify_email_ownership(email_address, verf_code) {
         var latest_verf_code_ci = this.cache
             .filter((i) => {
-            return (i.thing.type === "verification_code" &&
-                i.thing.value.email === email_address);
+            return (i.thing.type === "verification_code" && i.thing.value.email === email_address);
         })
             .at(-1);
         function is_verification_code_ci(ci) {
@@ -534,8 +511,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 return false;
             }
         }
-        var latest_verf_code = is_verification_code_ci(latest_verf_code_ci) &&
-            latest_verf_code_ci.thing.value.value;
+        var latest_verf_code = is_verification_code_ci(latest_verf_code_ci) && latest_verf_code_ci.thing.value.value;
         return latest_verf_code === verf_code;
     }
     calc_all_discoverable_transactions(profiles) {
@@ -555,8 +531,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
         var current = (websocket_client.profiles_seed || []).map((profile_seed) => this.calc_profile(profile_seed, undefined));
         websocket_client.socket.emit("sync_profiles", getDiff(prev, current));
         websocket_client.last_synced_snapshot = Math.max(...this.transactions.map((i) => i.id));
-        websocket_client.socket.emit("sync_all_transactions", this.calc_all_discoverable_transactions(current).filter((tr) => websocket_client.cached_transaction_ids.includes(tr.id) ===
-            false));
+        websocket_client.socket.emit("sync_all_transactions", this.calc_all_discoverable_transactions(current).filter((tr) => websocket_client.cached_transaction_ids.includes(tr.id) === false));
     }
     add_socket(socket) {
         var new_websocket_client = {
@@ -571,8 +546,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 for (var profile_seed of profiles_seed) {
                     if (typeof profile_seed.jwt === "string") {
                         var decoded_jwt = jwt_module.verify(profile_seed.jwt, this.jwt_secret);
-                        if (typeof decoded_jwt !==
-                            "string" /* this bool is always true */) {
+                        if (typeof decoded_jwt !== "string" /* this bool is always true */) {
                             var { user_id } = decoded_jwt;
                             if (user_id !== profile_seed.user_id) {
                                 throw "jwt was verified but user id of profile does not match the user id inside the jwt";

@@ -712,7 +712,7 @@ export function current_user_id(profiles_seed) {
     var _a;
     return ((_a = find_active_profile_seed(profiles_seed)) === null || _a === void 0 ? void 0 : _a.user_id) || 0;
 }
-export function configured_axios({ restful_api_endpoint, jwt, }) {
+export function create_configured_axios({ restful_api_endpoint, jwt, }) {
     return axios.create({
         baseURL: restful_api_endpoint,
         headers: Object.assign({}, (jwt === undefined ? {} : { jwt })),
@@ -728,9 +728,9 @@ export function sync_cache(websocket, all_transactions) {
         });
     });
 }
-export function update_transactions(profiles, all_transactions, transactions_reference) {
+export function user_discoverable_transactions(profiles, all_transactions) {
     var active_profile = find_active_profile(profiles);
-    transactions_reference = all_transactions.filter((tr) => {
+    return all_transactions.filter((tr) => {
         return active_profile && active_profile.discoverable_for_this_user.includes(tr.id);
     });
 }
@@ -768,7 +768,7 @@ export function request_new_transaction({ new_thing_creator, thing_id, diff, unr
                 : unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
             data.diff = rdiff.getDiff(thing, new_thing_creator(JSON.parse(JSON.stringify(thing))));
         }
-        var response = yield configured_axios({ restful_api_endpoint, jwt })({
+        var response = yield create_configured_axios({ restful_api_endpoint, jwt })({
             data,
             method: "post",
             url: "/new_transaction",
