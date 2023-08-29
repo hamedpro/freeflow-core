@@ -1,11 +1,8 @@
 #!/bin/bash
-if [ ! -f "$(echo $HOME)/.freeflow_data/env.json" ]; then 
-    echo "'~/.freeflow_data/env.json' does not exist. create it and try again";
-    exit 1 
-fi;
-tsc; 
-( tsc --watch >&1 ) & 
-vite &
-tailwindcss -c ./tailwind.config.cjs -i ./src/input.css -o ./src/output.css --watch=always &
-nodemon ./api_dist/api/server.js &
-wait
+echo "welcome to FreeFlow";
+echo "commands : ";
+echo ; 
+echo "freeflow : start a server";
+echo "freeflow init_data_dir : initialize data directory with default data";
+echo "freeflow reset_but_env : reset data directory except env.json file";
+echo "freeflow help : show this message and exit";

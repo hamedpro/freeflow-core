@@ -1,6 +1,16 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import rdiff from "recursive-diff";
 import { custom_find_unique } from "hamedpro-helpers";
 import jwtDecode from "jwt-decode";
+import axios from "axios";
 export function custom_deepcopy(value) {
     return JSON.parse(JSON.stringify(value));
 }
@@ -691,4 +701,78 @@ export function getDaysArray(start, end) {
         arr.push(new Date(dt));
     }
     return arr;
+}
+export function find_active_profile(profiles) {
+    return profiles.find((profile) => profile.is_active === true);
+}
+export function find_active_profile_seed(profiles_seed) {
+    return profiles_seed.find((profile) => profile.is_active);
+}
+export function current_user_id(profiles_seed) {
+    var _a;
+    return ((_a = find_active_profile_seed(profiles_seed)) === null || _a === void 0 ? void 0 : _a.user_id) || 0;
+}
+export function configured_axios({ restful_api_endpoint, jwt, }) {
+    return axios.create({
+        baseURL: restful_api_endpoint,
+        headers: Object.assign({}, (jwt === undefined ? {} : { jwt })),
+    });
+}
+export function sync_profiles_seed(websocket, profiles_seed) {
+    websocket.emit("sync_profiles_seed", profiles_seed);
+}
+export function sync_cache(websocket, all_transactions) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve) => {
+            websocket.emit("sync_cache", all_transactions.map((tr) => tr.id), resolve);
+        });
+    });
+}
+export function update_transactions(profiles, all_transactions, transactions_reference) {
+    var active_profile = find_active_profile(profiles);
+    transactions_reference = all_transactions.filter((tr) => {
+        return active_profile && active_profile.discoverable_for_this_user.includes(tr.id);
+    });
+}
+export function current_user(cache, profiles_seed) {
+    var user_id = current_user_id(profiles_seed);
+    var tmp = cache.find((ci) => ci.thing_id === user_id);
+    function is_user(cache_item) {
+        if (cache_item) {
+            return cache_item.thing.type === "user";
+        }
+        else {
+            return false;
+        }
+    }
+    if (is_user(tmp)) {
+        return tmp;
+    }
+    else {
+        return undefined;
+    }
+}
+export function request_new_transaction({ new_thing_creator, thing_id, diff, unresolved_cache, restful_api_endpoint, jwt, }) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if ((new_thing_creator === undefined && diff === undefined) ||
+            (new_thing_creator !== undefined && diff !== undefined)) {
+            throw "only one of these must be not undefined : `new_thing_creator` or `diff`";
+        }
+        var data = { thing_id };
+        if (new_thing_creator === undefined && diff !== undefined) {
+            data.diff = diff;
+        }
+        if (diff === undefined && new_thing_creator !== undefined) {
+            var thing = thing_id === undefined
+                ? {}
+                : unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
+            data.diff = rdiff.getDiff(thing, new_thing_creator(JSON.parse(JSON.stringify(thing))));
+        }
+        var response = yield configured_axios({ restful_api_endpoint, jwt })({
+            data,
+            method: "post",
+            url: "/new_transaction",
+        });
+        return response.data;
+    });
 }

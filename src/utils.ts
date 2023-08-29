@@ -9,10 +9,13 @@ import {
 	locks,
 	meta,
 	non_file_meta_value,
+	profile,
+	profile_seed,
 	thing,
 	time_travel_snapshot,
 	transaction,
 	user,
+	websocket_client,
 } from "./UnifiedHandler_types.js";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
@@ -843,4 +846,117 @@ export function getDaysArray(start: Date, end: Date) {
 		arr.push(new Date(dt));
 	}
 	return arr;
+}
+export function find_active_profile(profiles: profile[]) {
+	return profiles.find((profile) => profile.is_active === true);
+}
+export function find_active_profile_seed(profiles_seed: profile_seed[]) {
+	return profiles_seed.find((profile) => profile.is_active);
+}
+export function current_user_id(profiles_seed: profile_seed[]) {
+	return find_active_profile_seed(profiles_seed)?.user_id || 0;
+}
+export function configured_axios({
+	restful_api_endpoint,
+	jwt,
+}: {
+	restful_api_endpoint: string;
+	jwt?: string;
+}): ReturnType<typeof axios.create> {
+	return axios.create({
+		baseURL: restful_api_endpoint,
+		headers: {
+			...(jwt === undefined ? {} : { jwt }),
+		},
+	});
+}
+
+export function sync_profiles_seed(
+	websocket: websocket_client["socket"],
+	profiles_seed: profile_seed[]
+) {
+	websocket.emit("sync_profiles_seed", profiles_seed);
+}
+export async function sync_cache(
+	websocket: websocket_client["socket"],
+	all_transactions: transaction[]
+) {
+	return new Promise<void>((resolve) => {
+		websocket.emit(
+			"sync_cache",
+			all_transactions.map((tr) => tr.id),
+			resolve
+		);
+	});
+}
+export function update_transactions(
+	profiles: profile[],
+	all_transactions: transaction[],
+	transactions_reference: object
+) {
+	var active_profile = find_active_profile(profiles);
+	transactions_reference = all_transactions.filter((tr) => {
+		return active_profile && active_profile.discoverable_for_this_user.includes(tr.id);
+	});
+}
+
+export function current_user(
+	cache: cache,
+	profiles_seed: profile_seed[]
+): cache_item<user> | undefined {
+	var user_id = current_user_id(profiles_seed);
+	var tmp = cache.find((ci) => ci.thing_id === user_id);
+	function is_user(cache_item: cache_item<thing> | undefined): cache_item is cache_item<user> {
+		if (cache_item) {
+			return cache_item.thing.type === "user";
+		} else {
+			return false;
+		}
+	}
+	if (is_user(tmp)) {
+		return tmp;
+	} else {
+		return undefined;
+	}
+}
+export async function request_new_transaction({
+	new_thing_creator,
+	thing_id,
+	diff,
+	unresolved_cache,
+	restful_api_endpoint,
+	jwt,
+}: {
+	thing_id: undefined | number;
+	new_thing_creator?: (current_thing: any) => any;
+	diff?: rdiff.rdiffResult[];
+	unresolved_cache: cache;
+	restful_api_endpoint: string;
+	jwt?: undefined | string;
+}) {
+	if (
+		(new_thing_creator === undefined && diff === undefined) ||
+		(new_thing_creator !== undefined && diff !== undefined)
+	) {
+		throw "only one of these must be not undefined : `new_thing_creator` or `diff`";
+	}
+
+	var data: any = { thing_id };
+	if (new_thing_creator === undefined && diff !== undefined) {
+		data.diff = diff;
+	}
+	if (diff === undefined && new_thing_creator !== undefined) {
+		var thing =
+			thing_id === undefined
+				? {}
+				: unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
+		data.diff = rdiff.getDiff(thing, new_thing_creator(JSON.parse(JSON.stringify(thing))));
+	}
+
+	var response = await configured_axios({ restful_api_endpoint, jwt })({
+		data,
+		method: "post",
+		url: "/new_transaction",
+	});
+	return response.data;
 }
