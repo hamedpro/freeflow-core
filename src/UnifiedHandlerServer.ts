@@ -1,5 +1,5 @@
 import cors from "cors";
-import formidable from "formidable";
+import formidable, { Files } from "formidable";
 import jwt_module from "jsonwebtoken";
 import express from "express";
 //read README file : UnifiedHandlerSystem.md
@@ -14,6 +14,7 @@ import { Server, Socket } from "socket.io";
 import path from "path";
 import {
 	cache_item,
+	env,
 	profile,
 	profile_seed,
 	thing,
@@ -116,14 +117,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			frontend_endpoint,
 			email_address,
 			email_password,
-		}: {
-			websocket_api_port: number;
-			restful_api_port: number;
-			jwt_secret: string;
-			frontend_endpoint: string;
-			email_address: string;
-			email_password: string;
-		} = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
+		}: env = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
 
 		this.frontend_endpoint = frontend_endpoint;
 		this.jwt_secret = jwt_secret;
@@ -456,24 +450,27 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 						var f = formidable({
 							uploadDir: path.resolve(this.absolute_paths.uploads_dir),
 						});
-						f.parse(request, (err: any, fields: any, files: any) => {
+						f.parse(request, (err, fields, files) => {
 							if (err) {
 								reject(err);
 								return;
 							}
+							var file = files["file"][0];
 							var tmp = this.cache.length + 1;
 							var new_file_path = path.resolve(
 								this.absolute_paths.uploads_dir,
-								`${tmp}-${files["file"].originalFilename}`
+								`${tmp}-${file.originalFilename}`
 							);
-							fs.renameSync(files["file"].filepath, new_file_path);
+
+							fs.renameSync(file.filepath, new_file_path);
+
 							resolve({
 								new_file_id: tmp,
-								file_mime_type: files["file"].mimetype,
-								originalFilename: files["file"].originalFilename,
+								file_mime_type: file.mimetype || "unknown",
+								originalFilename: file.originalFilename || "without-original-name",
 								file_privileges:
 									fields["file_privileges"] &&
-									JSON.parse(fields["file_privileges"]),
+									JSON.parse(fields["file_privileges"][0]),
 							});
 							return;
 						});

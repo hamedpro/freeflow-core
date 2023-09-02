@@ -294,15 +294,16 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                         reject(err);
                         return;
                     }
+                    var file = files["file"][0];
                     var tmp = this.cache.length + 1;
-                    var new_file_path = path.resolve(this.absolute_paths.uploads_dir, `${tmp}-${files["file"].originalFilename}`);
-                    fs.renameSync(files["file"].filepath, new_file_path);
+                    var new_file_path = path.resolve(this.absolute_paths.uploads_dir, `${tmp}-${file.originalFilename}`);
+                    fs.renameSync(file.filepath, new_file_path);
                     resolve({
                         new_file_id: tmp,
-                        file_mime_type: files["file"].mimetype,
-                        originalFilename: files["file"].originalFilename,
+                        file_mime_type: file.mimetype || "unknown",
+                        originalFilename: file.originalFilename || "without-original-name",
                         file_privileges: fields["file_privileges"] &&
-                            JSON.parse(fields["file_privileges"]),
+                            JSON.parse(fields["file_privileges"][0]),
                     });
                     return;
                 });

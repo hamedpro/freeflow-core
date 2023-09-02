@@ -1,10 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import rdiff, { rdiffResult } from "recursive-diff";
 import { custom_find_unique } from "hamedpro-helpers";
+import { sign as jwt_sign } from "jsonwebtoken";
+import { homedir } from "os";
+import { readFileSync } from "fs";
+import path from "path";
+import { existsSync } from "fs";
 import {
 	cache,
 	cache_item,
 	complete_diff,
+	env,
 	file_meta_value,
 	locks,
 	meta,
@@ -12,6 +18,8 @@ import {
 	profile,
 	profile_seed,
 	thing,
+	thing_base,
+	thing_privileges,
 	time_travel_snapshot,
 	transaction,
 	user,
@@ -959,4 +967,48 @@ export async function request_new_transaction({
 		url: "/new_transaction",
 	});
 	return response.data;
+}
+export async function request_new_thing({
+	value,
+	unresolved_cache,
+	restful_api_endpoint,
+	current_profile,
+	thing_privileges,
+}: {
+	value: thing_base;
+	current_profile: profile;
+	unresolved_cache: cache;
+	restful_api_endpoint: string;
+	thing_privileges?: thing_privileges;
+}): Promise<{ meta_id?: number; thing_id: number }> {
+	var thing_id = await request_new_transaction({
+		new_thing_creator: () => value,
+		thing_id: undefined,
+		restful_api_endpoint,
+		jwt: current_profile.jwt,
+		unresolved_cache,
+	});
+	var meta_id: number | undefined = undefined;
+	if (value.type !== "meta") {
+		meta_id = (
+			await request_new_thing({
+				value: {
+					type: "meta",
+					value: {
+						thing_privileges: thing_privileges || {
+							read: [current_profile.user_id],
+							write: [current_profile.user_id],
+						},
+						modify_thing_privileges: current_profile.user_id,
+						locks: [],
+						thing_id: thing_id,
+					},
+				},
+				current_profile,
+				unresolved_cache,
+				restful_api_endpoint,
+			})
+		).thing_id;
+	}
+	return { thing_id, meta_id };
 }

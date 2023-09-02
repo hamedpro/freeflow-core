@@ -776,3 +776,35 @@ export function request_new_transaction({ new_thing_creator, thing_id, diff, unr
         return response.data;
     });
 }
+export function request_new_thing({ value, unresolved_cache, restful_api_endpoint, current_profile, thing_privileges, }) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var thing_id = yield request_new_transaction({
+            new_thing_creator: () => value,
+            thing_id: undefined,
+            restful_api_endpoint,
+            jwt: current_profile.jwt,
+            unresolved_cache,
+        });
+        var meta_id = undefined;
+        if (value.type !== "meta") {
+            meta_id = (yield request_new_thing({
+                value: {
+                    type: "meta",
+                    value: {
+                        thing_privileges: thing_privileges || {
+                            read: [current_profile.user_id],
+                            write: [current_profile.user_id],
+                        },
+                        modify_thing_privileges: current_profile.user_id,
+                        locks: [],
+                        thing_id: thing_id,
+                    },
+                },
+                current_profile,
+                unresolved_cache,
+                restful_api_endpoint,
+            })).thing_id;
+        }
+        return { thing_id, meta_id };
+    });
+}

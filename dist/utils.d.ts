@@ -1,5 +1,5 @@
 import rdiff from "recursive-diff";
-import { cache, cache_item, complete_diff, locks, profile, profile_seed, thing, time_travel_snapshot, transaction, user } from "./UnifiedHandler_types.js";
+import { cache, cache_item, complete_diff, locks, profile, profile_seed, thing, thing_base, thing_privileges, time_travel_snapshot, transaction, user } from "./UnifiedHandler_types.js";
 import axios from "axios";
 import { io } from "socket.io-client";
 export declare function custom_deepcopy(value: any): any;
@@ -79,3 +79,13 @@ export declare function request_new_transaction({ new_thing_creator, thing_id, d
     restful_api_endpoint: string;
     jwt?: undefined | string;
 }): Promise<any>;
+export declare function request_new_thing({ value, unresolved_cache, restful_api_endpoint, current_profile, thing_privileges, }: {
+    value: thing_base;
+    current_profile: profile;
+    unresolved_cache: cache;
+    restful_api_endpoint: string;
+    thing_privileges?: thing_privileges;
+}): Promise<{
+    meta_id?: number;
+    thing_id: number;
+}>;

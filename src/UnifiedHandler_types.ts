@@ -171,3 +171,14 @@ export type time_travel_snapshot =
 	| { type: "timestamp"; value: ReturnType<Date["getTime"]> }
 	| { type: "transaction_id"; value: transaction["id"] }
 	| undefined;
+export type env = {
+	websocket_api_port: number;
+	restful_api_port: number;
+	jwt_secret: string;
+	frontend_endpoint: string;
+	frontend_port: number;
+	websocket_api_endpoint: string;
+	restful_api_endpoint: string;
+	email_address: string;
+	email_password: string;
+};

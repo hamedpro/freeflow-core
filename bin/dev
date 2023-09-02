@@ -1,4 +1,4 @@
 #!/bin/bash
 tsc --watch --preserveWatchOutput & 
-nodemon ./dist/server.js  &
+nodemon ./dist/server.js &
 wait
