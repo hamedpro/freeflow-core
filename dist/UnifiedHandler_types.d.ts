@@ -113,4 +113,7 @@ export type env = {
     jwt_secret: string;
     email_address: string;
     email_password: string;
+    use_https: boolean;
+    https_key_path?: string;
+    https_cert_path?: string;
 };

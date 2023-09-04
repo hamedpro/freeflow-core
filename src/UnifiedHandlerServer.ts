@@ -5,11 +5,13 @@ import express from "express";
 //read README file : UnifiedHandlerSystem.md
 import fs, { mkdirSync } from "fs";
 import os from "os";
+import { createServer as https_create_server } from "https";
+import { createServer as http_create_server } from "http";
 import nodemailer from "nodemailer";
 import rdiff from "recursive-diff";
 import AsyncLock from "async-lock";
 var { applyDiff, getDiff } = rdiff;
-
+import { readFileSync } from "fs";
 import { Server, Socket } from "socket.io";
 import path from "path";
 import {
@@ -96,6 +98,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 
 	constructor() {
 		super();
+
 		mkdirSync(this.absolute_paths.uploads_dir, { recursive: true });
 
 		if (fs.existsSync(this.absolute_paths.store_file) !== true) {
@@ -115,6 +118,9 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			jwt_secret,
 			email_address,
 			email_password,
+			use_https,
+			https_cert_path,
+			https_key_path,
 		}: env = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
 
 		this.jwt_secret = jwt_secret;
@@ -135,6 +141,22 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			}
 		};
 		this.restful_express_app = express();
+		var restful_server;
+		if (use_https === true) {
+			if (https_cert_path === undefined || https_key_path === undefined) {
+				throw "use_https is ture but at least one of these is undefined : https_cert_path or https_key_path";
+			}
+			restful_server = https_create_server(
+				{
+					key: readFileSync(https_key_path, "utf-8"),
+					cert: readFileSync(https_cert_path),
+				},
+				this.restful_express_app
+			);
+		} else {
+			restful_server = http_create_server(this.restful_express_app);
+		}
+
 		this.restful_express_app.use(cors());
 		this.restful_express_app.use(express.json());
 		this.restful_express_app.use(custom_express_jwt_middleware(this.jwt_secret));
@@ -521,8 +543,20 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		});
 
 		this.restful_express_app.listen(this.restful_api_port);
+		var websocket_server;
+		if (use_https === true) {
+			if (https_cert_path === undefined || https_key_path === undefined) {
+				throw "use_https is ture but at least one of these is undefined : https_cert_path or https_key_path";
+			}
+			websocket_server = https_create_server({
+				key: readFileSync(https_key_path, "utf-8"),
+				cert: readFileSync(https_cert_path),
+			});
+		} else {
+			websocket_server = http_create_server();
+		}
 
-		var io = new Server(this.websocket_api_port, {
+		var io = new Server(websocket_server, {
 			cors: {
 				origin: "*",
 				methods: ["GET", "POST"],
@@ -531,6 +565,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		io.on("connection", (socket) => {
 			this.add_socket(socket);
 		});
+		websocket_server.listen(this.websocket_api_port);
 	}
 
 	new_verf_code(email: string): number {
