@@ -1,7 +1,7 @@
 import express from "express";
 import nodemailer from "nodemailer";
 import AsyncLock from "async-lock";
-import { profile, profile_seed, thing, transaction, verification_code, websocket_client } from "./UnifiedHandler_types.js";
+import { profile, profile_seed, core_thing, transaction, verification_code, websocket_client } from "./UnifiedHandler_types.js";
 import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
 export declare class UnifiedHandlerServer extends UnifiedHandlerCore {
     websocket_clients: websocket_client[];
@@ -9,7 +9,6 @@ export declare class UnifiedHandlerServer extends UnifiedHandlerCore {
     jwt_secret: string;
     websocket_api_port: number;
     restful_api_port: number;
-    frontend_endpoint: string;
     lock: AsyncLock;
     smtp_transport: ReturnType<typeof nodemailer.createTransport>;
     gen_lock_safe_request_handler: (func: (response: any, reject: any) => any) => (request: any, response: any) => Promise<unknown>;
@@ -22,7 +21,7 @@ export declare class UnifiedHandlerServer extends UnifiedHandlerCore {
     constructor();
     new_verf_code(email: string): number;
     new_user(email_address: string): number;
-    new_transaction<ThingType extends thing, ThingId extends number | undefined>({ new_thing_creator, thing_id, user_id, }: {
+    new_transaction<ThingType extends core_thing, ThingId extends number | undefined>({ new_thing_creator, thing_id, user_id, }: {
         new_thing_creator: (current_thing: any) => any;
         thing_id: ThingId;
         user_id: number;

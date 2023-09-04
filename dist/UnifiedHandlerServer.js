@@ -83,8 +83,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             console.log(`env.json does not exist here : ${this.absolute_paths.env_file}. create it with proper properties then try again`);
             exit();
         }
-        var { websocket_api_port, restful_api_port, jwt_secret, frontend_endpoint, email_address, email_password, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
-        this.frontend_endpoint = frontend_endpoint;
+        var { websocket_api_port, restful_api_port, jwt_secret, email_address, email_password, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
         this.jwt_secret = jwt_secret;
         this.websocket_api_port = websocket_api_port;
         this.restful_api_port = restful_api_port;

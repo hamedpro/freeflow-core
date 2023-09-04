@@ -17,7 +17,7 @@ import {
 	non_file_meta_value,
 	profile,
 	profile_seed,
-	thing,
+	core_thing,
 	thing_base,
 	thing_privileges,
 	time_travel_snapshot,
@@ -27,7 +27,6 @@ import {
 } from "./UnifiedHandler_types.js";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
-import { UnifiedHandlerClient } from "./UnifiedHandlerClient.js";
 import { io } from "socket.io-client";
 export function custom_deepcopy(value: any) {
 	return JSON.parse(JSON.stringify(value));
@@ -108,7 +107,7 @@ export function check_lock({
 		return true;
 	} else {
 		var meta = cache.find(
-			(i: cache_item<thing>) =>
+			(i: cache_item) =>
 				i.thing.type === "meta" &&
 				"locks" in i.thing.value &&
 				i.thing.value.thing_id === thing_id
@@ -118,7 +117,7 @@ export function check_lock({
 		} else {
 			if ("locks" in meta.thing.value) {
 				for (var path of paths) {
-					var tmp = meta.thing.value.locks.find((i) =>
+					var tmp = meta.thing.value.locks.find((i: any) =>
 						simple_arrays_are_identical(i.path, path)
 					);
 
@@ -155,7 +154,7 @@ export function calc_user_discoverable_things(
 				if (meta === undefined) {
 					return user_id === thing_transactions(transactions, i.thing_id)[0].user_id;
 				} else {
-					function is_meta(cache_item: cache_item<thing>): cache_item is {
+					function is_meta(cache_item: cache_item): cache_item is {
 						thing_id: number;
 						thing: meta<non_file_meta_value>;
 					} {
@@ -208,7 +207,7 @@ export function new_transaction_privileges_check(
 
 	var targeted_thing_cache_item = cache.find((i) => i.thing_id === thing_id);
 	if (targeted_thing_cache_item !== undefined) {
-		function is_cache_item_meta(cache_item: cache_item<thing>): cache_item is {
+		function is_cache_item_meta(cache_item: cache_item): cache_item is {
 			thing_id: number;
 			thing: meta<non_file_meta_value | file_meta_value>;
 		} {
@@ -293,7 +292,7 @@ export function resolve_thing(
 	transactions: transaction[],
 	thing_id: number,
 	snapshot: time_travel_snapshot
-): thing {
+): core_thing {
 	var unresolved_cache: cache = JSON.parse(
 		JSON.stringify(calc_unresolved_cache(transactions, snapshot))
 	);
@@ -364,7 +363,7 @@ export function calc_cache(transactions: transaction[], snapshot: time_travel_sn
 		);
 		//checking if this thing is a cache item containg a non file meta
 		if (
-			((T: cache_item<thing> | undefined): T is cache_item<meta<non_file_meta_value>> =>
+			((T: cache_item | undefined): T is cache_item<meta<non_file_meta_value>> =>
 				T ? "locks" in T.thing.value : false)(tmp)
 		) {
 			cache_item.its_meta_cache_item = tmp;
@@ -656,10 +655,10 @@ export class TransactionInterpreter implements TransactionInterpreterTypes {
 	}
 }
 export function flexible_user_finder(
-	cache: cache_item<thing>[],
+	cache: cache_item[],
 	identifier: string
 ): number | undefined /* (no match) */ {
-	var tmp: any = cache.filter((item: cache_item<thing>) => item.thing.type === "user");
+	var tmp: any = cache.filter((item: cache_item) => item.thing.type === "user");
 	var all_values: string[] = [];
 	tmp.forEach((item: any) => {
 		all_values.push(
@@ -749,7 +748,7 @@ export function finder(
 	user_id: number
 ) {
 	var parsed_finder_query: string[] = JSON.parse(finder_query);
-	var user: cache_item<thing> | undefined = cache.find((ci) => ci.thing_id === user_id);
+	var user: cache_item | undefined = cache.find((ci) => ci.thing_id === user_id);
 
 	//narrow down results :
 	return cache
@@ -914,7 +913,7 @@ export function current_user(
 ): cache_item<user> | undefined {
 	var user_id = current_user_id(profiles_seed);
 	var tmp = cache.find((ci) => ci.thing_id === user_id);
-	function is_user(cache_item: cache_item<thing> | undefined): cache_item is cache_item<user> {
+	function is_user(cache_item: cache_item | undefined): cache_item is cache_item<user> {
 		if (cache_item) {
 			return cache_item.thing.type === "user";
 		} else {

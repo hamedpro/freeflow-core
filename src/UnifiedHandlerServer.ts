@@ -17,7 +17,7 @@ import {
 	env,
 	profile,
 	profile_seed,
-	thing,
+	core_thing,
 	transaction,
 	user,
 	verification_code,
@@ -72,7 +72,6 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 	jwt_secret: string;
 	websocket_api_port: number;
 	restful_api_port: number;
-	frontend_endpoint: string;
 	lock = new AsyncLock();
 	smtp_transport: ReturnType<typeof nodemailer.createTransport>;
 	gen_lock_safe_request_handler =
@@ -114,12 +113,10 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			websocket_api_port,
 			restful_api_port,
 			jwt_secret,
-			frontend_endpoint,
 			email_address,
 			email_password,
 		}: env = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
 
-		this.frontend_endpoint = frontend_endpoint;
 		this.jwt_secret = jwt_secret;
 		this.websocket_api_port = websocket_api_port;
 		this.restful_api_port = restful_api_port;
@@ -209,7 +206,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 				var user_id = flexible_user_finder(this.cache, request.body.identifier);
 				var user = this.cache.find((item) => item.thing_id === user_id);
 				function is_user(
-					cache_item: cache_item<thing> | undefined
+					cache_item: cache_item | undefined
 				): cache_item is { thing_id: number; thing: user } {
 					if (cache_item && cache_item.thing.type === "user") {
 						return true;
@@ -224,7 +221,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 					//first, checking if user has sent a correct verification code:
 					//then setting x_is_verified
 					var latest_verf_code_ci = this.cache
-						.filter((i: cache_item<thing>) => {
+						.filter((i: cache_item) => {
 							return (
 								i.thing.type === "verification_code" &&
 								is_user(user) &&
@@ -233,7 +230,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 						})
 						.at(-1);
 
-					function is_verification_code_ci(ci: cache_item<thing> | undefined): ci is {
+					function is_verification_code_ci(ci: cache_item | undefined): ci is {
 						thing_id: number;
 						thing: verification_code;
 					} {
@@ -622,7 +619,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 		return new_user_id;
 	}
 
-	new_transaction<ThingType extends thing, ThingId extends number | undefined>({
+	new_transaction<ThingType extends core_thing, ThingId extends number | undefined>({
 		new_thing_creator,
 		thing_id,
 		user_id,
@@ -729,14 +726,14 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 	}
 	verify_email_ownership(email_address: string, verf_code: verification_code["value"]["value"]) {
 		var latest_verf_code_ci = this.cache
-			.filter((i: cache_item<thing>) => {
+			.filter((i: cache_item) => {
 				return (
 					i.thing.type === "verification_code" && i.thing.value.email === email_address
 				);
 			})
 			.at(-1);
 
-		function is_verification_code_ci(ci: cache_item<thing> | undefined): ci is {
+		function is_verification_code_ci(ci: cache_item | undefined): ci is {
 			thing_id: number;
 			thing: verification_code;
 		} {

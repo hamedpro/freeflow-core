@@ -3,7 +3,7 @@
 import { custom_find_unique } from "hamedpro-helpers";
 import {
 	cache_item,
-	thing,
+	core_thing,
 	time_travel_snapshot,
 	transaction,
 	user,
@@ -73,7 +73,7 @@ export class UnifiedHandlerCore {
 
 	onChange: () => void = () => {};
 	find_user_private_data_id(user_id: number): number {
-		var user: cache_item<thing> | undefined = this.unresolved_cache.find(
+		var user: cache_item | undefined = this.unresolved_cache.find(
 			(ci) => ci.thing_id === user_id
 		);
 		if (user === undefined) {
@@ -95,7 +95,7 @@ export class UnifiedHandlerCore {
 
 	transactions: transaction[] = [];
 
-	get cache(): cache_item<thing>[] {
+	get cache(): cache_item[] {
 		return calc_cache(this.transactions, this.time_travel_snapshot);
 	}
 	get unresolved_cache() {

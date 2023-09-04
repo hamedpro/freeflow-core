@@ -39,59 +39,11 @@ export type meta<Value> = {
     type: "meta";
     value: Value;
 };
-export interface unit_pack extends thing_base {
-    type: "unit/pack";
-    value: {
-        title: string;
-        description: string;
-        default_pack_view_id?: null | number;
-    };
-}
-export interface unit_resource extends thing_base {
-    type: "unit/resource";
-    value: {
-        description: string;
-        title: string;
-        file_id: number;
-    };
-}
-export interface message extends thing_base {
-    type: "message";
-    value: {
-        text: string;
-        points_to: number;
-    };
-}
 export interface verification_code extends thing_base {
     type: "verification_code";
     value: {
         value: number;
         email: string;
-    };
-}
-export type ask_answer = {
-    user_id: transaction["user_id"];
-    answer_index: number;
-} | {
-    user_id: transaction["user_id"];
-    answer_text: string;
-};
-export interface unit_ask extends thing_base {
-    type: "unit/ask";
-    value: {
-        question: string;
-        question_body: string;
-        mode: "poll" | "multiple_choice" | "text_answer";
-        options?: string[];
-        correct_option_index?: number;
-        answers: ask_answer[];
-    };
-}
-export interface unit_note extends thing_base {
-    type: "unit/note";
-    value: {
-        title: string;
-        data: EditorJS.OutputData;
     };
 }
 export interface user_private_data extends thing_base {
@@ -119,20 +71,13 @@ export interface user extends thing_base {
         saved_things?: number[];
     };
 }
-export interface calendar_category extends thing_base {
-    type: "calendar_category";
-    value: {
-        name: string;
-        color: string;
-    };
-}
-export type thing = meta<non_file_meta_value | file_meta_value> | unit_pack | unit_resource | unit_ask | unit_note | user | verification_code | message | calendar_category | user_private_data;
-export interface cache_item<ThingType> {
+export type core_thing = meta<non_file_meta_value | file_meta_value> | user | verification_code | user_private_data | thing_base;
+export interface cache_item<CustomThing = core_thing> {
     thing_id: number;
-    thing: ThingType;
+    thing: CustomThing;
     its_meta_cache_item?: cache_item<meta<non_file_meta_value>>;
 }
-export type cache = cache_item<thing>[];
+export type cache = cache_item[];
 export interface websocket_client {
     socket: Socket;
     profiles_seed?: profile_seed[];
@@ -166,10 +111,6 @@ export type env = {
     websocket_api_port: number;
     restful_api_port: number;
     jwt_secret: string;
-    frontend_endpoint: string;
-    frontend_port: number;
-    websocket_api_endpoint: string;
-    restful_api_endpoint: string;
     email_address: string;
     email_password: string;
 };
