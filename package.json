@@ -1,6 +1,5 @@
 {
 	"name": "freeflow-core",
-	"version": "1.4.0",
 	"type": "module",
 	"dependencies": {
 		"@editorjs/editorjs": "^2.28.0",
