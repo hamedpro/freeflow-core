@@ -542,7 +542,12 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			}
 		});
 
-		this.restful_express_app.listen(this.restful_api_port);
+		(
+			restful_server as
+				| ReturnType<typeof http_create_server>
+				| ReturnType<typeof https_create_server>
+		).listen(this.restful_api_port);
+
 		var websocket_server;
 		if (use_https === true) {
 			if (https_cert_path === undefined || https_key_path === undefined) {
