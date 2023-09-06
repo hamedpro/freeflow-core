@@ -149,7 +149,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			restful_server = https_create_server(
 				{
 					key: readFileSync(https_key_path, "utf-8"),
-					cert: readFileSync(https_cert_path),
+					cert: readFileSync(https_cert_path, "utf-8"),
 				},
 				this.restful_express_app
 			);
@@ -550,7 +550,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
 			}
 			websocket_server = https_create_server({
 				key: readFileSync(https_key_path, "utf-8"),
-				cert: readFileSync(https_cert_path),
+				cert: readFileSync(https_cert_path, "utf-8"),
 			});
 		} else {
 			websocket_server = http_create_server();
