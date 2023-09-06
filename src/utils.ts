@@ -1011,3 +1011,11 @@ export async function request_new_thing({
 	}
 	return { thing_id, meta_id };
 }
+export function calc_file_url(
+	profiles_seed: profile_seed[],
+	rest_endpoint: string,
+	file_id: number
+) {
+	var jwt = find_active_profile_seed(profiles_seed)?.jwt;
+	return new URL(`/files/${file_id}?${jwt && "jwt=" + jwt}`, rest_endpoint).href;
+}

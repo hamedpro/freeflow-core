@@ -89,3 +89,4 @@ export declare function request_new_thing({ value, unresolved_cache, restful_api
     meta_id?: number;
     thing_id: number;
 }>;
+export declare function calc_file_url(profiles_seed: profile_seed[], rest_endpoint: string, file_id: number): string;

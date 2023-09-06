@@ -808,3 +808,8 @@ export function request_new_thing({ value, unresolved_cache, restful_api_endpoin
         return { thing_id, meta_id };
     });
 }
+export function calc_file_url(profiles_seed, rest_endpoint, file_id) {
+    var _a;
+    var jwt = (_a = find_active_profile_seed(profiles_seed)) === null || _a === void 0 ? void 0 : _a.jwt;
+    return new URL(`/files/${file_id}?${jwt && "jwt=" + jwt}`, rest_endpoint).href;
+}
