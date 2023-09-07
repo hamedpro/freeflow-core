@@ -116,4 +116,5 @@ export type env = {
     use_https: boolean;
     https_key_path?: string;
     https_cert_path?: string;
+    admin_password: string;
 };

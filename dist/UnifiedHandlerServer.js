@@ -28,6 +28,7 @@ import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
 import { flexible_user_finder, rdiff_path_to_lock_path_format, reserved_value_is_used, validate_lock_structure, } from "./utils.js";
 import { custom_find_unique } from "hamedpro-helpers";
 import { export_backup } from "./backup.js";
+import { sign_jwt } from "./client_side_incompatible_utils.js";
 function custom_express_jwt_middleware(jwt_secret) {
     return (request, response, next) => {
         if (("headers" in request && "jwt" in request.headers) || "jwt" in request.query) {
@@ -86,7 +87,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             console.log(`env.json does not exist here : ${this.absolute_paths.env_file}. create it with proper properties then try again`);
             exit();
         }
-        var { websocket_api_port, restful_api_port, jwt_secret, email_address, email_password, use_https, https_cert_path, https_key_path, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
+        var { websocket_api_port, restful_api_port, jwt_secret, email_address, email_password, use_https, https_cert_path, https_key_path, admin_password, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
         this.jwt_secret = jwt_secret;
         this.websocket_api_port = websocket_api_port;
         this.restful_api_port = restful_api_port;
@@ -151,17 +152,13 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             }
         })));
         this.restful_express_app.post("/login", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
+            if (request.body.identifier === "-1" && request.body.value === admin_password) {
+                response.json({ jwt: sign_jwt(this.jwt_secret, undefined, { user_id: -1 }) });
+                return;
+            }
             var user_id = flexible_user_finder(this.cache, request.body.identifier);
             var user = this.cache.find((item) => item.thing_id === user_id);
-            function is_user(cache_item) {
-                if (cache_item && cache_item.thing.type === "user") {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-            if (!is_user(user)) {
+            if (user === undefined) {
                 response.status(400).json("there is not any user matching that identifier");
                 return;
             }
@@ -171,8 +168,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 var latest_verf_code_ci = this.cache
                     .filter((i) => {
                     return (i.thing.type === "verification_code" &&
-                        is_user(user) &&
-                        i.thing.value.email === user.thing.value.email_address);
+                        i.thing.value.email ===
+                            user.thing.value.email_address);
                 })
                     .at(-1);
                 function is_verification_code_ci(ci) {
@@ -192,23 +189,13 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                         user_id: user.thing_id,
                     });
                     response.json({
-                        jwt: jwt_module.sign(Object.assign({ user_id }, ("exp_duration" in request.body
-                            ? {
-                                exp: Math.round(new Date().getTime() / 1000 +
-                                    request.body.exp_duration),
-                            }
-                            : undefined)), this.jwt_secret),
+                        jwt: sign_jwt(this.jwt_secret, "exp_days" in request.body ? request.body.exp_days : undefined, { user_id }),
                     });
                     return;
                 }
                 if (request.body.value === user.thing.value.password) {
                     response.json({
-                        jwt: jwt_module.sign(Object.assign({ user_id }, ("exp_duration" in request.body
-                            ? {
-                                exp: Math.round(new Date().getTime() / 1000 +
-                                    request.body.exp_duration),
-                            }
-                            : undefined)), this.jwt_secret),
+                        jwt: sign_jwt(this.jwt_secret, "exp_days" in request.body ? request.body.exp_days : undefined, { user_id }),
                     });
                     return;
                 }

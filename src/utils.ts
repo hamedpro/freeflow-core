@@ -658,6 +658,8 @@ export function flexible_user_finder(
 	cache: cache_item[],
 	identifier: string
 ): number | undefined /* (no match) */ {
+	//console.log(identifier);
+	if (identifier === "-1") return -1;
 	var tmp: any = cache.filter((item: cache_item) => item.thing.type === "user");
 	var all_values: string[] = [];
 	tmp.forEach((item: any) => {

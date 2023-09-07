@@ -3,7 +3,7 @@ import { homedir } from "os";
 import path from "path";
 import { existsSync, readFileSync } from "fs";
 import { env } from "./UnifiedHandler_types";
-export function sign_jwt(jwt_secret: string, exp_days: number, payload: object) {
+export function sign_jwt(jwt_secret: string, exp_days: number | undefined, payload: object) {
 	return jsonwebtoken.sign(
 		{
 			...payload,

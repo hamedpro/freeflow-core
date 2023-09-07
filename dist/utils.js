@@ -528,6 +528,9 @@ export class TransactionInterpreter {
     }
 }
 export function flexible_user_finder(cache, identifier) {
+    //console.log(identifier);
+    if (identifier === "-1")
+        return -1;
     var tmp = cache.filter((item) => item.thing.type === "user");
     var all_values = [];
     tmp.forEach((item) => {
