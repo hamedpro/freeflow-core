@@ -81,7 +81,7 @@ export declare function request_new_transaction({ new_thing_creator, thing_id, d
 }): Promise<any>;
 export declare function request_new_thing({ value, unresolved_cache, restful_api_endpoint, current_profile, thing_privileges, }: {
     value: thing_base;
-    current_profile: profile;
+    current_profile: profile | undefined;
     unresolved_cache: cache;
     restful_api_endpoint: string;
     thing_privileges?: thing_privileges;

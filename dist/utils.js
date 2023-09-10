@@ -785,7 +785,7 @@ export function request_new_thing({ value, unresolved_cache, restful_api_endpoin
             new_thing_creator: () => value,
             thing_id: undefined,
             restful_api_endpoint,
-            jwt: current_profile.jwt,
+            jwt: current_profile === null || current_profile === void 0 ? void 0 : current_profile.jwt,
             unresolved_cache,
         });
         var meta_id = undefined;
@@ -795,10 +795,10 @@ export function request_new_thing({ value, unresolved_cache, restful_api_endpoin
                     type: "meta",
                     value: {
                         thing_privileges: thing_privileges || {
-                            read: [current_profile.user_id],
-                            write: [current_profile.user_id],
+                            read: [(current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0],
+                            write: [(current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0],
                         },
-                        modify_thing_privileges: current_profile.user_id,
+                        modify_thing_privileges: (current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0,
                         locks: [],
                         thing_id: thing_id,
                     },
