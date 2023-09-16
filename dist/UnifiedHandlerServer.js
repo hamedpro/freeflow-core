@@ -18,14 +18,12 @@ import { createServer as https_create_server } from "https";
 import { createServer as http_create_server } from "http";
 import nodemailer from "nodemailer";
 import rdiff from "recursive-diff";
-import AsyncLock from "async-lock";
 var { applyDiff, getDiff } = rdiff;
 import { readFileSync } from "fs";
 import { Server } from "socket.io";
 import path from "path";
 import { exit } from "process";
-import { UnifiedHandlerCore } from "./UnifiedHandlerCore.js";
-import { flexible_user_finder, rdiff_path_to_lock_path_format, reserved_value_is_used, validate_lock_structure, } from "./utils.js";
+import { calc_cache, calc_unresolved_cache, calc_user_discoverable_things, check_lock, extract_user_id, find_thing_meta, flexible_user_finder, new_transaction_privileges_check, rdiff_path_to_lock_path_format, reserved_value_is_used, thing_transactions, validate_lock_structure, } from "./utils.js";
 import { custom_find_unique } from "hamedpro-helpers";
 import { export_backup } from "./backup.js";
 import { sign_jwt } from "./client_side_incompatible_utils.js";
@@ -61,7 +59,7 @@ function custom_express_jwt_middleware(jwt_secret) {
 function gen_verification_code() {
     return Math.floor(100000 + Math.random() * 900000);
 }
-export class UnifiedHandlerServer extends UnifiedHandlerCore {
+export class UnifiedHandlerServer {
     get absolute_paths() {
         var tmp = { data_dir: path.join(os.homedir(), "./.freeflow_data") };
         tmp.uploads_dir = path.join(tmp.data_dir, "./uploads");
@@ -69,59 +67,51 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
         tmp.env_file = path.join(tmp.data_dir, "./env.json");
         return tmp;
     }
-    constructor() {
-        super();
-        this.websocket_clients = [];
-        this.lock = new AsyncLock();
-        this.gen_lock_safe_request_handler = (func) => (request, response) => __awaiter(this, void 0, void 0, function* () {
-            return this.lock.acquire("restful_request", (done) => __awaiter(this, void 0, void 0, function* () {
-                yield func(request, response);
-                done();
-            }));
-        });
-        mkdirSync(this.absolute_paths.uploads_dir, { recursive: true });
-        if (fs.existsSync(this.absolute_paths.store_file) !== true) {
-            fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify([], undefined, 4));
+    setup_websoket_api() {
+        var websocket_server;
+        if (this.use_https === true) {
+            if (this.https_cert_path === undefined || this.https_key_path === undefined) {
+                throw "use_https is ture but at least one of these is undefined : https_cert_path or https_key_path";
+            }
+            websocket_server = https_create_server({
+                key: readFileSync(this.https_key_path, "utf-8"),
+                cert: readFileSync(this.https_cert_path, "utf-8"),
+            });
         }
-        if (fs.existsSync(this.absolute_paths.env_file) !== true) {
-            console.log(`env.json does not exist here : ${this.absolute_paths.env_file}. create it with proper properties then try again`);
-            exit();
+        else {
+            websocket_server = http_create_server();
         }
-        var { websocket_api_port, restful_api_port, jwt_secret, email_address, email_password, use_https, https_cert_path, https_key_path, admin_password, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
-        this.jwt_secret = jwt_secret;
-        this.websocket_api_port = websocket_api_port;
-        this.restful_api_port = restful_api_port;
-        this.smtp_transport = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            auth: {
-                user: email_address,
-                pass: email_password,
+        var io = new Server(websocket_server, {
+            cors: {
+                origin: "*",
+                methods: ["GET", "POST"],
             },
         });
-        this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
-        this.onChange = () => {
-            for (var i of this.websocket_clients) {
-                this.sync_websocket_client(i);
-            }
-        };
-        this.restful_express_app = express();
+        io.on("connection", (socket) => {
+            this.add_socket(socket);
+        });
+        websocket_server.listen(this.websocket_api_port);
+        return websocket_server;
+    }
+    setup_rest_api() {
+        var restful_express_app = express();
         var restful_server;
-        if (use_https === true) {
-            if (https_cert_path === undefined || https_key_path === undefined) {
+        if (this.env.use_https === true) {
+            if (this.env.https_cert_path === undefined || this.env.https_key_path === undefined) {
                 throw "use_https is ture but at least one of these is undefined : https_cert_path or https_key_path";
             }
             restful_server = https_create_server({
-                key: readFileSync(https_key_path, "utf-8"),
-                cert: readFileSync(https_cert_path, "utf-8"),
-            }, this.restful_express_app);
+                key: readFileSync(this.env.https_key_path, "utf-8"),
+                cert: readFileSync(this.env.https_cert_path, "utf-8"),
+            }, restful_express_app);
         }
         else {
-            restful_server = http_create_server(this.restful_express_app);
+            restful_server = http_create_server(restful_express_app);
         }
-        this.restful_express_app.use(cors());
-        this.restful_express_app.use(express.json());
-        this.restful_express_app.use(custom_express_jwt_middleware(this.jwt_secret));
-        this.restful_express_app.post("/register", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
+        restful_express_app.use(cors());
+        restful_express_app.use(express.json());
+        restful_express_app.use(custom_express_jwt_middleware(this.jwt_secret));
+        restful_express_app.post("/register", (request, response) => __awaiter(this, void 0, void 0, function* () {
             var his_latest_verf_code = this.cache
                 .filter((ci) => ci.thing.type === "verification_code" &&
                 ci.thing.value.email === request.body.email_address
@@ -143,16 +133,17 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                             exp: Math.round(new Date().getTime() / 1000 +
                                 request.body.exp_duration),
                         }
-                        : undefined)), jwt_secret),
+                        : undefined)), this.env.jwt_secret),
                 });
             }
             else {
                 response.status(403).json("verf code not correct.");
                 return;
             }
-        })));
-        this.restful_express_app.post("/login", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
-            if (request.body.identifier === "-1" && request.body.value === admin_password) {
+        }));
+        restful_express_app.post("/login", (request, response) => __awaiter(this, void 0, void 0, function* () {
+            if (request.body.identifier === "-1" &&
+                request.body.value === this.env.admin_password) {
                 response.json({ jwt: sign_jwt(this.jwt_secret, undefined, { user_id: -1 }) });
                 return;
             }
@@ -204,8 +195,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                     return;
                 }
             }
-        })));
-        this.restful_express_app.post("/export_backup", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
+        }));
+        restful_express_app.post("/export_backup", (request, response) => __awaiter(this, void 0, void 0, function* () {
             var user_id = Number(response.locals.user_id);
             var { include_files, profile_seed } = request.body;
             var archive_name = yield export_backup({
@@ -223,8 +214,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                     throw err;
                 }
             });
-        })));
-        this.restful_express_app.post("/send_verification_code", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
+        }));
+        restful_express_app.post("/send_verification_code", (request, response) => __awaiter(this, void 0, void 0, function* () {
             var email_verf_code = this.new_verf_code(request.body.email_address);
             yield this.smtp_transport.sendMail({
                 to: request.body.email_address,
@@ -233,8 +224,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             });
             response.json("done");
             return;
-        })));
-        this.restful_express_app.post("/change_email", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
+        }));
+        restful_express_app.post("/change_email", (request, response) => __awaiter(this, void 0, void 0, function* () {
             if (typeof response.locals.user_id !== "number" ||
                 response.locals.user_id === 0 ||
                 response.locals.user_id === -1) {
@@ -252,13 +243,11 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                     response.json({});
                 }
                 else {
-                    response
-                        .status(403)
-                        .json("your email ownership could not be verified.");
+                    response.status(403).json("your email ownership could not be verified.");
                 }
             }
-        })));
-        this.restful_express_app.get("/files/:file_id", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
+        }));
+        restful_express_app.get("/files/:file_id", (request, response) => __awaiter(this, void 0, void 0, function* () {
             var assosiated_meta = this.cache.find((i) => i.thing.type === "meta" &&
                 "file_id" in i.thing.value &&
                 i.thing.value.file_id === Number(request.params.file_id));
@@ -278,8 +267,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             else {
                 response.status(400).json("couldnt find assosiated meta for this file_id");
             }
-        })));
-        this.restful_express_app.post("/files", this.gen_lock_safe_request_handler((request, response) => __awaiter(this, void 0, void 0, function* () {
+        }));
+        restful_express_app.post("/files", (request, response) => __awaiter(this, void 0, void 0, function* () {
             //saves the file with key = "file" inside sent form inside ./uploads directory
             //returns json : {file_id : string }
             //saved file name + extension is {file_id}-{original file name with extension }
@@ -327,8 +316,8 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 thing_id: undefined,
             });
             response.json({ new_file_id, meta_id_of_file });
-        })));
-        this.restful_express_app.post("/new_transaction", (request, response) => {
+        }));
+        restful_express_app.post("/new_transaction", (request, response) => {
             if (!("user_id" in response.locals) || response.locals.user_id === undefined) {
                 response
                     .status(403)
@@ -355,29 +344,62 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             }
         });
         restful_server.listen(this.restful_api_port);
-        var websocket_server;
-        if (use_https === true) {
-            if (https_cert_path === undefined || https_key_path === undefined) {
-                throw "use_https is ture but at least one of these is undefined : https_cert_path or https_key_path";
-            }
-            websocket_server = https_create_server({
-                key: readFileSync(https_key_path, "utf-8"),
-                cert: readFileSync(https_cert_path, "utf-8"),
-            });
+        return restful_server;
+    }
+    constructor() {
+        this.websocket_clients = [];
+        this.thing_transactions = (thing_id) => thing_transactions(this.transactions, thing_id);
+        this.find_first_transaction = (thing_id) => this.thing_transactions(thing_id)[0];
+        this.calc_user_discoverable_things = (user_id) => calc_user_discoverable_things(this.transactions, this.cache, user_id);
+        this.calc_user_discoverable_transactions = (user_id) => this.calc_user_discoverable_things(user_id)
+            .map((thing_id) => this.thing_transactions(thing_id))
+            .flat();
+        this.find_thing_meta = (thing_id) => find_thing_meta(this.cache, thing_id);
+        this.new_transaction_privileges_check = new_transaction_privileges_check;
+        this.extract_user_id = extract_user_id;
+        this.onChange = () => { };
+        this.transactions = [];
+        mkdirSync(this.absolute_paths.uploads_dir, { recursive: true });
+        if (fs.existsSync(this.absolute_paths.store_file) !== true) {
+            fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify([], undefined, 4));
         }
-        else {
-            websocket_server = http_create_server();
+        if (fs.existsSync(this.absolute_paths.env_file) !== true) {
+            console.log(`env.json does not exist here : ${this.absolute_paths.env_file}. create it with proper properties then try again`);
+            exit();
         }
-        var io = new Server(websocket_server, {
-            cors: {
-                origin: "*",
-                methods: ["GET", "POST"],
+        var { websocket_api_port, restful_api_port, jwt_secret, email_address, email_password, use_https, https_cert_path, https_key_path, admin_password, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
+        this.env = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
+        this.https_key_path = https_key_path;
+        this.https_cert_path = https_cert_path;
+        this.jwt_secret = jwt_secret;
+        this.websocket_api_port = websocket_api_port;
+        this.restful_api_port = restful_api_port;
+        this.use_https = use_https;
+        this.smtp_transport = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            auth: {
+                user: email_address,
+                pass: email_password,
             },
         });
-        io.on("connection", (socket) => {
-            this.add_socket(socket);
-        });
-        websocket_server.listen(this.websocket_api_port);
+        this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
+        this.onChange = () => {
+            for (var i of this.websocket_clients) {
+                this.sync_websocket_client(i);
+            }
+        };
+        this.websocket_api = this.setup_websoket_api();
+        this.restful_express_app = this.setup_rest_api();
+    }
+    time_travel(snapshot) {
+        this.time_travel_snapshot = snapshot;
+        this.onChange();
+    }
+    get cache() {
+        return calc_cache(this.transactions, this.time_travel_snapshot);
+    }
+    get unresolved_cache() {
+        return calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
     }
     new_verf_code(email) {
         var result = gen_verification_code();
@@ -477,7 +499,7 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
                 throw new Error("applying this transaction will make this thing (which is a thing meta) invalid. its locks will not follow locks standard format.");
             }
         }
-        if (this.check_lock({
+        if (check_lock({
             user_id,
             thing_id,
             cache: this.cache,
@@ -590,5 +612,45 @@ export class UnifiedHandlerServer extends UnifiedHandlerCore {
             new_websocket_client.cached_transaction_ids = transaction_ids;
             callback();
         });
+    }
+    calc_user_discoverable_files(user_id) {
+        var results = [];
+        this.cache.forEach((ci) => {
+            if (ci.thing.type === "meta" &&
+                "file_id" in ci.thing.value &&
+                "file_privileges" in ci.thing.value &&
+                (ci.thing.value.file_privileges.read === "*" ||
+                    ci.thing.value.file_privileges.read.includes(user_id))) {
+                results.push(ci.thing_id);
+            }
+        });
+        return results;
+    }
+    apply_max_sync_depth(transactions, max_sync_depth) {
+        if (max_sync_depth === undefined) {
+            return transactions;
+        }
+        var result = [];
+        custom_find_unique(transactions.map((tr) => tr.thing_id), undefined).forEach((unique_thing_id) => {
+            var clone = transactions.filter((tr) => tr.thing_id === unique_thing_id);
+            clone.reverse();
+            result.push(...clone.slice(0, max_sync_depth));
+        });
+        result.sort((tr1, tr2) => tr1.id - tr2.id);
+        return result;
+    }
+    find_user_private_data_id(user_id) {
+        var user = this.unresolved_cache.find((ci) => ci.thing_id === user_id);
+        if (user === undefined) {
+            throw "was trying to find usr private data : user could not be found";
+        }
+        else {
+            if (user.thing.type !== "user") {
+                throw "internal error. given user id doesnt belong a user";
+            }
+            else {
+                return Number(user.thing.value.password.split(":")[2]);
+            }
+        }
     }
 }

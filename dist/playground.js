@@ -1,3 +1,5 @@
-import { env_vars, sign_jwt } from "./client_side_incompatible_utils.js";
-var jwt = sign_jwt(env_vars().jwt_secret, undefined, { user_id: -1 });
-console.log(jwt);
+import { UnifiedHandlerServer } from "./UnifiedHandlerServer";
+var uhs = new UnifiedHandlerServer();
+console.log(uhs.cache.length);
+uhs.websocket_api.close();
+uhs.restful_express_app.close();
