@@ -7,59 +7,57 @@ export type stats = {
 	[stat_title: string]: {
 		x_title?: string;
 		y_title?: string;
-		snapshots: snapshot[];
+		xs: number[];
+		ys: number[];
 	};
 };
-export var stats: stats = {
-	new_transaction: {
-		x_title: "current transactions count",
-		y_title: "new_transaction time",
-		snapshots: [],
-	},
-};
-export class performance_profile {
-	store_path = path.join(homedir(), "stats.json");
-	xs: number[] = [];
-	ys: number[] = [];
-	stat_title: string;
-	x_title?: string;
-	y_title?: string;
-	tmp_timestamp: number = 0;
+export class point {
+	identifier: string;
+	tmp_timestamp?: number;
+	duration?: number;
+	perf_profiler: perf_profiler;
+	x: number;
+	constructor(perf_profiler: perf_profiler, identifier: string, x: number) {
+		this.identifier = identifier;
+		this.perf_profiler = perf_profiler;
+		this.x = x;
+	}
+	start() {
+		this.tmp_timestamp = performance.now();
+	}
+	end() {
+		if (this.tmp_timestamp === undefined) throw "this point has not started yet";
+		this.duration = performance.now() - this.tmp_timestamp;
 
-	constructor(stat_title: string, x_title?: string, y_title?: string) {
+		this.perf_profiler.stats[this.identifier].xs.push(this.x);
+		this.perf_profiler.stats[this.identifier].ys.push(this.duration);
+		console.log(`new point was pushed => x : ${this.x}, y : ${this.duration}`);
+	}
+}
+export class perf_profiler {
+	store_path = path.join(homedir(), "stats.json");
+	tmp_timestamp: number = 0;
+	stats: stats;
+	constructor() {
 		if (existsSync(this.store_path) === false) {
 			writeFileSync(this.store_path, JSON.stringify({}));
 		}
-		this.stat_title = stat_title;
-		this.x_title = x_title;
-		this.y_title = y_title;
+		this.stats = JSON.parse(readFileSync(this.store_path, "utf-8"));
 	}
-	commit() {
-		var stats: stats = JSON.parse(readFileSync(this.store_path, "utf-8"));
-		if (Object.keys(stats).includes(this.stat_title) === false) {
-			stats[this.stat_title] = {
-				x_title: this.x_title,
-				y_title: this.y_title,
-				snapshots: [],
+	init_new_stat(identifier: string, x_title: string, y_title: string) {
+		if (Object.keys(this.stats).includes(identifier) === false) {
+			this.stats[identifier] = {
+				x_title: x_title,
+				y_title: y_title,
+				xs: [],
+				ys: [],
 			};
 		}
-		stats[this.stat_title].snapshots.push({
-			xs: this.xs,
-			ys: this.ys,
-			time: new Date().getTime(),
-		});
-		writeFileSync(this.store_path, JSON.stringify(stats));
 	}
-	new_point(x: number, y: number) {
-		this.xs.push(x);
-		this.ys.push(y);
+	commit() {
+		writeFileSync(this.store_path, JSON.stringify(this.stats));
 	}
-	start_point(x: number) {
-		this.xs.push(x);
-		this.tmp_timestamp = performance.now();
-	}
-	end_point() {
-		this.ys.push(performance.now() - this.tmp_timestamp);
-		console.log(`point was added => x : ${this.xs.at(-1)}, y : ${this.ys.at(-1)}`);
+	new_point(identifier: string, x: number) {
+		return new point(this, identifier, x);
 	}
 }
