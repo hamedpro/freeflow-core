@@ -17,6 +17,7 @@ export class point {
 	duration?: number;
 	perf_profiler: perf_profiler;
 	x: number;
+	auto_commit: boolean = false;
 	constructor(perf_profiler: perf_profiler, identifier: string, x: number) {
 		this.identifier = identifier;
 		this.perf_profiler = perf_profiler;
@@ -32,6 +33,7 @@ export class point {
 		this.perf_profiler.stats[this.identifier].xs.push(this.x);
 		this.perf_profiler.stats[this.identifier].ys.push(this.duration);
 		console.log(`new point was pushed => x : ${this.x}, y : ${this.duration}`);
+		if (this.auto_commit === true) this.perf_profiler.commit();
 	}
 }
 export class perf_profiler {

@@ -5,7 +5,9 @@ import { createServer as http_create_server } from "http";
 import nodemailer from "nodemailer";
 import { cache_item, env, profile, profile_seed, core_thing, transaction, verification_code, websocket_client, time_travel_snapshot } from "./UnifiedHandler_types.js";
 import { extract_user_id, new_transaction_privileges_check } from "./utils.js";
+import { perf_profiler } from "./performance_profiler.js";
 export declare class UnifiedHandlerServer {
+    profiler: perf_profiler;
     websocket_api: ReturnType<typeof https_create_server> | ReturnType<typeof http_create_server>;
     websocket_clients: websocket_client[];
     restful_express_app: ReturnType<typeof https_create_server> | ReturnType<typeof http_create_server>;
@@ -27,8 +29,9 @@ export declare class UnifiedHandlerServer {
     setup_rest_api(): import("https").Server<typeof import("http").IncomingMessage, typeof import("http").ServerResponse> | import("http").Server<typeof import("http").IncomingMessage, typeof import("http").ServerResponse>;
     constructor();
     time_travel_snapshot: time_travel_snapshot;
+    reload_store(): void;
     time_travel(snapshot: time_travel_snapshot): void;
-    get cache(): cache_item[];
+    cache: cache_item[];
     get unresolved_cache(): import("./UnifiedHandler_types.js").cache;
     new_verf_code(email: string): number;
     new_user(email_address: string): number;
@@ -54,4 +57,5 @@ export declare class UnifiedHandlerServer {
     onChange: () => void;
     find_user_private_data_id(user_id: number): number;
     transactions: transaction[];
+    reset_but_env(): void;
 }

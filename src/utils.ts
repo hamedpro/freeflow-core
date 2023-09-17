@@ -175,9 +175,9 @@ export function new_transaction_privileges_check(
 	user_id: number,
 	thing_id: number | undefined,
 	transactions: transaction[],
-	transaction_diff: rdiff.rdiffResult[]
+	transaction_diff: rdiff.rdiffResult[],
+	cache : cache 
 ): boolean {
-	var cache = calc_cache(transactions, undefined);
 	/* returns whether the user has privilege of doing specified "job" to that thing */
 	if (user_id === -1) return true; /* task is being done by system */
 

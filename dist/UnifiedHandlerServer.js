@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import cors from "cors";
 import formidable from "formidable";
 import jwt_module from "jsonwebtoken";
@@ -19,7 +10,7 @@ import { createServer as http_create_server } from "http";
 import nodemailer from "nodemailer";
 import rdiff from "recursive-diff";
 var { applyDiff, getDiff } = rdiff;
-import { readFileSync } from "fs";
+import { readFileSync, rmSync } from "fs";
 import { Server } from "socket.io";
 import path from "path";
 import { exit } from "process";
@@ -27,6 +18,7 @@ import { calc_cache, calc_unresolved_cache, calc_user_discoverable_things, check
 import { custom_find_unique } from "hamedpro-helpers";
 import { export_backup } from "./backup.js";
 import { sign_jwt } from "./client_side_incompatible_utils.js";
+import { perf_profiler } from "./performance_profiler.js";
 function custom_express_jwt_middleware(jwt_secret) {
     return (request, response, next) => {
         if (("headers" in request && "jwt" in request.headers) || "jwt" in request.query) {
@@ -111,7 +103,7 @@ export class UnifiedHandlerServer {
         restful_express_app.use(cors());
         restful_express_app.use(express.json());
         restful_express_app.use(custom_express_jwt_middleware(this.jwt_secret));
-        restful_express_app.post("/register", (request, response) => __awaiter(this, void 0, void 0, function* () {
+        restful_express_app.post("/register", async (request, response) => {
             var his_latest_verf_code = this.cache
                 .filter((ci) => ci.thing.type === "verification_code" &&
                 ci.thing.value.email === request.body.email_address
@@ -140,8 +132,8 @@ export class UnifiedHandlerServer {
                 response.status(403).json("verf code not correct.");
                 return;
             }
-        }));
-        restful_express_app.post("/login", (request, response) => __awaiter(this, void 0, void 0, function* () {
+        });
+        restful_express_app.post("/login", async (request, response) => {
             if (request.body.identifier === "-1" &&
                 request.body.value === this.env.admin_password) {
                 response.json({ jwt: sign_jwt(this.jwt_secret, undefined, { user_id: -1 }) });
@@ -195,11 +187,11 @@ export class UnifiedHandlerServer {
                     return;
                 }
             }
-        }));
-        restful_express_app.post("/export_backup", (request, response) => __awaiter(this, void 0, void 0, function* () {
+        });
+        restful_express_app.post("/export_backup", async (request, response) => {
             var user_id = Number(response.locals.user_id);
             var { include_files, profile_seed } = request.body;
-            var archive_name = yield export_backup({
+            var archive_name = await export_backup({
                 all_transactions: this.calc_all_discoverable_transactions([
                     this.calc_profile(profile_seed, undefined),
                 ]),
@@ -214,18 +206,18 @@ export class UnifiedHandlerServer {
                     throw err;
                 }
             });
-        }));
-        restful_express_app.post("/send_verification_code", (request, response) => __awaiter(this, void 0, void 0, function* () {
+        });
+        restful_express_app.post("/send_verification_code", async (request, response) => {
             var email_verf_code = this.new_verf_code(request.body.email_address);
-            yield this.smtp_transport.sendMail({
+            await this.smtp_transport.sendMail({
                 to: request.body.email_address,
                 subject: "FreeFlow verification code",
                 text: `your verification code is ${email_verf_code}`,
             });
             response.json("done");
             return;
-        }));
-        restful_express_app.post("/change_email", (request, response) => __awaiter(this, void 0, void 0, function* () {
+        });
+        restful_express_app.post("/change_email", async (request, response) => {
             if (typeof response.locals.user_id !== "number" ||
                 response.locals.user_id === 0 ||
                 response.locals.user_id === -1) {
@@ -246,8 +238,8 @@ export class UnifiedHandlerServer {
                     response.status(403).json("your email ownership could not be verified.");
                 }
             }
-        }));
-        restful_express_app.get("/files/:file_id", (request, response) => __awaiter(this, void 0, void 0, function* () {
+        });
+        restful_express_app.get("/files/:file_id", async (request, response) => {
             var assosiated_meta = this.cache.find((i) => i.thing.type === "meta" &&
                 "file_id" in i.thing.value &&
                 i.thing.value.file_id === Number(request.params.file_id));
@@ -267,8 +259,8 @@ export class UnifiedHandlerServer {
             else {
                 response.status(400).json("couldnt find assosiated meta for this file_id");
             }
-        }));
-        restful_express_app.post("/files", (request, response) => __awaiter(this, void 0, void 0, function* () {
+        });
+        restful_express_app.post("/files", async (request, response) => {
             //saves the file with key = "file" inside sent form inside ./uploads directory
             //returns json : {file_id : string }
             //saved file name + extension is {file_id}-{original file name with extension }
@@ -276,7 +268,7 @@ export class UnifiedHandlerServer {
                 response.status(403).json("jwt is not provided in request's headers");
                 return;
             }
-            var { new_file_id, file_mime_type, originalFilename, file_privileges } = yield new Promise((resolve, reject) => {
+            var { new_file_id, file_mime_type, originalFilename, file_privileges } = await new Promise((resolve, reject) => {
                 var f = formidable({
                     uploadDir: path.resolve(this.absolute_paths.uploads_dir),
                 });
@@ -316,7 +308,7 @@ export class UnifiedHandlerServer {
                 thing_id: undefined,
             });
             response.json({ new_file_id, meta_id_of_file });
-        }));
+        });
         restful_express_app.post("/new_transaction", (request, response) => {
             if (!("user_id" in response.locals) || response.locals.user_id === undefined) {
                 response
@@ -347,6 +339,7 @@ export class UnifiedHandlerServer {
         return restful_server;
     }
     constructor() {
+        this.profiler = new perf_profiler();
         this.websocket_clients = [];
         this.thing_transactions = (thing_id) => thing_transactions(this.transactions, thing_id);
         this.find_first_transaction = (thing_id) => this.thing_transactions(thing_id)[0];
@@ -365,7 +358,7 @@ export class UnifiedHandlerServer {
         }
         if (fs.existsSync(this.absolute_paths.env_file) !== true) {
             console.log(`env.json does not exist here : ${this.absolute_paths.env_file}. create it with proper properties then try again`);
-            exit();
+            exit(1);
         }
         var { websocket_api_port, restful_api_port, jwt_secret, email_address, email_password, use_https, https_cert_path, https_key_path, admin_password, } = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
         this.env = JSON.parse(fs.readFileSync(this.absolute_paths.env_file, "utf-8"));
@@ -382,21 +375,25 @@ export class UnifiedHandlerServer {
                 pass: email_password,
             },
         });
-        this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
+        this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
+        this.reload_store();
         this.onChange = () => {
             for (var i of this.websocket_clients) {
                 this.sync_websocket_client(i);
             }
+            //update cache prop
+            this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
         };
         this.websocket_api = this.setup_websoket_api();
         this.restful_express_app = this.setup_rest_api();
     }
+    reload_store() {
+        this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
+        this.onChange();
+    }
     time_travel(snapshot) {
         this.time_travel_snapshot = snapshot;
         this.onChange();
-    }
-    get cache() {
-        return calc_cache(this.transactions, this.time_travel_snapshot);
     }
     get unresolved_cache() {
         return calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
@@ -478,7 +475,10 @@ export class UnifiedHandlerServer {
         return new_user_id;
     }
     new_transaction({ new_thing_creator, thing_id, user_id, }) {
-        console.time("all_new_tr");
+        this.profiler.init_new_stat("all_new_tr", "trs count", "time spent");
+        var point = this.profiler.new_point("all_new_tr", this.transactions.length);
+        point.auto_commit = true;
+        point.start();
         var thing = typeof thing_id === "undefined"
             ? {}
             : this.unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
@@ -490,7 +490,7 @@ export class UnifiedHandlerServer {
             thing_id === undefined) {
             throw "rejected : a new meta is going to be created for something that doesnt even exist!";
         }
-        if (this.new_transaction_privileges_check(user_id, thing_id, this.transactions, transaction_diff) !== true) {
+        if (this.new_transaction_privileges_check(user_id, thing_id, this.transactions, transaction_diff, this.cache) !== true) {
             throw new Error("access denied. required privileges to insert new transaction were not met" +
                 ` user ${user_id} wanted to modify thing : ${thing_id || "undefined"}`);
         }
@@ -519,10 +519,8 @@ export class UnifiedHandlerServer {
         }
         this.transactions.push(transaction);
         fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
-        console.time("onchange");
-        this.onChange();
-        console.timeEnd("onchange");
-        console.timeEnd("all_new_tr");
+        //this.onChange();
+        point.end();
         return transaction.thing_id;
     }
     calc_profile(profile_seed, transaction_limit) {
@@ -652,5 +650,13 @@ export class UnifiedHandlerServer {
                 return Number(user.thing.value.password.split(":")[2]);
             }
         }
+    }
+    reset_but_env() {
+        //resets store.json and uploads dir to empty
+        //init is done in constructor so there's no need to check any existance
+        rmSync(this.absolute_paths.uploads_dir, { recursive: true, force: true });
+        mkdirSync(this.absolute_paths.uploads_dir, { recursive: true });
+        fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify([]));
+        this.reload_store();
     }
 }

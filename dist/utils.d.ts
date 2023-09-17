@@ -14,7 +14,7 @@ export declare function check_lock({ user_id, thing_id, cache, paths, }: {
     paths: string[][];
 }): boolean;
 export declare function calc_user_discoverable_things(transactions: transaction[], cache: cache, user_id: number): number[];
-export declare function new_transaction_privileges_check(user_id: number, thing_id: number | undefined, transactions: transaction[], transaction_diff: rdiff.rdiffResult[]): boolean;
+export declare function new_transaction_privileges_check(user_id: number, thing_id: number | undefined, transactions: transaction[], transaction_diff: rdiff.rdiffResult[], cache: cache): boolean;
 export declare function resolve_thing(transactions: transaction[], thing_id: number, snapshot: time_travel_snapshot): core_thing;
 export declare function calc_cache(transactions: transaction[], snapshot: time_travel_snapshot): cache;
 export declare function calc_unresolved_cache(transactions: transaction[], snapshot: time_travel_snapshot): cache;

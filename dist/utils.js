@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import rdiff from "recursive-diff";
 import { custom_find_unique } from "hamedpro-helpers";
 import jwtDecode from "jwt-decode";
@@ -131,8 +122,7 @@ export function calc_user_discoverable_things(transactions, cache, user_id) {
     })
         .map((i) => i.thing_id);
 }
-export function new_transaction_privileges_check(user_id, thing_id, transactions, transaction_diff) {
-    var cache = calc_cache(transactions, undefined);
+export function new_transaction_privileges_check(user_id, thing_id, transactions, transaction_diff, cache) {
     /* returns whether the user has privilege of doing specified "job" to that thing */
     if (user_id === -1)
         return true; /* task is being done by system */
@@ -724,11 +714,9 @@ export function create_configured_axios({ restful_api_endpoint, jwt, }) {
 export function sync_profiles_seed(websocket, profiles_seed) {
     websocket.emit("sync_profiles_seed", profiles_seed);
 }
-export function sync_cache(websocket, all_transactions) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return new Promise((resolve) => {
-            websocket.emit("sync_cache", all_transactions.map((tr) => tr.id), resolve);
-        });
+export async function sync_cache(websocket, all_transactions) {
+    return new Promise((resolve) => {
+        websocket.emit("sync_cache", all_transactions.map((tr) => tr.id), resolve);
     });
 }
 export function user_discoverable_transactions(profiles, all_transactions) {
@@ -755,61 +743,57 @@ export function current_user(cache, profiles_seed) {
         return undefined;
     }
 }
-export function request_new_transaction({ new_thing_creator, thing_id, diff, unresolved_cache, restful_api_endpoint, jwt, }) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if ((new_thing_creator === undefined && diff === undefined) ||
-            (new_thing_creator !== undefined && diff !== undefined)) {
-            throw "only one of these must be not undefined : `new_thing_creator` or `diff`";
-        }
-        var data = { thing_id };
-        if (new_thing_creator === undefined && diff !== undefined) {
-            data.diff = diff;
-        }
-        if (diff === undefined && new_thing_creator !== undefined) {
-            var thing = thing_id === undefined
-                ? {}
-                : unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
-            data.diff = rdiff.getDiff(thing, new_thing_creator(JSON.parse(JSON.stringify(thing))));
-        }
-        var response = yield create_configured_axios({ restful_api_endpoint, jwt })({
-            data,
-            method: "post",
-            url: "/new_transaction",
-        });
-        return response.data;
+export async function request_new_transaction({ new_thing_creator, thing_id, diff, unresolved_cache, restful_api_endpoint, jwt, }) {
+    if ((new_thing_creator === undefined && diff === undefined) ||
+        (new_thing_creator !== undefined && diff !== undefined)) {
+        throw "only one of these must be not undefined : `new_thing_creator` or `diff`";
+    }
+    var data = { thing_id };
+    if (new_thing_creator === undefined && diff !== undefined) {
+        data.diff = diff;
+    }
+    if (diff === undefined && new_thing_creator !== undefined) {
+        var thing = thing_id === undefined
+            ? {}
+            : unresolved_cache.filter((i) => i.thing_id === thing_id)[0].thing;
+        data.diff = rdiff.getDiff(thing, new_thing_creator(JSON.parse(JSON.stringify(thing))));
+    }
+    var response = await create_configured_axios({ restful_api_endpoint, jwt })({
+        data,
+        method: "post",
+        url: "/new_transaction",
     });
+    return response.data;
 }
-export function request_new_thing({ value, unresolved_cache, restful_api_endpoint, current_profile, thing_privileges, }) {
-    return __awaiter(this, void 0, void 0, function* () {
-        var thing_id = yield request_new_transaction({
-            new_thing_creator: () => value,
-            thing_id: undefined,
-            restful_api_endpoint,
-            jwt: current_profile === null || current_profile === void 0 ? void 0 : current_profile.jwt,
-            unresolved_cache,
-        });
-        var meta_id = undefined;
-        if (value.type !== "meta") {
-            meta_id = (yield request_new_thing({
-                value: {
-                    type: "meta",
-                    value: {
-                        thing_privileges: thing_privileges || {
-                            read: [(current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0],
-                            write: [(current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0],
-                        },
-                        modify_thing_privileges: (current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0,
-                        locks: [],
-                        thing_id: thing_id,
-                    },
-                },
-                current_profile,
-                unresolved_cache,
-                restful_api_endpoint,
-            })).thing_id;
-        }
-        return { thing_id, meta_id };
+export async function request_new_thing({ value, unresolved_cache, restful_api_endpoint, current_profile, thing_privileges, }) {
+    var thing_id = await request_new_transaction({
+        new_thing_creator: () => value,
+        thing_id: undefined,
+        restful_api_endpoint,
+        jwt: current_profile === null || current_profile === void 0 ? void 0 : current_profile.jwt,
+        unresolved_cache,
     });
+    var meta_id = undefined;
+    if (value.type !== "meta") {
+        meta_id = (await request_new_thing({
+            value: {
+                type: "meta",
+                value: {
+                    thing_privileges: thing_privileges || {
+                        read: [(current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0],
+                        write: [(current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0],
+                    },
+                    modify_thing_privileges: (current_profile === null || current_profile === void 0 ? void 0 : current_profile.user_id) || 0,
+                    locks: [],
+                    thing_id: thing_id,
+                },
+            },
+            current_profile,
+            unresolved_cache,
+            restful_api_endpoint,
+        })).thing_id;
+    }
+    return { thing_id, meta_id };
 }
 export function calc_file_url(profiles_seed, rest_endpoint, file_id) {
     var _a;

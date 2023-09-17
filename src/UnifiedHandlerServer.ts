@@ -44,6 +44,7 @@ import {
 import { custom_find_unique } from "hamedpro-helpers";
 import { export_backup } from "./backup.js";
 import { sign_jwt } from "./client_side_incompatible_utils.js";
+import { perf_profiler } from "./performance_profiler.js";
 function custom_express_jwt_middleware(jwt_secret: string) {
 	return (request: any, response: any, next: any) => {
 		if (("headers" in request && "jwt" in request.headers) || "jwt" in request.query) {
@@ -78,6 +79,7 @@ function gen_verification_code() {
 }
 
 export class UnifiedHandlerServer {
+	profiler: perf_profiler = new perf_profiler();
 	websocket_api: ReturnType<typeof https_create_server> | ReturnType<typeof http_create_server>;
 	websocket_clients: websocket_client[] = [];
 	restful_express_app:
@@ -542,27 +544,29 @@ export class UnifiedHandlerServer {
 				pass: email_password,
 			},
 		});
+		this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
 		this.reload_store();
+		this.onChange = () => {
+			for (var i of this.websocket_clients) {
+				this.sync_websocket_client(i);
+			}
+
+			//update cache prop
+			this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
+		};
 		this.websocket_api = this.setup_websoket_api();
 		this.restful_express_app = this.setup_rest_api();
 	}
 	time_travel_snapshot: time_travel_snapshot;
 	reload_store() {
 		this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
-
-		this.onChange = () => {
-			for (var i of this.websocket_clients) {
-				this.sync_websocket_client(i);
-			}
-		};
+		this.onChange();
 	}
 	time_travel(snapshot: time_travel_snapshot) {
 		this.time_travel_snapshot = snapshot;
 		this.onChange();
 	}
-	get cache(): cache_item[] {
-		return calc_cache(this.transactions, this.time_travel_snapshot);
-	}
+	cache: cache_item[];
 	get unresolved_cache() {
 		return calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
 	}
@@ -666,6 +670,10 @@ export class UnifiedHandlerServer {
 			is done by system itself.
 		*/
 	}): number {
+		this.profiler.init_new_stat("all_new_tr", "trs count", "time spent");
+		var point = this.profiler.new_point("all_new_tr", this.transactions.length);
+		point.auto_commit = true;
+		point.start();
 		var thing: ThingType | {} =
 			typeof thing_id === "undefined"
 				? {}
@@ -686,7 +694,8 @@ export class UnifiedHandlerServer {
 				user_id,
 				thing_id,
 				this.transactions,
-				transaction_diff
+				transaction_diff,
+				this.cache
 			) !== true
 		) {
 			throw new Error(
@@ -729,9 +738,11 @@ export class UnifiedHandlerServer {
 			);
 		}
 		this.transactions.push(transaction);
+
 		fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
 
 		this.onChange();
+		point.end();
 		return transaction.thing_id;
 	}
 
