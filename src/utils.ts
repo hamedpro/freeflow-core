@@ -176,7 +176,7 @@ export function new_transaction_privileges_check(
 	thing_id: number | undefined,
 	transactions: transaction[],
 	transaction_diff: rdiff.rdiffResult[],
-	cache : cache 
+	cache: cache
 ): boolean {
 	/* returns whether the user has privilege of doing specified "job" to that thing */
 	if (user_id === -1) return true; /* task is being done by system */
@@ -372,45 +372,36 @@ export function calc_cache(transactions: transaction[], snapshot: time_travel_sn
 
 	return resolved_cache;
 }
+export function snapshot_filtered(transactions: transaction[], snapshot: time_travel_snapshot) {
+	return transactions.filter((i) => {
+		if (snapshot === undefined) {
+			return true;
+		} else if (snapshot.type === "timestamp") {
+			return i.time <= snapshot.value;
+		} else if (snapshot.type === "transaction_id") {
+			return i.id <= snapshot.value;
+		}
+	});
+}
 export function calc_unresolved_cache(
 	transactions: transaction[],
 	snapshot: time_travel_snapshot
 ): cache {
 	/* calculating unresolved cache  */
+	var tmp = snapshot_filtered(transactions, snapshot);
 	return custom_find_unique(
-		transactions
-			.filter((i) => {
-				if (snapshot === undefined) {
-					return true;
-				} else if (snapshot.type === "timestamp") {
-					return i.time <= snapshot.value;
-				} else if (snapshot.type === "transaction_id") {
-					return i.id <= snapshot.value;
-				}
-			})
-			.map((i) => i.thing_id),
+		tmp.map((tr) => tr.thing_id),
 		undefined
-	).map((thing_id: number) => calc_unresolved_thing(transactions, thing_id, snapshot));
+	).map((thing_id: number) =>
+		calc_unresolved_thing(tmp.filter((tr) => tr.thing_id === thing_id))
+	);
 }
-export function calc_unresolved_thing(
-	transactions: transaction[],
-	thing_id: number,
-	snapshot: time_travel_snapshot
-): cache_item<any> {
-	var cache_item = { thing_id, thing: {} };
-	for (var transaction of transactions.filter((i) => {
-		if (i.thing_id === thing_id) {
-			if (snapshot === undefined) {
-				return true;
-			} else if (snapshot.type === "timestamp") {
-				return i.time <= snapshot.value;
-			} else if (snapshot.type === "transaction_id") {
-				return i.id <= snapshot.value;
-			}
-		} else {
-			return false;
-		}
-	})) {
+
+export function calc_unresolved_thing(transactions: transaction[]): cache_item<any> {
+	//transactions.length must not be 0
+	//transactions must belong to a single thing and they must be snapshot applied
+	var cache_item = { thing_id: transactions[0].thing_id, thing: {} };
+	for (var transaction of transactions) {
 		rdiff.applyDiff(cache_item.thing, custom_deepcopy(transaction.diff));
 	}
 	return cache_item;
@@ -499,18 +490,28 @@ export function calc_complete_transaction_diff(
 	if (
 		transactions.find((tr) => tr.thing_id === thing_id && tr.id < transaction_id) !== undefined
 	) {
-		thing_before_change = calc_unresolved_thing(transactions, thing_id, {
-			type: "transaction_id",
-			value: transaction_id - 1,
-		}).thing;
+		thing_before_change = calc_unresolved_thing(
+			snapshot_filtered(
+				transactions.filter((tr) => tr.thing_id === thing_id),
+				{
+					type: "transaction_id",
+					value: transaction_id - 1,
+				}
+			)
+		).thing;
 	} else {
 		thing_before_change = undefined;
 	}
 
-	var thing_after_change = calc_unresolved_thing(transactions, thing_id, {
-		value: transaction_id,
-		type: "transaction_id",
-	}).thing;
+	var thing_after_change = calc_unresolved_thing(
+		snapshot_filtered(
+			transactions.filter((tr) => tr.thing_id === thing_id),
+			{
+				type: "transaction_id",
+				value: transaction_id,
+			}
+		)
+	).thing;
 
 	return custom_find_unique(
 		[...calc_all_paths(thing_before_change), ...calc_all_paths(thing_after_change)],
@@ -621,16 +622,26 @@ export class TransactionInterpreter implements TransactionInterpreterTypes {
 		this.tr = t;
 	}
 	get cache_item_before_change() {
-		return calc_unresolved_thing(this.transactions, this.tr.thing_id, {
-			value: this.tr.id - 1,
-			type: "transaction_id",
-		});
+		return calc_unresolved_thing(
+			snapshot_filtered(
+				this.transactions.filter((tr) => tr.thing_id === this.tr.thing_id),
+				{
+					value: this.tr.id - 1,
+					type: "transaction_id",
+				}
+			)
+		);
 	}
 	get cache_item_after_change() {
-		return calc_unresolved_thing(this.transactions, this.tr.thing_id, {
-			value: this.tr.id,
-			type: "transaction_id",
-		});
+		return calc_unresolved_thing(
+			snapshot_filtered(
+				this.transactions.filter((tr) => tr.thing_id === this.tr.thing_id),
+				{
+					value: this.tr.id,
+					type: "transaction_id",
+				}
+			)
+		);
 	}
 	find_change(...path: string[]) {
 		var t = calc_complete_transaction_diff(this.transactions, this.tr.id).filter(

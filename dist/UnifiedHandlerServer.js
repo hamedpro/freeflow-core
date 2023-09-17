@@ -375,14 +375,16 @@ export class UnifiedHandlerServer {
                 pass: email_password,
             },
         });
+        this.unresolved_cache = calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
         this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
         this.reload_store();
         this.onChange = () => {
             for (var i of this.websocket_clients) {
                 this.sync_websocket_client(i);
             }
-            //update cache prop
+            //update caches props
             this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
+            this.unresolved_cache = calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
         };
         this.websocket_api = this.setup_websoket_api();
         this.restful_express_app = this.setup_rest_api();
@@ -394,9 +396,6 @@ export class UnifiedHandlerServer {
     time_travel(snapshot) {
         this.time_travel_snapshot = snapshot;
         this.onChange();
-    }
-    get unresolved_cache() {
-        return calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
     }
     new_verf_code(email) {
         var result = gen_verification_code();
@@ -519,7 +518,7 @@ export class UnifiedHandlerServer {
         }
         this.transactions.push(transaction);
         fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
-        //this.onChange();
+        this.onChange();
         point.end();
         return transaction.thing_id;
     }

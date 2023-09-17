@@ -3,7 +3,7 @@
 import { createServer as https_create_server } from "https";
 import { createServer as http_create_server } from "http";
 import nodemailer from "nodemailer";
-import { cache_item, env, profile, profile_seed, core_thing, transaction, verification_code, websocket_client, time_travel_snapshot } from "./UnifiedHandler_types.js";
+import { cache_item, env, profile, profile_seed, core_thing, transaction, verification_code, websocket_client, time_travel_snapshot, cache } from "./UnifiedHandler_types.js";
 import { extract_user_id, new_transaction_privileges_check } from "./utils.js";
 import { perf_profiler } from "./performance_profiler.js";
 export declare class UnifiedHandlerServer {
@@ -31,8 +31,8 @@ export declare class UnifiedHandlerServer {
     time_travel_snapshot: time_travel_snapshot;
     reload_store(): void;
     time_travel(snapshot: time_travel_snapshot): void;
-    cache: cache_item[];
-    get unresolved_cache(): import("./UnifiedHandler_types.js").cache;
+    cache: cache;
+    unresolved_cache: cache;
     new_verf_code(email: string): number;
     new_user(email_address: string): number;
     new_transaction<ThingType extends core_thing, ThingId extends number | undefined>({ new_thing_creator, thing_id, user_id, }: {

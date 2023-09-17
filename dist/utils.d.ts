@@ -17,8 +17,9 @@ export declare function calc_user_discoverable_things(transactions: transaction[
 export declare function new_transaction_privileges_check(user_id: number, thing_id: number | undefined, transactions: transaction[], transaction_diff: rdiff.rdiffResult[], cache: cache): boolean;
 export declare function resolve_thing(transactions: transaction[], thing_id: number, snapshot: time_travel_snapshot): core_thing;
 export declare function calc_cache(transactions: transaction[], snapshot: time_travel_snapshot): cache;
+export declare function snapshot_filtered(transactions: transaction[], snapshot: time_travel_snapshot): transaction[];
 export declare function calc_unresolved_cache(transactions: transaction[], snapshot: time_travel_snapshot): cache;
-export declare function calc_unresolved_thing(transactions: transaction[], thing_id: number, snapshot: time_travel_snapshot): cache_item<any>;
+export declare function calc_unresolved_thing(transactions: transaction[]): cache_item<any>;
 export declare function rdiff_path_to_lock_path_format(rdiff_path: rdiff.rdiffResult["path"]): string[];
 export declare function simple_arrays_are_identical(array1: (string | number)[], array2: (string | number)[]): boolean;
 export declare function extract_user_id(jwt: string): number;

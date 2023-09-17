@@ -25,6 +25,7 @@ import {
 	verification_code,
 	websocket_client,
 	time_travel_snapshot,
+	cache,
 } from "./UnifiedHandler_types.js";
 import { exit } from "process";
 import {
@@ -544,6 +545,7 @@ export class UnifiedHandlerServer {
 				pass: email_password,
 			},
 		});
+		this.unresolved_cache = calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
 		this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
 		this.reload_store();
 		this.onChange = () => {
@@ -551,8 +553,12 @@ export class UnifiedHandlerServer {
 				this.sync_websocket_client(i);
 			}
 
-			//update cache prop
+			//update caches props
 			this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
+			this.unresolved_cache = calc_unresolved_cache(
+				this.transactions,
+				this.time_travel_snapshot
+			);
 		};
 		this.websocket_api = this.setup_websoket_api();
 		this.restful_express_app = this.setup_rest_api();
@@ -566,10 +572,8 @@ export class UnifiedHandlerServer {
 		this.time_travel_snapshot = snapshot;
 		this.onChange();
 	}
-	cache: cache_item[];
-	get unresolved_cache() {
-		return calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
-	}
+	cache: cache;
+	unresolved_cache: cache;
 	new_verf_code(email: string): number {
 		var result = gen_verification_code();
 		this.new_transaction({
