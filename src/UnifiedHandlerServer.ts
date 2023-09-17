@@ -11,7 +11,7 @@ import nodemailer from "nodemailer";
 import rdiff from "recursive-diff";
 import AsyncLock from "async-lock";
 var { applyDiff, getDiff } = rdiff;
-import { readFileSync } from "fs";
+import { readFileSync, rmSync } from "fs";
 import { Server, Socket } from "socket.io";
 import path from "path";
 import {
@@ -514,7 +514,7 @@ export class UnifiedHandlerServer {
 			console.log(
 				`env.json does not exist here : ${this.absolute_paths.env_file}. create it with proper properties then try again`
 			);
-			exit();
+			exit(1);
 		}
 
 		var {
@@ -542,6 +542,12 @@ export class UnifiedHandlerServer {
 				pass: email_password,
 			},
 		});
+		this.reload_store();
+		this.websocket_api = this.setup_websoket_api();
+		this.restful_express_app = this.setup_rest_api();
+	}
+	time_travel_snapshot: time_travel_snapshot;
+	reload_store() {
 		this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
 
 		this.onChange = () => {
@@ -549,11 +555,7 @@ export class UnifiedHandlerServer {
 				this.sync_websocket_client(i);
 			}
 		};
-		this.websocket_api = this.setup_websoket_api();
-		this.restful_express_app = this.setup_rest_api();
 	}
-	time_travel_snapshot: time_travel_snapshot;
-
 	time_travel(snapshot: time_travel_snapshot) {
 		this.time_travel_snapshot = snapshot;
 		this.onChange();
@@ -664,7 +666,6 @@ export class UnifiedHandlerServer {
 			is done by system itself.
 		*/
 	}): number {
-		console.time("all_new_tr");
 		var thing: ThingType | {} =
 			typeof thing_id === "undefined"
 				? {}
@@ -729,10 +730,8 @@ export class UnifiedHandlerServer {
 		}
 		this.transactions.push(transaction);
 		fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
-		console.time("onchange");
+
 		this.onChange();
-		console.timeEnd("onchange");
-		console.timeEnd("all_new_tr");
 		return transaction.thing_id;
 	}
 
@@ -920,4 +919,12 @@ export class UnifiedHandlerServer {
 	}
 
 	transactions: transaction[] = [];
+	reset_but_env() {
+		//resets store.json and uploads dir to empty
+		//init is done in constructor so there's no need to check any existance
+		rmSync(this.absolute_paths.uploads_dir, { recursive: true, force: true });
+		mkdirSync(this.absolute_paths.uploads_dir, { recursive: true });
+		fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify([]));
+		this.reload_store();
+	}
 }
