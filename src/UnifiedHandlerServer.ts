@@ -26,6 +26,8 @@ import {
 	websocket_client,
 	time_travel_snapshot,
 	cache,
+	meta,
+	non_file_meta_value,
 } from "./UnifiedHandler_types.js";
 import { exit } from "process";
 import {
@@ -39,6 +41,7 @@ import {
 	new_transaction_privileges_check,
 	rdiff_path_to_lock_path_format,
 	reserved_value_is_used,
+	resolve_thing,
 	thing_transactions,
 	validate_lock_structure,
 } from "./utils.js";
@@ -192,6 +195,17 @@ export class UnifiedHandlerServer {
 						thing_id: new_user_id,
 						user_id: new_user_id,
 					});
+					console.log({
+						user_id: new_user_id,
+						...(request.body.exp_duration
+							? {
+									exp: Math.round(
+										new Date().getTime() / 1000 + request.body.exp_duration
+									),
+							  }
+							: undefined),
+					});
+					console.log(this.env.jwt_secret);
 					response.json({
 						jwt: jwt_module.sign(
 							{
@@ -545,33 +559,17 @@ export class UnifiedHandlerServer {
 				pass: email_password,
 			},
 		});
-		this.unresolved_cache = calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
-		this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
+		this.unresolved_cache = [];
+		this.cache = [];
 		this.reload_store();
-		this.onChange = () => {
-			for (var i of this.websocket_clients) {
-				this.sync_websocket_client(i);
-			}
 
-			//update caches props
-			this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
-			this.unresolved_cache = calc_unresolved_cache(
-				this.transactions,
-				this.time_travel_snapshot
-			);
-		};
 		this.websocket_api = this.setup_websoket_api();
 		this.restful_express_app = this.setup_rest_api();
 	}
-	time_travel_snapshot: time_travel_snapshot;
 	reload_store() {
 		this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
-		this.onChange();
 	}
-	time_travel(snapshot: time_travel_snapshot) {
-		this.time_travel_snapshot = snapshot;
-		this.onChange();
-	}
+
 	cache: cache;
 	unresolved_cache: cache;
 	new_verf_code(email: string): number {
@@ -741,11 +739,10 @@ export class UnifiedHandlerServer {
 				"applying this requested transaction will make unresolved cache contain a reserved value. dont use reserved values in things."
 			);
 		}
-		this.transactions.push(transaction);
+		this.transactions = this.transactions.concat(transaction);
 
 		fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
 
-		this.onChange();
 		point.end();
 		return transaction.thing_id;
 	}
@@ -917,13 +914,12 @@ export class UnifiedHandlerServer {
 	new_transaction_privileges_check = new_transaction_privileges_check;
 	extract_user_id = extract_user_id;
 
-	onChange: () => void = () => {};
 	find_user_private_data_id(user_id: number): number {
 		var user: cache_item | undefined = this.unresolved_cache.find(
 			(ci) => ci.thing_id === user_id
 		);
 		if (user === undefined) {
-			throw "was trying to find usr private data : user could not be found";
+			throw "was trying to find user private data : user could not be found";
 		} else {
 			if (user.thing.type !== "user") {
 				throw "internal error. given user id doesnt belong a user";
@@ -932,8 +928,73 @@ export class UnifiedHandlerServer {
 			}
 		}
 	}
+	_transactions: transaction[] = [];
+	set transactions(new_value: transaction[]) {
+		var diff = getDiff(this.transactions, new_value);
+		this._transactions = new_value;
+		if (
+			diff.every(
+				(i) => i.op === "add" && i.path.length === 1 && typeof i.path[0] === "number"
+			)
+		) {
+			diff.forEach((diff_part) => {
+				//just apply these new transactions because of optimization
 
-	transactions: transaction[] = [];
+				//applying changes to unres cache
+				var transaction = diff_part.val;
+
+				var old_cache_item = this.unresolved_cache.find(
+					(cache_item) => cache_item.thing_id === transaction.thing_id
+				);
+				if (old_cache_item === undefined) {
+					var tmp: any = {};
+					applyDiff(tmp, diff_part.val.diff);
+					var new_cache_item: cache_item = { thing_id: transaction.thing_id, thing: tmp };
+
+					this.unresolved_cache.push(new_cache_item);
+				} else {
+					applyDiff(old_cache_item.thing, diff_part.val.diff);
+				}
+
+				this.cache = this.cache.filter(
+					(cache_item) => cache_item.thing_id !== transaction.thing_id
+				);
+				this.cache.push({
+					thing_id: transaction.thing_id,
+					thing: resolve_thing(
+						this.transactions.filter((tr) => tr.thing_id === transaction.thing_id),
+						transaction.thing_id,
+						undefined
+					),
+				});
+			});
+		} else {
+			//update caches props
+			this.cache = calc_cache(this.transactions, undefined);
+			this.unresolved_cache = calc_unresolved_cache(this.transactions, undefined);
+		}
+		//attach its_meta_cache_item
+		this.cache.forEach((cache_item) => {
+			cache_item.its_meta_cache_item = this.cache.find(
+				(ci) => ci.thing.type === "meta" && ci.thing.value.thing_id === cache_item.thing_id
+			) as cache_item<meta<non_file_meta_value>>;
+		});
+
+		this.unresolved_cache.forEach((cache_item) => {
+			cache_item.its_meta_cache_item = this.unresolved_cache.find(
+				(ci) => ci.thing.type === "meta" && ci.thing.value.thing_id === cache_item.thing_id
+			) as cache_item<meta<non_file_meta_value>>;
+		});
+
+		for (var i of this.websocket_clients) {
+			this.sync_websocket_client(i);
+		}
+		console.log(this.cache.length);
+		console.log(this.unresolved_cache.length);
+	}
+	get transactions() {
+		return this._transactions;
+	}
 	reset_but_env() {
 		//resets store.json and uploads dir to empty
 		//init is done in constructor so there's no need to check any existance

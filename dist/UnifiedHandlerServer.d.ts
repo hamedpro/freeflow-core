@@ -3,7 +3,7 @@
 import { createServer as https_create_server } from "https";
 import { createServer as http_create_server } from "http";
 import nodemailer from "nodemailer";
-import { cache_item, env, profile, profile_seed, core_thing, transaction, verification_code, websocket_client, time_travel_snapshot, cache } from "./UnifiedHandler_types.js";
+import { cache_item, env, profile, profile_seed, core_thing, transaction, verification_code, websocket_client, cache } from "./UnifiedHandler_types.js";
 import { extract_user_id, new_transaction_privileges_check } from "./utils.js";
 import { perf_profiler } from "./performance_profiler.js";
 export declare class UnifiedHandlerServer {
@@ -28,9 +28,7 @@ export declare class UnifiedHandlerServer {
     setup_websoket_api(): import("https").Server<typeof import("http").IncomingMessage, typeof import("http").ServerResponse> | import("http").Server<typeof import("http").IncomingMessage, typeof import("http").ServerResponse>;
     setup_rest_api(): import("https").Server<typeof import("http").IncomingMessage, typeof import("http").ServerResponse> | import("http").Server<typeof import("http").IncomingMessage, typeof import("http").ServerResponse>;
     constructor();
-    time_travel_snapshot: time_travel_snapshot;
     reload_store(): void;
-    time_travel(snapshot: time_travel_snapshot): void;
     cache: cache;
     unresolved_cache: cache;
     new_verf_code(email: string): number;
@@ -54,8 +52,9 @@ export declare class UnifiedHandlerServer {
     apply_max_sync_depth(transactions: transaction[], max_sync_depth: number | undefined): transaction[];
     new_transaction_privileges_check: typeof new_transaction_privileges_check;
     extract_user_id: typeof extract_user_id;
-    onChange: () => void;
     find_user_private_data_id(user_id: number): number;
-    transactions: transaction[];
+    _transactions: transaction[];
+    set transactions(new_value: transaction[]);
+    get transactions(): transaction[];
     reset_but_env(): void;
 }

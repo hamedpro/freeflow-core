@@ -46,8 +46,8 @@ export declare class TransactionInterpreter implements TransactionInterpreterTyp
     get complete_diff(): complete_diff;
     transactions: transaction[];
     constructor(transactions: transaction[], tr_id: number);
-    get cache_item_before_change(): cache_item<any>;
-    get cache_item_after_change(): cache_item<any>;
+    get cache_item_before_change(): cache_item;
+    get cache_item_after_change(): cache_item;
     find_change(...path: string[]): {
         path: string[];
         before: any;

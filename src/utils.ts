@@ -490,28 +490,25 @@ export function calc_complete_transaction_diff(
 	if (
 		transactions.find((tr) => tr.thing_id === thing_id && tr.id < transaction_id) !== undefined
 	) {
-		thing_before_change = calc_unresolved_thing(
-			snapshot_filtered(
-				transactions.filter((tr) => tr.thing_id === thing_id),
-				{
-					type: "transaction_id",
-					value: transaction_id - 1,
-				}
-			)
-		).thing;
-	} else {
-		thing_before_change = undefined;
-	}
-
-	var thing_after_change = calc_unresolved_thing(
-		snapshot_filtered(
+		var tmp = snapshot_filtered(
 			transactions.filter((tr) => tr.thing_id === thing_id),
 			{
 				type: "transaction_id",
-				value: transaction_id,
+				value: transaction_id - 1,
 			}
-		)
-	).thing;
+		);
+		thing_before_change = tmp.length !== 0 ? calc_unresolved_thing(tmp).thing : {};
+	} else {
+		thing_before_change = undefined;
+	}
+	var tmp = snapshot_filtered(
+		transactions.filter((tr) => tr.thing_id === thing_id),
+		{
+			type: "transaction_id",
+			value: transaction_id,
+		}
+	);
+	var thing_after_change = tmp.length !== 0 ? calc_unresolved_thing(tmp).thing : {};
 
 	return custom_find_unique(
 		[...calc_all_paths(thing_before_change), ...calc_all_paths(thing_after_change)],
@@ -621,27 +618,29 @@ export class TransactionInterpreter implements TransactionInterpreterTypes {
 		if (t === undefined) throw "there is not any transaction with that id to interpret.";
 		this.tr = t;
 	}
-	get cache_item_before_change() {
-		return calc_unresolved_thing(
-			snapshot_filtered(
-				this.transactions.filter((tr) => tr.thing_id === this.tr.thing_id),
-				{
-					value: this.tr.id - 1,
-					type: "transaction_id",
-				}
-			)
+	get cache_item_before_change(): cache_item {
+		var tmp = snapshot_filtered(
+			this.transactions.filter((tr) => tr.thing_id === this.tr.thing_id),
+			{
+				value: this.tr.id - 1,
+				type: "transaction_id",
+			}
 		);
+		return tmp.length === 0
+			? { thing_id: this.tr.thing_id, thing: {} }
+			: calc_unresolved_thing(tmp);
 	}
-	get cache_item_after_change() {
-		return calc_unresolved_thing(
-			snapshot_filtered(
-				this.transactions.filter((tr) => tr.thing_id === this.tr.thing_id),
-				{
-					value: this.tr.id,
-					type: "transaction_id",
-				}
-			)
+	get cache_item_after_change(): cache_item {
+		var tmp = snapshot_filtered(
+			this.transactions.filter((tr) => tr.thing_id === this.tr.thing_id),
+			{
+				value: this.tr.id,
+				type: "transaction_id",
+			}
 		);
+		return tmp.length === 0
+			? { thing_id: this.tr.thing_id, thing: {} }
+			: calc_unresolved_thing(tmp);
 	}
 	find_change(...path: string[]) {
 		var t = calc_complete_transaction_diff(this.transactions, this.tr.id).filter(

@@ -14,7 +14,7 @@ import { readFileSync, rmSync } from "fs";
 import { Server } from "socket.io";
 import path from "path";
 import { exit } from "process";
-import { calc_cache, calc_unresolved_cache, calc_user_discoverable_things, check_lock, extract_user_id, find_thing_meta, flexible_user_finder, new_transaction_privileges_check, rdiff_path_to_lock_path_format, reserved_value_is_used, thing_transactions, validate_lock_structure, } from "./utils.js";
+import { calc_cache, calc_unresolved_cache, calc_user_discoverable_things, check_lock, extract_user_id, find_thing_meta, flexible_user_finder, new_transaction_privileges_check, rdiff_path_to_lock_path_format, reserved_value_is_used, resolve_thing, thing_transactions, validate_lock_structure, } from "./utils.js";
 import { custom_find_unique } from "hamedpro-helpers";
 import { export_backup } from "./backup.js";
 import { sign_jwt } from "./client_side_incompatible_utils.js";
@@ -119,6 +119,12 @@ export class UnifiedHandlerServer {
                     thing_id: new_user_id,
                     user_id: new_user_id,
                 });
+                console.log(Object.assign({ user_id: new_user_id }, (request.body.exp_duration
+                    ? {
+                        exp: Math.round(new Date().getTime() / 1000 + request.body.exp_duration),
+                    }
+                    : undefined)));
+                console.log(this.env.jwt_secret);
                 response.json({
                     jwt: jwt_module.sign(Object.assign({ user_id: new_user_id }, (request.body.exp_duration
                         ? {
@@ -350,8 +356,7 @@ export class UnifiedHandlerServer {
         this.find_thing_meta = (thing_id) => find_thing_meta(this.cache, thing_id);
         this.new_transaction_privileges_check = new_transaction_privileges_check;
         this.extract_user_id = extract_user_id;
-        this.onChange = () => { };
-        this.transactions = [];
+        this._transactions = [];
         mkdirSync(this.absolute_paths.uploads_dir, { recursive: true });
         if (fs.existsSync(this.absolute_paths.store_file) !== true) {
             fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify([], undefined, 4));
@@ -375,27 +380,14 @@ export class UnifiedHandlerServer {
                 pass: email_password,
             },
         });
-        this.unresolved_cache = calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
-        this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
+        this.unresolved_cache = [];
+        this.cache = [];
         this.reload_store();
-        this.onChange = () => {
-            for (var i of this.websocket_clients) {
-                this.sync_websocket_client(i);
-            }
-            //update caches props
-            this.cache = calc_cache(this.transactions, this.time_travel_snapshot);
-            this.unresolved_cache = calc_unresolved_cache(this.transactions, this.time_travel_snapshot);
-        };
         this.websocket_api = this.setup_websoket_api();
         this.restful_express_app = this.setup_rest_api();
     }
     reload_store() {
         this.transactions = JSON.parse(fs.readFileSync(this.absolute_paths.store_file, "utf-8"));
-        this.onChange();
-    }
-    time_travel(snapshot) {
-        this.time_travel_snapshot = snapshot;
-        this.onChange();
     }
     new_verf_code(email) {
         var result = gen_verification_code();
@@ -516,9 +508,8 @@ export class UnifiedHandlerServer {
         if (reserved_value_is_used([...this.transactions, transaction]) === true) {
             throw new Error("applying this requested transaction will make unresolved cache contain a reserved value. dont use reserved values in things.");
         }
-        this.transactions.push(transaction);
+        this.transactions = this.transactions.concat(transaction);
         fs.writeFileSync(this.absolute_paths.store_file, JSON.stringify(this.transactions));
-        this.onChange();
         point.end();
         return transaction.thing_id;
     }
@@ -639,7 +630,7 @@ export class UnifiedHandlerServer {
     find_user_private_data_id(user_id) {
         var user = this.unresolved_cache.find((ci) => ci.thing_id === user_id);
         if (user === undefined) {
-            throw "was trying to find usr private data : user could not be found";
+            throw "was trying to find user private data : user could not be found";
         }
         else {
             if (user.thing.type !== "user") {
@@ -649,6 +640,52 @@ export class UnifiedHandlerServer {
                 return Number(user.thing.value.password.split(":")[2]);
             }
         }
+    }
+    set transactions(new_value) {
+        var diff = getDiff(this.transactions, new_value);
+        this._transactions = new_value;
+        if (diff.every((i) => i.op === "add" && i.path.length === 1 && typeof i.path[0] === "number")) {
+            diff.forEach((diff_part) => {
+                //just apply these new transactions because of optimization
+                //applying changes to unres cache
+                var transaction = diff_part.val;
+                var old_cache_item = this.unresolved_cache.find((cache_item) => cache_item.thing_id === transaction.thing_id);
+                if (old_cache_item === undefined) {
+                    var tmp = {};
+                    applyDiff(tmp, diff_part.val.diff);
+                    var new_cache_item = { thing_id: transaction.thing_id, thing: tmp };
+                    this.unresolved_cache.push(new_cache_item);
+                }
+                else {
+                    applyDiff(old_cache_item.thing, diff_part.val.diff);
+                }
+                this.cache = this.cache.filter((cache_item) => cache_item.thing_id !== transaction.thing_id);
+                this.cache.push({
+                    thing_id: transaction.thing_id,
+                    thing: resolve_thing(this.transactions.filter((tr) => tr.thing_id === transaction.thing_id), transaction.thing_id, undefined),
+                });
+            });
+        }
+        else {
+            //update caches props
+            this.cache = calc_cache(this.transactions, undefined);
+            this.unresolved_cache = calc_unresolved_cache(this.transactions, undefined);
+        }
+        //attach its_meta_cache_item
+        this.cache.forEach((cache_item) => {
+            cache_item.its_meta_cache_item = this.cache.find((ci) => ci.thing.type === "meta" && ci.thing.value.thing_id === cache_item.thing_id);
+        });
+        this.unresolved_cache.forEach((cache_item) => {
+            cache_item.its_meta_cache_item = this.unresolved_cache.find((ci) => ci.thing.type === "meta" && ci.thing.value.thing_id === cache_item.thing_id);
+        });
+        for (var i of this.websocket_clients) {
+            this.sync_websocket_client(i);
+        }
+        console.log(this.cache.length);
+        console.log(this.unresolved_cache.length);
+    }
+    get transactions() {
+        return this._transactions;
     }
     reset_but_env() {
         //resets store.json and uploads dir to empty
