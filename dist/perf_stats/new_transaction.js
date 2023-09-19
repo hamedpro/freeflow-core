@@ -1,7 +1,7 @@
 import { UnifiedHandlerServer } from "../UnifiedHandlerServer";
 var uhs = new UnifiedHandlerServer();
 uhs.reset_but_env();
-for (var i = 0; i < 900; i++) {
+for (var i = 0; i < 1500; i++) {
     uhs.new_transaction({
         new_thing_creator: () => ({
             type: "test",

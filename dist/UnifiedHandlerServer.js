@@ -556,6 +556,7 @@ export class UnifiedHandlerServer {
     sync_websocket_client(websocket_client) {
         var prev = (websocket_client.prev_profiles_seed || []).map((seed) => this.calc_profile(seed, websocket_client.last_synced_snapshot));
         var current = (websocket_client.profiles_seed || []).map((profile_seed) => this.calc_profile(profile_seed, undefined));
+        var anonumous_profile = current.find((p) => p.user_id === 0);
         websocket_client.socket.emit("sync_profiles", getDiff(prev, current));
         websocket_client.last_synced_snapshot = Math.max(...this.transactions.map((i) => i.id));
         websocket_client.socket.emit("sync_all_transactions", this.calc_all_discoverable_transactions(current).filter((tr) => websocket_client.cached_transaction_ids.includes(tr.id) === false));
@@ -681,8 +682,7 @@ export class UnifiedHandlerServer {
         for (var i of this.websocket_clients) {
             this.sync_websocket_client(i);
         }
-        console.log(this.cache.length);
-        console.log(this.unresolved_cache.length);
+        //console.log(this.cache.slice(-10, -1));
     }
     get transactions() {
         return this._transactions;
