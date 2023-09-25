@@ -1,7 +1,7 @@
 import cors from "cors";
 import formidable, { Files } from "formidable";
 import jwt_module from "jsonwebtoken";
-import express from "express";
+import express, { Request, Response, request } from "express";
 //read README file : UnifiedHandlerSystem.md
 import fs, { mkdirSync } from "fs";
 import os from "os";
@@ -329,7 +329,39 @@ export class UnifiedHandlerServer {
 				}
 			});
 		});
+		restful_express_app.get("/export_files", async (request: Request, response: Response) => {
+			var user_id = Number(response.locals.user_id);
 
+			var file_ids: number[] = JSON.parse(
+				("file_ids" in request.query &&
+					typeof request.query.file_ids === "string" &&
+					request.query.file_ids) ||
+					"[]"
+			);
+
+			var discoverable_files = this.calc_user_discoverable_files(user_id);
+			if (file_ids.some((file_id) => discoverable_files.includes(file_id) === false)) {
+				response
+					.status(403)
+					.json(
+						`you have requested to access to at least one file that you have not access to`
+					);
+				return;
+			}
+			var archive_name = await export_backup({
+				all_transactions: [],
+				initial_values: [],
+				included_files: file_ids,
+				user_id,
+			});
+			archive_name = path.resolve(archive_name);
+			response.download(archive_name, (err: any) => {
+				fs.rmSync(archive_name, { force: true });
+				if (err) {
+					throw err;
+				}
+			});
+		});
 		restful_express_app.post("/send_verification_code", async (request: any, response: any) => {
 			var email_verf_code = this.new_verf_code(request.body.email_address);
 			await this.smtp_transport.sendMail({

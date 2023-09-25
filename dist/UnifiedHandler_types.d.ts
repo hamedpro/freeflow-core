@@ -26,6 +26,7 @@ export type file_meta_value = {
     modify_privileges: number;
     file_id: number;
     file_mime_type: string;
+    originalFilename: string;
 };
 export type non_file_meta_value = {
     thing_privileges: thing_privileges;
