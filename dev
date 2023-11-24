@@ -1,4 +1,14 @@
 #!/bin/bash
+
+cleanup() {
+    echo "Cleaning up..."
+    pkill -P $$
+    exit
+}
+
+# Trap the signal when the script is terminated
+trap cleanup EXIT
+
 tsc --watch --preserveWatchOutput & 
-nodemon ./dist/server.js &
-wait
+nodemon ./dist/server.js & 
+wait 

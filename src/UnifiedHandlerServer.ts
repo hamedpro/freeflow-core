@@ -95,6 +95,7 @@ export class UnifiedHandlerServer {
 	restful_api_port: number;
 	https_cert_path: undefined | string;
 	https_key_path: undefined | string;
+
 	smtp_transport: ReturnType<typeof nodemailer.createTransport>;
 	env: env;
 	get absolute_paths(): {
@@ -113,12 +114,17 @@ export class UnifiedHandlerServer {
 	setup_websoket_api() {
 		var websocket_server;
 		if (this.use_https === true) {
-			if (this.https_cert_path === undefined || this.https_key_path === undefined) {
+			if (
+				this.https_cert_path === undefined ||
+				this.https_key_path === undefined ||
+				this.env.https_bundle_path === undefined
+			) {
 				throw "use_https is ture but at least one of these is undefined : https_cert_path or https_key_path";
 			}
 			websocket_server = https_create_server({
 				key: readFileSync(this.https_key_path, "utf-8"),
 				cert: readFileSync(this.https_cert_path, "utf-8"),
+				ca: [readFileSync(this.env.https_bundle_path, "utf-8")],
 			});
 		} else {
 			websocket_server = http_create_server();
@@ -140,13 +146,18 @@ export class UnifiedHandlerServer {
 		var restful_express_app = express();
 		var restful_server;
 		if (this.env.use_https === true) {
-			if (this.env.https_cert_path === undefined || this.env.https_key_path === undefined) {
+			if (
+				this.env.https_cert_path === undefined ||
+				this.env.https_key_path === undefined ||
+				this.env.https_bundle_path === undefined
+			) {
 				throw "use_https is ture but at least one of these is undefined : https_cert_path or https_key_path";
 			}
 			restful_server = https_create_server(
 				{
 					key: readFileSync(this.env.https_key_path, "utf-8"),
 					cert: readFileSync(this.env.https_cert_path, "utf-8"),
+					ca: [readFileSync(this.env.https_bundle_path, "utf-8")],
 				},
 				restful_express_app
 			);
