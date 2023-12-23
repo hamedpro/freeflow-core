@@ -166,7 +166,7 @@ export class UnifiedHandlerServer {
 		}
 
 		restful_express_app.use(cors());
-		restful_express_app.use(express.json());
+		restful_express_app.use(express.json({ limit: "50mb" }));
 		restful_express_app.use(custom_express_jwt_middleware(this.jwt_secret));
 		restful_express_app.post(
 			"/register",
